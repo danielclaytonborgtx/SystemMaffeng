@@ -1,0 +1,92 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { LayoutDashboard, Package, Users, Truck, FileText, Settings, ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { Logo } from "@/components/ui/logo"
+
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Equipamentos",
+    href: "/dashboard/equipamentos",
+    icon: Package,
+  },
+  {
+    name: "Colaboradores",
+    href: "/dashboard/colaboradores",
+    icon: Users,
+  },
+  {
+    name: "Veículos",
+    href: "/dashboard/veiculos",
+    icon: Truck,
+  },
+  {
+    name: "Relatórios",
+    href: "/dashboard/relatorios",
+    icon: FileText,
+  },
+  {
+    name: "Configurações",
+    href: "/dashboard/configuracoes",
+    icon: Settings,
+  },
+]
+
+export function DashboardSidebar() {
+  const pathname = usePathname()
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  return (
+    <div
+      className={cn(
+        "bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64",
+      )}
+    >
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+          {!isCollapsed && <Logo size="sm" showText={!isCollapsed} className="text-sidebar-foreground" />}
+          {isCollapsed && <Logo size="sm" showText={false} className="mx-auto" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
+
+        <nav className="flex-1 space-y-1 p-2">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                )}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {!isCollapsed && <span>{item.name}</span>}
+              </Link>
+            )
+          })}
+        </nav>
+      </div>
+    </div>
+  )
+}
