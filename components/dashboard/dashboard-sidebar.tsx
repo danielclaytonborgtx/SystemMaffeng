@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { LayoutDashboard, Package, Users, Truck, FileText, Settings, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Logo } from "@/components/ui/logo"
+ 
 
 const navigation = [
   {
@@ -53,9 +53,10 @@ export function DashboardSidebar() {
       )}
     >
       <div className="flex h-full flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-          {!isCollapsed && <Logo size="sm" showText={!isCollapsed} className="text-sidebar-foreground" />}
-          {isCollapsed && <Logo size="sm" showText={false} className="mx-auto" />}
+        <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-4 border-b border-sidebar-border`}>
+          {!isCollapsed && (
+            <span className="text-sm font-medium text-sidebar-foreground">Engenharia e Manutenção</span>
+          )}
           <Button
             variant="ghost"
             size="icon"

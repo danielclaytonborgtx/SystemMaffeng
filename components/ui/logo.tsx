@@ -21,12 +21,11 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
         alt="MAFFENG Logo"
         width={48}
         height={48}
-        className={cn("object-contain", sizeClasses[size])}
+        className={cn("object-contain rounded-lg", sizeClasses[size])}
       />
       {showText && (
         <div className="flex flex-col">
-          <span className="text-lg font-bold text-primary">MAFFENG</span>
-          <span className="text-xs text-muted-foreground">Engenharia e Manutenção</span>
+          <span className="text-lg font-bold text-primary-foreground">MAFFENG</span>
         </div>
       )}
     </div>
