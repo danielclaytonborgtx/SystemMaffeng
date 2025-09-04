@@ -102,7 +102,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Histórico de Equipamentos</DialogTitle>
           <DialogDescription>Histórico completo de utilização de equipamentos</DialogDescription>

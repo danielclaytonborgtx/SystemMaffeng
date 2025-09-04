@@ -93,12 +93,12 @@ export default function EquipamentosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Equipamentos</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Equipamentos</h1>
           <p className="text-muted-foreground">Gerencie o estoque de equipamentos</p>
         </div>
-        <Button onClick={() => setIsEquipmentDialogOpen(true)} className="cursor-pointer">
+        <Button onClick={() => setIsEquipmentDialogOpen(true)} className="cursor-pointer w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Novo Equipamento
         </Button>
@@ -151,7 +151,8 @@ export default function EquipamentosPage() {
           <CardDescription>{filteredEquipments.length} equipamento(s) encontrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Código</TableHead>
@@ -202,6 +203,7 @@ export default function EquipamentosPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

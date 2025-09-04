@@ -70,7 +70,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto mx-2">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Equipamento" : "Novo Equipamento"}</DialogTitle>
           <DialogDescription>
@@ -84,7 +84,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
               <CardTitle className="text-lg">Informações Básicas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome do Equipamento</Label>
                   <Input
@@ -107,7 +107,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="type">Tipo</Label>
                   <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
@@ -155,7 +155,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
               <CardTitle className="text-lg">Informações de Compra</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="purchaseDate">Data de Compra</Label>
                   <Input
@@ -176,7 +176,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="invoiceNumber">Número da Nota Fiscal</Label>
                   <Input

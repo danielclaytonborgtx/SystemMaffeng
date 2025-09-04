@@ -84,7 +84,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto mx-2">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Colaborador" : "Novo Colaborador"}</DialogTitle>
           <DialogDescription>
@@ -150,7 +150,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
               <CardTitle className="text-lg">Informações Pessoais</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome Completo</Label>
                   <Input
@@ -173,7 +173,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cpf">CPF</Label>
                   <Input
@@ -194,7 +194,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone</Label>
                   <Input
@@ -233,7 +233,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
               <CardTitle className="text-lg">Informações Profissionais</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="position">Cargo</Label>
                   <Input
@@ -264,7 +264,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="hireDate">Data de Contratação</Label>
                   <Input

@@ -121,12 +121,12 @@ export default function VeiculosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Veículos</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Veículos</h1>
           <p className="text-muted-foreground">Gerencie a frota e manutenções</p>
         </div>
-        <Button onClick={() => setIsVehicleDialogOpen(true)} className="cursor-pointer">
+        <Button onClick={() => setIsVehicleDialogOpen(true)} className="cursor-pointer w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Novo Veículo
         </Button>
@@ -207,7 +207,8 @@ export default function VeiculosPage() {
           <CardDescription>{filteredVehicles.length} veículo(s) encontrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Placa</TableHead>
@@ -278,6 +279,7 @@ export default function VeiculosPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

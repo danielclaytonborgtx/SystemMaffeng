@@ -48,7 +48,7 @@ export function DashboardSidebar() {
   return (
     <div
       className={cn(
-        "bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        "bg-sidebar border-r border-sidebar-border transition-all duration-300 hidden md:block",
         isCollapsed ? "w-16" : "w-64",
       )}
     >

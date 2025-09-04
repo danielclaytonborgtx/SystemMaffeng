@@ -128,12 +128,12 @@ export default function ColaboradoresPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Colaboradores</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Colaboradores</h1>
           <p className="text-muted-foreground">Gerencie os funcionários e suas atribuições</p>
         </div>
-        <Button onClick={() => setIsEmployeeDialogOpen(true)} className="cursor-pointer">
+        <Button onClick={() => setIsEmployeeDialogOpen(true)} className="cursor-pointer w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Novo Colaborador
         </Button>
@@ -215,7 +215,8 @@ export default function ColaboradoresPage() {
           <CardDescription>{filteredEmployees.length} colaborador(es) encontrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Colaborador</TableHead>
@@ -284,6 +285,7 @@ export default function ColaboradoresPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

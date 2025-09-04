@@ -94,7 +94,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto mx-2">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Veículo" : "Novo Veículo"}</DialogTitle>
           <DialogDescription>
@@ -151,7 +151,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
                 <CardTitle className="text-lg">Informações Básicas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="plate">Placa</Label>
                     <Input
@@ -174,7 +174,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="type">Tipo</Label>
                     <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
@@ -204,7 +204,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="currentKm">Quilometragem Atual</Label>
                     <Input
@@ -254,7 +254,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="insuranceExpiry">Vencimento do Seguro</Label>
                     <Input
@@ -337,7 +337,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="purchaseDate">Data de Aquisição</Label>
                   <Input

@@ -89,7 +89,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Controle de Combustível - {vehicle.plate}</DialogTitle>
           <DialogDescription>{vehicle.model}</DialogDescription>
