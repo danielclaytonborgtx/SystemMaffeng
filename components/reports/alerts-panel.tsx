@@ -82,14 +82,14 @@ export function AlertsPanel() {
                 <p className="text-sm text-muted-foreground">{alert.description}</p>
                 <p className="text-xs text-muted-foreground">{alert.time}</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="cursor-pointer">
                 Resolver
               </Button>
             </div>
           ))}
         </div>
         <div className="mt-4 pt-4 border-t">
-          <Button variant="outline" className="w-full bg-transparent">
+          <Button variant="outline" className="w-full bg-transparent cursor-pointer">
             Ver Todos os Alertas
           </Button>
         </div>

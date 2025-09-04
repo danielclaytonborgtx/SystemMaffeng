@@ -27,7 +27,7 @@ export default function ConfiguracoesPage() {
               <Label htmlFor="email">Email de Notificações</Label>
               <Input id="email" type="email" placeholder="email@empresa.com" />
             </div>
-            <Button>Salvar Alterações</Button>
+            <Button className="cursor-pointer">Salvar Alterações</Button>
           </CardContent>
         </Card>
 

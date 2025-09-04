@@ -59,16 +59,16 @@ export default function RelatoriosPage() {
               <CardContent>
                 <div className="flex items-center gap-2">
                   <ReportFiltersDialog category={report.category}>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="cursor-pointer">
                       <Calendar className="mr-2 h-4 w-4" />
                       Configurar
                     </Button>
                   </ReportFiltersDialog>
-                  <Button size="sm">
+                  <Button size="sm" className="cursor-pointer">
                     <Download className="mr-2 h-4 w-4" />
                     Gerar PDF
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="cursor-pointer">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Visualizar
                   </Button>
