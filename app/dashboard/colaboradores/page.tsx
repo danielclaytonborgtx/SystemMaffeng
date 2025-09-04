@@ -133,7 +133,7 @@ export default function ColaboradoresPage() {
           <h1 className="text-3xl font-bold text-foreground">Colaboradores</h1>
           <p className="text-muted-foreground">Gerencie os funcionários e suas atribuições</p>
         </div>
-        <Button onClick={() => setIsEmployeeDialogOpen(true)}>
+        <Button onClick={() => setIsEmployeeDialogOpen(true)} className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4" />
           Novo Colaborador
         </Button>
@@ -263,6 +263,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsEmployeeDialogOpen(true)
                         }}
+                        className="cursor-pointer"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -273,6 +274,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsHistoryDialogOpen(true)
                         }}
+                        className="cursor-pointer"
                       >
                         <History className="h-4 w-4" />
                       </Button>

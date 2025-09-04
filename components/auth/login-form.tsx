@@ -83,7 +83,7 @@ export function LoginForm() {
         />
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
         {isLoading ? "Entrando..." : "Entrar"}
       </Button>
     </form>

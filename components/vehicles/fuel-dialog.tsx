@@ -125,14 +125,14 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
           <Button
             variant={activeTab === "new" ? "default" : "ghost"}
             onClick={() => setActiveTab("new")}
-            className="rounded-b-none"
+            className="rounded-b-none cursor-pointer"
           >
             Novo Abastecimento
           </Button>
           <Button
             variant={activeTab === "history" ? "default" : "ghost"}
             onClick={() => setActiveTab("history")}
-            className="rounded-b-none"
+            className="rounded-b-none cursor-pointer"
           >
             Histórico
           </Button>
@@ -234,10 +234,10 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
             </Card>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
                 Cancelar
               </Button>
-              <Button type="submit">Registrar Abastecimento</Button>
+              <Button type="submit" className="cursor-pointer">Registrar Abastecimento</Button>
             </div>
           </form>
         )}

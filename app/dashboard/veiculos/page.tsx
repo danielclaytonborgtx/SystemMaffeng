@@ -126,7 +126,7 @@ export default function VeiculosPage() {
           <h1 className="text-3xl font-bold text-foreground">Veículos</h1>
           <p className="text-muted-foreground">Gerencie a frota e manutenções</p>
         </div>
-        <Button onClick={() => setIsVehicleDialogOpen(true)}>
+        <Button onClick={() => setIsVehicleDialogOpen(true)} className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4" />
           Novo Veículo
         </Button>
@@ -246,6 +246,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsVehicleDialogOpen(true)
                         }}
+                        className="cursor-pointer"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -256,6 +257,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsMaintenanceDialogOpen(true)
                         }}
+                        className="cursor-pointer"
                       >
                         <Wrench className="h-4 w-4" />
                       </Button>
@@ -266,6 +268,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsFuelDialogOpen(true)
                         }}
+                        className="cursor-pointer"
                       >
                         <Fuel className="h-4 w-4" />
                       </Button>

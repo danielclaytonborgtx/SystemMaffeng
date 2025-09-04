@@ -11,13 +11,13 @@ export function DashboardHeader() {
           <Logo size="md" className="text-primary-foreground" />
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer">
               <Bell className="h-5 w-5" />
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer">
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>

@@ -136,10 +136,10 @@ export function ReportFiltersDialog({ children, category }: ReportFiltersDialogP
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
             Cancelar
           </Button>
-          <Button onClick={() => setOpen(false)}>Gerar Relatório</Button>
+          <Button onClick={() => setOpen(false)} className="cursor-pointer">Gerar Relatório</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

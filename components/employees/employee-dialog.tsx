@@ -296,10 +296,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
           </Card>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit">{isEditing ? "Salvar Alterações" : "Cadastrar Colaborador"}</Button>
+            <Button type="submit" className="cursor-pointer">{isEditing ? "Salvar Alterações" : "Cadastrar Colaborador"}</Button>
           </div>
         </form>
       </DialogContent>

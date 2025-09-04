@@ -209,10 +209,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
           </Card>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit">{isEditing ? "Salvar Alterações" : "Cadastrar Equipamento"}</Button>
+            <Button type="submit" className="cursor-pointer">{isEditing ? "Salvar Alterações" : "Cadastrar Equipamento"}</Button>
           </div>
         </form>
       </DialogContent>

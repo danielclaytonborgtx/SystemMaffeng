@@ -374,10 +374,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
           </Card>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit">{isEditing ? "Salvar Alterações" : "Cadastrar Veículo"}</Button>
+            <Button type="submit" className="cursor-pointer">{isEditing ? "Salvar Alterações" : "Cadastrar Veículo"}</Button>
           </div>
         </form>
       </DialogContent>

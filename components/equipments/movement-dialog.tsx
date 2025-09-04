@@ -190,10 +190,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose }: Movem
           )}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit">{isReturn ? "Registrar Devolução" : "Registrar Saída"}</Button>
+            <Button type="submit" className="cursor-pointer">{isReturn ? "Registrar Devolução" : "Registrar Saída"}</Button>
           </div>
         </form>
       </DialogContent>

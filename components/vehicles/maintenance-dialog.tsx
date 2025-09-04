@@ -142,21 +142,21 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
           <Button
             variant={activeTab === "new" ? "default" : "ghost"}
             onClick={() => setActiveTab("new")}
-            className="rounded-b-none"
+            className="rounded-b-none cursor-pointer"
           >
             Nova Manutenção
           </Button>
           <Button
             variant={activeTab === "history" ? "default" : "ghost"}
             onClick={() => setActiveTab("history")}
-            className="rounded-b-none"
+            className="rounded-b-none cursor-pointer"
           >
             Histórico
           </Button>
           <Button
             variant={activeTab === "schedule" ? "default" : "ghost"}
             onClick={() => setActiveTab("schedule")}
-            className="rounded-b-none"
+            className="rounded-b-none cursor-pointer"
           >
             Programar Manutenções
           </Button>
@@ -258,10 +258,10 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
             </Card>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
                 Cancelar
               </Button>
-              <Button type="submit">Registrar Manutenção</Button>
+              <Button type="submit" className="cursor-pointer">Registrar Manutenção</Button>
             </div>
           </form>
         )}
@@ -342,7 +342,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
               </div>
 
               <div className="flex justify-end gap-2 mt-6">
-                <Button type="button" variant="outline" onClick={onClose}>
+                <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
                   Cancelar
                 </Button>
                 <Button
@@ -353,6 +353,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                     )
                     onClose()
                   }}
+                  className="cursor-pointer"
                 >
                   Salvar Programação
                 </Button>

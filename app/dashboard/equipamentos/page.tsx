@@ -98,7 +98,7 @@ export default function EquipamentosPage() {
           <h1 className="text-3xl font-bold text-foreground">Equipamentos</h1>
           <p className="text-muted-foreground">Gerencie o estoque de equipamentos</p>
         </div>
-        <Button onClick={() => setIsEquipmentDialogOpen(true)}>
+        <Button onClick={() => setIsEquipmentDialogOpen(true)} className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4" />
           Novo Equipamento
         </Button>
@@ -181,6 +181,7 @@ export default function EquipamentosPage() {
                           setSelectedEquipment(equipment)
                           setIsEquipmentDialogOpen(true)
                         }}
+                        className="cursor-pointer"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -191,6 +192,7 @@ export default function EquipamentosPage() {
                           setSelectedEquipment(equipment)
                           setIsMovementDialogOpen(true)
                         }}
+                        className="cursor-pointer"
                       >
                         <ArrowUpDown className="h-4 w-4" />
                       </Button>
