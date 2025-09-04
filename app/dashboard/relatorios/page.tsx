@@ -1,11 +1,31 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Calendar, FileText, TrendingUp, BarChart3 } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { AlertsPanel } from "@/components/reports/alerts-panel"
 import { ReportsCharts } from "@/components/reports/reports-charts"
+import { usePDFGenerator } from "@/hooks/use-pdf-generator"
+import { toast } from "sonner"
 
 export default function RelatoriosPage() {
+  const { generatePDF, isGenerating } = usePDFGenerator()
+
+  const handleGeneratePDF = async (category: string, title: string) => {
+    const result = await generatePDF({
+      filename: `relatorio-${category}`,
+      title: title,
+      includeCharts: true
+    })
+
+    if (result.success) {
+      toast.success(result.message)
+    } else {
+      toast.error(result.message)
+    }
+  }
+
   const reportTypes = [
     {
       title: "Relatório de Equipamentos",
@@ -64,9 +84,14 @@ export default function RelatoriosPage() {
                       Configurar
                     </Button>
                   </ReportFiltersDialog>
-                  <Button size="sm" className="cursor-pointer">
+                  <Button 
+                    size="sm" 
+                    className="cursor-pointer"
+                    onClick={() => handleGeneratePDF(report.category, report.title)}
+                    disabled={isGenerating}
+                  >
                     <Download className="mr-2 h-4 w-4" />
-                    Gerar PDF
+                    {isGenerating ? "Gerando..." : "Gerar PDF"}
                   </Button>
                   <Button variant="outline" size="sm" className="cursor-pointer">
                     <BarChart3 className="mr-2 h-4 w-4" />
