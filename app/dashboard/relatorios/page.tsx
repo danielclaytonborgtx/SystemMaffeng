@@ -77,23 +77,24 @@ export default function RelatoriosPage() {
                 <CardDescription>{report.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <ReportFiltersDialog category={report.category}>
-                    <Button variant="outline" size="sm" className="cursor-pointer">
+                    <Button variant="outline" size="sm" className="cursor-pointer flex-1 sm:flex-none py-3 sm:py-2">
                       <Calendar className="mr-2 h-4 w-4" />
-                      Configurar
+                      <span className="hidden sm:inline">Configurar</span>
+                      <span className="sm:hidden">Filtros</span>
                     </Button>
                   </ReportFiltersDialog>
                   <Button 
                     size="sm" 
-                    className="cursor-pointer"
+                    className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700 flex-1 sm:flex-none py-3 sm:py-2"
                     onClick={() => handleGeneratePDF(report.category, report.title)}
                     disabled={isGenerating}
                   >
                     <Download className="mr-2 h-4 w-4" />
                     {isGenerating ? "Gerando..." : "Gerar PDF"}
                   </Button>
-                  <Button variant="outline" size="sm" className="cursor-pointer">
+                  <Button variant="outline" size="sm" className="cursor-pointer flex-1 sm:flex-none py-3 sm:py-2">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Visualizar
                   </Button>

@@ -126,7 +126,7 @@ export default function VeiculosPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Veículos</h1>
           <p className="text-muted-foreground">Gerencie a frota e manutenções</p>
         </div>
-        <Button onClick={() => setIsVehicleDialogOpen(true)} className="cursor-pointer w-full sm:w-auto">
+        <Button onClick={() => setIsVehicleDialogOpen(true)} className="cursor-pointer w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-700">
           <Plus className="mr-2 h-4 w-4" />
           Novo Veículo
         </Button>
@@ -231,7 +231,7 @@ export default function VeiculosPage() {
                     <div className="flex items-center gap-2">
                       {getStatusBadge(vehicle.status)}
                       {isMaintenanceDue(vehicle) && (
-                        <AlertTriangle className="h-4 w-4 text-red-500" title="Manutenção vencida ou próxima" />
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
                       )}
                     </div>
                   </TableCell>
