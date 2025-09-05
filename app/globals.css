@@ -11,8 +11,8 @@
   --card-foreground: oklch(0.205 0 0); /* #1f2937 - Dark gray text on cards */
   --popover: oklch(1 0 0); /* #ffffff - White popover background */
   --popover-foreground: oklch(0.205 0 0); /* #1f2937 - Dark gray popover text */
-  --primary: oklch(0.205 0 0); /* #1f2937 - Professional dark gray primary */
-  --primary-foreground: oklch(1 0 0); /* #ffffff - White text on primary */
+  --primary: oklch(0.97 0 0); /* #f1f5f9 - Same as sidebar background */
+  --primary-foreground: oklch(0.205 0 0); /* #1f2937 - Dark gray text on primary */
   --secondary: oklch(0.646 0.222 285.75); /* #8b5cf6 - Purple accent for highlights */
   --secondary-foreground: oklch(1 0 0); /* #ffffff - White text on secondary */
   --muted: oklch(0.97 0 0); /* #f1f5f9 - Light gray for muted elements */
@@ -47,8 +47,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
