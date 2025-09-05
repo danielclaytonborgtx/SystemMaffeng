@@ -299,7 +299,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
             <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer">{isEditing ? "Salvar Alterações" : "Cadastrar Colaborador"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isEditing ? "Salvar Alterações" : "Cadastrar Colaborador"}</Button>
           </div>
         </form>
       </DialogContent>

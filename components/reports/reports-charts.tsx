@@ -100,7 +100,7 @@ export function ReportsCharts() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => [`R$ ${value.toLocaleString()}`, ""]} />
+              <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, ""]} />
               <Line type="monotone" dataKey="equipamentos" stroke="#3b82f6" name="Equipamentos" strokeWidth={2} />
               <Line type="monotone" dataKey="manutencao" stroke="#f59e0b" name="Manutenção" strokeWidth={2} />
               <Line type="monotone" dataKey="combustivel" stroke="#22c55e" name="Combustível" strokeWidth={2} />

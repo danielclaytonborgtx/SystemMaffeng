@@ -215,7 +215,8 @@ export default function ColaboradoresPage() {
           <CardDescription>{filteredEmployees.length} colaborador(es) encontrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <Table>
             <TableHeader>
               <TableRow>
@@ -285,6 +286,68 @@ export default function ColaboradoresPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {filteredEmployees.map((employee) => (
+              <Card key={employee.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Avatar className="h-10 w-10 flex-shrink-0">
+                      <AvatarImage src="/placeholder.svg" />
+                      <AvatarFallback className="text-sm">{getInitials(employee.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{employee.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{employee.email}</div>
+                      <div className="text-xs text-muted-foreground mt-1 truncate">
+                        {employee.code} • {employee.position}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">{employee.department}</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    {getStatusBadge(employee.status)}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEmployee(employee)
+                          setIsEmployeeDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-8 w-8"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEmployee(employee)
+                          setIsHistoryDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-8 w-8"
+                      >
+                        <History className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Equipamentos:</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">{employee.equipmentCount}</Badge>
+                      {employee.equipmentCount > 0 && (
+                        <span className="text-xs text-muted-foreground">equipamentos</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </CardContent>
       </Card>

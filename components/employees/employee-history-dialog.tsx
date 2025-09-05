@@ -102,7 +102,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Histórico de Equipamentos</DialogTitle>
           <DialogDescription>Histórico completo de utilização de equipamentos</DialogDescription>
@@ -124,7 +124,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
                 <div>
@@ -155,32 +155,73 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
             <CardTitle>Histórico de Movimentações</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Equipamento</TableHead>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Data Retirada</TableHead>
-                  <TableHead>Data Devolução</TableHead>
-                  <TableHead>Dias de Uso</TableHead>
-                  <TableHead>Projeto</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {equipmentHistory.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.equipmentName}</TableCell>
-                    <TableCell>{item.equipmentCode}</TableCell>
-                    <TableCell>{formatDate(item.date)}</TableCell>
-                    <TableCell>{item.returnDate ? formatDate(item.returnDate) : "-"}</TableCell>
-                    <TableCell>{calculateDaysUsed(item.date, item.returnDate)} dias</TableCell>
-                    <TableCell>{item.project}</TableCell>
-                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Equipamento</TableHead>
+                    <TableHead>Código</TableHead>
+                    <TableHead>Data Retirada</TableHead>
+                    <TableHead>Data Devolução</TableHead>
+                    <TableHead>Dias de Uso</TableHead>
+                    <TableHead>Projeto</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {equipmentHistory.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.equipmentName}</TableCell>
+                      <TableCell>{item.equipmentCode}</TableCell>
+                      <TableCell>{formatDate(item.date)}</TableCell>
+                      <TableCell>{item.returnDate ? formatDate(item.returnDate) : "-"}</TableCell>
+                      <TableCell>{calculateDaysUsed(item.date, item.returnDate)} dias</TableCell>
+                      <TableCell>{item.project}</TableCell>
+                      <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-4">
+              {equipmentHistory.map((item) => (
+                <Card key={item.id} className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{item.equipmentName}</div>
+                        <div className="text-xs text-muted-foreground">{item.equipmentCode}</div>
+                      </div>
+                      <div className="flex-shrink-0 ml-2">
+                        {getStatusBadge(item.status)}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Data Retirada:</span>
+                        <div className="font-medium">{formatDate(item.date)}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Data Devolução:</span>
+                        <div className="font-medium">{item.returnDate ? formatDate(item.returnDate) : "-"}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Dias de Uso:</span>
+                        <div className="font-medium">{calculateDaysUsed(item.date, item.returnDate)} dias</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Projeto:</span>
+                        <div className="font-medium truncate">{item.project}</div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </DialogContent>

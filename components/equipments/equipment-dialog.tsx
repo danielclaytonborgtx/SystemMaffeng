@@ -212,7 +212,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
             <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer">{isEditing ? "Salvar Alterações" : "Cadastrar Equipamento"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isEditing ? "Salvar Alterações" : "Cadastrar Equipamento"}</Button>
           </div>
         </form>
       </DialogContent>

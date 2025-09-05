@@ -92,7 +92,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Manutenções - {vehicle.plate}</DialogTitle>
           <DialogDescription>{vehicle.model}</DialogDescription>
@@ -117,14 +117,14 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-medium">KM Atual:</span>
-                <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString()} km</div>
+                <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString('pt-BR')} km</div>
               </div>
               <div>
                 <span className="font-medium">Próxima Manutenção:</span>
-                <div className="text-lg font-bold">{vehicle.maintenanceKm?.toLocaleString()} km</div>
+                <div className="text-lg font-bold">{vehicle.maintenanceKm?.toLocaleString('pt-BR')} km</div>
               </div>
               <div>
                 <span className="font-medium">Última Manutenção:</span>
@@ -138,27 +138,27 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
           </CardContent>
         </Card>
 
-        <div className="flex gap-2 border-b">
+        <div className="flex flex-col sm:flex-row gap-2 border-b">
           <Button
             variant={activeTab === "new" ? "default" : "ghost"}
             onClick={() => setActiveTab("new")}
-            className="rounded-b-none cursor-pointer"
+            className="rounded-b-none cursor-pointer text-xs sm:text-sm"
           >
             Nova Manutenção
           </Button>
           <Button
             variant={activeTab === "history" ? "default" : "ghost"}
             onClick={() => setActiveTab("history")}
-            className="rounded-b-none cursor-pointer"
+            className="rounded-b-none cursor-pointer text-xs sm:text-sm"
           >
             Histórico
           </Button>
           <Button
             variant={activeTab === "schedule" ? "default" : "ghost"}
             onClick={() => setActiveTab("schedule")}
-            className="rounded-b-none cursor-pointer"
+            className="rounded-b-none cursor-pointer text-xs sm:text-sm"
           >
-            Programar Manutenções
+            Programar
           </Button>
         </div>
 
@@ -169,7 +169,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                 <CardTitle>Registrar Nova Manutenção</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="type">Tipo de Manutenção</Label>
                     <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
@@ -208,7 +208,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="cost">Custo Total (R$)</Label>
                     <Input
@@ -261,7 +261,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
               <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
                 Cancelar
               </Button>
-              <Button type="submit" className="cursor-pointer">Registrar Manutenção</Button>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">Registrar Manutenção</Button>
             </div>
           </form>
         )}
@@ -272,39 +272,81 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
               <CardTitle>Histórico de Manutenções</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>KM</TableHead>
-                    <TableHead>Custo</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {maintenanceHistory.map((maintenance) => (
-                    <TableRow key={maintenance.id}>
-                      <TableCell>{new Date(maintenance.date).toLocaleDateString("pt-BR")}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={maintenance.type === "Preventiva" ? "secondary" : "outline"}
-                          className={
-                            maintenance.type === "Preventiva"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }
-                        >
-                          {maintenance.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{maintenance.description}</TableCell>
-                      <TableCell>{maintenance.km.toLocaleString()} km</TableCell>
-                      <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>KM</TableHead>
+                      <TableHead>Custo</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {maintenanceHistory.map((maintenance) => (
+                      <TableRow key={maintenance.id}>
+                        <TableCell>{new Date(maintenance.date).toLocaleDateString("pt-BR")}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={maintenance.type === "Preventiva" ? "secondary" : "outline"}
+                            className={
+                              maintenance.type === "Preventiva"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }
+                          >
+                            {maintenance.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{maintenance.description}</TableCell>
+                        <TableCell>{maintenance.km.toLocaleString('pt-BR')} km</TableCell>
+                        <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="lg:hidden space-y-4">
+                {maintenanceHistory.map((maintenance) => (
+                  <Card key={maintenance.id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm">{new Date(maintenance.date).toLocaleDateString("pt-BR")}</div>
+                          <div className="text-xs text-muted-foreground mt-1 truncate">{maintenance.description}</div>
+                        </div>
+                        <div className="flex-shrink-0 ml-2">
+                          <Badge
+                            variant={maintenance.type === "Preventiva" ? "secondary" : "outline"}
+                            className={
+                              maintenance.type === "Preventiva"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }
+                          >
+                            {maintenance.type}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">KM:</span>
+                          <div className="font-medium">{maintenance.km.toLocaleString('pt-BR')} km</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Custo:</span>
+                          <div className="font-medium">R$ {maintenance.cost.toFixed(2)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
@@ -318,30 +360,30 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
             <CardContent>
               <div className="space-y-4">
                 {scheduledMaintenances.map((maintenance) => (
-                  <div key={maintenance.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={maintenance.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                     <div className="flex items-center space-x-3">
                       <Checkbox
                         checked={maintenance.enabled}
                         onCheckedChange={(checked) => handleScheduleToggle(maintenance.id, !!checked)}
                       />
                       <div>
-                        <div className="font-medium">{maintenance.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Intervalo: {maintenance.intervalKm.toLocaleString()} km
+                        <div className="font-medium text-sm">{maintenance.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Intervalo: {maintenance.intervalKm.toLocaleString('pt-BR')} km
                         </div>
                       </div>
                     </div>
                     {maintenance.enabled && (
-                      <div className="text-right">
-                        <div className="text-sm font-medium">Próxima em:</div>
-                        <div className="text-lg font-bold">{maintenance.nextKm.toLocaleString()} km</div>
+                      <div className="text-left sm:text-right">
+                        <div className="text-xs font-medium">Próxima em:</div>
+                        <div className="text-sm font-bold">{maintenance.nextKm.toLocaleString('pt-BR')} km</div>
                       </div>
                     )}
                   </div>
                 ))}
               </div>
 
-              <div className="flex justify-end gap-2 mt-6">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
                 <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
                   Cancelar
                 </Button>
@@ -353,7 +395,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                     )
                     onClose()
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700"
                 >
                   Salvar Programação
                 </Button>

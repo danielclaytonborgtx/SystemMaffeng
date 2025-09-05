@@ -151,7 +151,8 @@ export default function EquipamentosPage() {
           <CardDescription>{filteredEquipments.length} equipamento(s) encontrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <Table>
             <TableHeader>
               <TableRow>
@@ -203,6 +204,58 @@ export default function EquipamentosPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {filteredEquipments.map((equipment) => (
+              <Card key={equipment.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{equipment.name}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {equipment.code} • {equipment.type}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Responsável: {equipment.assignedTo || "Não atribuído"}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    {getStatusBadge(equipment.status)}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEquipment(equipment)
+                          setIsEquipmentDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-8 w-8"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEquipment(equipment)
+                          setIsMovementDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-8 w-8"
+                      >
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Valor:</span>
+                    <span className="text-sm font-medium">R$ {equipment.value.toFixed(2)}</span>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </CardContent>
       </Card>

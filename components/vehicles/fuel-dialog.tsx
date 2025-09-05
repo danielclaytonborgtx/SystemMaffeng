@@ -103,7 +103,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-medium">KM Atual:</span>
-                <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString()} km</div>
+                <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString('pt-BR')} km</div>
               </div>
               <div>
                 <span className="font-medium">Consumo Médio:</span>
@@ -237,7 +237,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
               <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
                 Cancelar
               </Button>
-              <Button type="submit" className="cursor-pointer">Registrar Abastecimento</Button>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">Registrar Abastecimento</Button>
             </div>
           </form>
         )}
@@ -264,7 +264,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
                   {fuelHistory.map((record) => (
                     <TableRow key={record.id}>
                       <TableCell>{new Date(record.date).toLocaleDateString("pt-BR")}</TableCell>
-                      <TableCell>{record.km.toLocaleString()} km</TableCell>
+                      <TableCell>{record.km.toLocaleString('pt-BR')} km</TableCell>
                       <TableCell>{record.liters.toFixed(2)} L</TableCell>
                       <TableCell>R$ {record.cost.toFixed(2)}</TableCell>
                       <TableCell>R$ {record.pricePerLiter.toFixed(3)}</TableCell>

@@ -207,7 +207,8 @@ export default function VeiculosPage() {
           <CardDescription>{filteredVehicles.length} veículo(s) encontrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <Table>
             <TableHeader>
               <TableRow>
@@ -235,7 +236,7 @@ export default function VeiculosPage() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{vehicle.currentKm.toLocaleString()} km</TableCell>
+                  <TableCell>{vehicle.currentKm.toLocaleString('pt-BR')} km</TableCell>
                   <TableCell>{new Date(vehicle.nextMaintenance).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell>{vehicle.assignedTo || "-"}</TableCell>
                   <TableCell>
@@ -279,6 +280,80 @@ export default function VeiculosPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {filteredVehicles.map((vehicle) => (
+              <Card key={vehicle.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{vehicle.model}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {vehicle.plate} • {vehicle.type}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Responsável: {vehicle.assignedTo || "Não atribuído"}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(vehicle.status)}
+                      {isMaintenanceDue(vehicle) && (
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedVehicle(vehicle)
+                          setIsVehicleDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-7 w-7"
+                      >
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedVehicle(vehicle)
+                          setIsMaintenanceDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-7 w-7"
+                      >
+                        <Wrench className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedVehicle(vehicle)
+                          setIsFuelDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-7 w-7"
+                      >
+                        <Fuel className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-muted-foreground">KM Atual:</span>
+                      <div className="font-medium">{vehicle.currentKm.toLocaleString('pt-BR')} km</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Próxima Manutenção:</span>
+                      <div className="font-medium">{new Date(vehicle.nextMaintenance).toLocaleDateString("pt-BR")}</div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </CardContent>
       </Card>

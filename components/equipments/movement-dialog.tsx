@@ -193,7 +193,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose }: Movem
             <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer">{isReturn ? "Registrar Devolução" : "Registrar Saída"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isReturn ? "Registrar Devolução" : "Registrar Saída"}</Button>
           </div>
         </form>
       </DialogContent>

@@ -125,11 +125,11 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="font-medium">KM Atual:</span>
-                  <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString()} km</div>
+                  <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString('pt-BR')} km</div>
                 </div>
                 <div>
                   <span className="font-medium">Próxima Manutenção:</span>
-                  <div className="text-lg font-bold">{vehicle.maintenanceKm?.toLocaleString()} km</div>
+                  <div className="text-lg font-bold">{vehicle.maintenanceKm?.toLocaleString('pt-BR')} km</div>
                 </div>
                 <div>
                   <span className="font-medium">Consumo:</span>
@@ -377,7 +377,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
             <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer">{isEditing ? "Salvar Alterações" : "Cadastrar Veículo"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isEditing ? "Salvar Alterações" : "Cadastrar Veículo"}</Button>
           </div>
         </form>
       </DialogContent>

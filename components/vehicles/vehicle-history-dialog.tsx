@@ -75,16 +75,16 @@ export function VehicleHistoryDialog({ open, onOpenChange, vehicle, onClose }: V
                 <CardContent className="space-y-2">
                   <div className="flex justify-between">
                     <span>Atual:</span>
-                    <span className="font-medium">{vehicle.currentKm?.toLocaleString()} km</span>
+                    <span className="font-medium">{vehicle.currentKm?.toLocaleString('pt-BR')} km</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Próxima Manutenção:</span>
-                    <span className="font-medium">{vehicle.maintenanceKm?.toLocaleString()} km</span>
+                    <span className="font-medium">{vehicle.maintenanceKm?.toLocaleString('pt-BR')} km</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Restam:</span>
                     <span className="font-medium">
-                      {(vehicle.maintenanceKm - vehicle.currentKm).toLocaleString()} km
+                      {(vehicle.maintenanceKm - vehicle.currentKm).toLocaleString('pt-BR')} km
                     </span>
                   </div>
                 </CardContent>
