@@ -15,14 +15,14 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
-    name: "Equipamentos",
-    href: "/dashboard/equipamentos",
-    icon: Package,
-  },
-  {
     name: "Colaboradores",
     href: "/dashboard/colaboradores",
     icon: Users,
+  },
+  {
+    name: "Equipamentos",
+    href: "/dashboard/equipamentos",
+    icon: Package,
   },
   {
     name: "Veículos",
