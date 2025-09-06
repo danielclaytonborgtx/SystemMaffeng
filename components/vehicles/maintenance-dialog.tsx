@@ -92,7 +92,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-4xl">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-[95vw] sm:w-[95vw]">
         <DialogHeader>
           <DialogTitle>Manutenções - {vehicle.plate}</DialogTitle>
           <DialogDescription>{vehicle.model}</DialogDescription>
