@@ -55,7 +55,7 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="bg-primary text-primary-foreground shadow-sm border-b border-border">
+    <header className="bg-primary text-primary-foreground border-b border-border">
       <div className="px-3 md:px-6 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

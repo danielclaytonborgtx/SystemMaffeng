@@ -102,14 +102,14 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto sm:max-w-4xl">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden mx-auto p-4 sm:max-w-4xl sm:w-auto sm:mx-0 sm:p-6">
         <DialogHeader>
           <DialogTitle>Histórico de Equipamentos</DialogTitle>
           <DialogDescription>Histórico completo de utilização de equipamentos</DialogDescription>
         </DialogHeader>
 
-        <Card>
-          <CardHeader>
+        <Card className="mx-0">
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
                 <AvatarImage src="/placeholder.svg" />
@@ -123,8 +123,8 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardContent className="px-4 sm:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
                 <div>
@@ -150,11 +150,11 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card className="mx-0">
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle>Histórico de Movimentações</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto">
               <Table>
@@ -188,7 +188,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-4">
               {equipmentHistory.map((item) => (
-                <Card key={item.id} className="p-4">
+                <Card key={item.id} className="p-3 sm:p-4">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
@@ -200,7 +200,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
                       <div>
                         <span className="text-muted-foreground">Data Retirada:</span>
                         <div className="font-medium">{formatDate(item.date)}</div>

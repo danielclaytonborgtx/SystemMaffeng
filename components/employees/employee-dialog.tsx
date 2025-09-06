@@ -84,7 +84,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto mx-2">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden mx-auto p-4 sm:max-w-4xl sm:w-auto sm:mx-0 sm:p-6">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Colaborador" : "Novo Colaborador"}</DialogTitle>
           <DialogDescription>
@@ -93,8 +93,8 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
         </DialogHeader>
 
         {isEditing && employee && (
-          <Card>
-            <CardHeader>
+          <Card className="mx-0">
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src="/placeholder.svg" />
@@ -106,7 +106,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Equipamentos Ativos:</span>
