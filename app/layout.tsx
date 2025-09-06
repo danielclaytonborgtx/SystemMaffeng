@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/theme-provider'
+import { AuthProvider } from '@/contexts/auth-context'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -26,9 +27,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Analytics />
-          <Toaster />
+          <AuthProvider>
+            {children}
+            <Analytics />
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

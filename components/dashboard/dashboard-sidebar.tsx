@@ -48,7 +48,7 @@ export function DashboardSidebar() {
   return (
     <div
       className={cn(
-        "bg-sidebar border-r border-sidebar-border transition-all duration-300 hidden md:block",
+        "bg-sidebar border-r border-sidebar-border transition-all duration-300 hidden md:block h-full",
         isCollapsed ? "w-16" : "w-64",
       )}
     >
@@ -87,6 +87,9 @@ export function DashboardSidebar() {
             )
           })}
         </nav>
+        
+        {/* Espaço vazio para preencher o resto da altura */}
+        <div className="flex-1"></div>
       </div>
     </div>
   )

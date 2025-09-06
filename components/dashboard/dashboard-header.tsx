@@ -7,8 +7,9 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { Logo } from "@/components/ui/logo"
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
 
 const navigation = [
   {
@@ -45,11 +46,17 @@ const navigation = [
 
 export function DashboardHeader() {
   const pathname = usePathname()
+  const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
+
+  const handleSettingsClick = () => {
+    router.push("/dashboard/configuracoes")
+  }
 
   return (
     <header className="bg-primary text-primary-foreground shadow-sm border-b border-border">
-      <div className="px-3 md:px-6 py-4">
+      <div className="px-3 md:px-6 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -91,7 +98,7 @@ export function DashboardHeader() {
                 </div>
               </SheetContent>
             </Sheet>
-            <Logo size="md" className="text-primary-foreground" />
+            <Logo className="[&>img]:h-16 [&>img]:w-16" />
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
@@ -105,12 +112,24 @@ export function DashboardHeader() {
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuContent align="end" className="w-56">
+                {user && (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground border-b">
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-xs">{user.email}</div>
+                  </div>
+                )}
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={handleSettingsClick}
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   Configurações
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem 
+                  className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                  onClick={logout}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>

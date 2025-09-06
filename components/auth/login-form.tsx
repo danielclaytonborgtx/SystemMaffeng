@@ -8,35 +8,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/contexts/auth-context"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { login, isLoading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError("")
 
-    const validCredentials = [
-      { email: "admin@construcao.com", password: "admin123" },
-      { email: "gestor@construcao.com", password: "gestor123" },
-      { email: "demo@construcao.com", password: "demo123" },
-    ]
-
-    const isValidUser = validCredentials.some((cred) => cred.email === email && cred.password === password)
-
-    setTimeout(() => {
-      setIsLoading(false)
-      if (isValidUser) {
-        router.push("/dashboard")
-      } else {
-        setError("Email ou senha incorretos. Tente: admin@construcao.com / admin123")
-      }
-    }, 1000)
+    const success = await login(email, password)
+    
+    if (success) {
+      router.push("/dashboard")
+    } else {
+      setError("Email ou senha incorretos. Tente: admin@construcao.com / admin123")
+    }
   }
 
   return (
@@ -83,7 +74,11 @@ export function LoginForm() {
         />
       </div>
 
-      <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
+      <Button 
+        type="submit" 
+        className="w-full cursor-pointer bg-slate-800 hover:bg-slate-900 text-white transition-colors duration-200" 
+        disabled={isLoading}
+      >
         {isLoading ? "Entrando..." : "Entrar"}
       </Button>
     </form>
