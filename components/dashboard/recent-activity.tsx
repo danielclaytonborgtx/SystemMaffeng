@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { memo, useMemo } from "react"
 
-export function RecentActivity() {
-  const activities = [
+export const RecentActivity = memo(function RecentActivity() {
+  const activities = useMemo(() => [
     {
       id: 1,
       user: "João Silva",
@@ -31,7 +32,7 @@ export function RecentActivity() {
       item: "Caminhão Volvo FH-540",
       time: "2 horas atrás",
     },
-  ]
+  ], [])
 
   return (
     <Card>
@@ -61,4 +62,4 @@ export function RecentActivity() {
       </CardContent>
     </Card>
   )
-}
+})

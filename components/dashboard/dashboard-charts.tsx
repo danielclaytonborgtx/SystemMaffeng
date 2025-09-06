@@ -1,7 +1,8 @@
-"use client"  // <- Adicione isto no topo do arquivo
+"use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { memo, useMemo } from "react"
 
 const data = [
   { name: "Jan", equipamentos: 45, manutencoes: 12 },
@@ -12,7 +13,9 @@ const data = [
   { name: "Jun", equipamentos: 67, manutencoes: 14 },
 ]
 
-export function DashboardCharts() {
+export const DashboardCharts = memo(function DashboardCharts() {
+  const chartData = useMemo(() => data, [])
+
   return (
     <Card>
       <CardHeader>
@@ -21,7 +24,7 @@ export function DashboardCharts() {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
+          <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
@@ -33,4 +36,4 @@ export function DashboardCharts() {
       </CardContent>
     </Card>
   )
-}
+})

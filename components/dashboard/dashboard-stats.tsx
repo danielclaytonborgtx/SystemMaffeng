@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Package, Users, Truck, AlertTriangle } from "lucide-react"
+import { memo } from "react"
 
-export function DashboardStats() {
+export const DashboardStats = memo(function DashboardStats() {
   const stats = [
     {
       title: "Equipamentos Ativos",
@@ -45,4 +46,4 @@ export function DashboardStats() {
       ))}
     </div>
   )
-}
+})

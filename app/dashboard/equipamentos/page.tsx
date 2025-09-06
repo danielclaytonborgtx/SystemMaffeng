@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Search, Eye, ArrowUpDown } from "lucide-react"
@@ -56,17 +56,19 @@ export default function EquipamentosPage() {
   const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false)
   const [selectedEquipment, setSelectedEquipment] = useState<any>(null)
 
-  const filteredEquipments = equipments.filter((equipment) => {
-    const matchesSearch =
-      equipment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      equipment.code.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || equipment.status === statusFilter
-    const matchesType = typeFilter === "all" || equipment.type === typeFilter
+  const filteredEquipments = useMemo(() => {
+    return equipments.filter((equipment) => {
+      const matchesSearch =
+        equipment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        equipment.code.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesStatus = statusFilter === "all" || equipment.status === statusFilter
+      const matchesType = typeFilter === "all" || equipment.type === typeFilter
 
-    return matchesSearch && matchesStatus && matchesType
-  })
+      return matchesSearch && matchesStatus && matchesType
+    })
+  }, [searchTerm, statusFilter, typeFilter])
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = useCallback((status: string) => {
     switch (status) {
       case "Disponível":
         return (
@@ -89,7 +91,7 @@ export default function EquipamentosPage() {
       default:
         return <Badge variant="outline">{status}</Badge>
     }
-  }
+  }, [])
 
   return (
     <div className="space-y-6">

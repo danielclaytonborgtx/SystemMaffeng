@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Search, Eye, History } from "lucide-react"
@@ -76,18 +76,20 @@ export default function ColaboradoresPage() {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
 
-  const filteredEmployees = employees.filter((employee) => {
-    const matchesSearch =
-      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.position.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || employee.status === statusFilter
-    const matchesDepartment = departmentFilter === "all" || employee.department === departmentFilter
+  const filteredEmployees = useMemo(() => {
+    return employees.filter((employee) => {
+      const matchesSearch =
+        employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.position.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesStatus = statusFilter === "all" || employee.status === statusFilter
+      const matchesDepartment = departmentFilter === "all" || employee.department === departmentFilter
 
-    return matchesSearch && matchesStatus && matchesDepartment
-  })
+      return matchesSearch && matchesStatus && matchesDepartment
+    })
+  }, [searchTerm, statusFilter, departmentFilter])
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = useCallback((status: string) => {
     switch (status) {
       case "Ativo":
         return (
@@ -116,15 +118,15 @@ export default function ColaboradoresPage() {
       default:
         return <Badge variant="outline">{status}</Badge>
     }
-  }
+  }, [])
 
-  const getInitials = (name: string) => {
+  const getInitials = useCallback((name: string) => {
     return name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-  }
+  }, [])
 
   return (
     <div className="space-y-6">

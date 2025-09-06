@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Clock, Wrench } from "lucide-react"
+import { memo, useMemo } from "react"
 
-export function AlertsPanel() {
-  const alerts = [
+export const AlertsPanel = memo(function AlertsPanel() {
+  const alerts = useMemo(() => [
     {
       id: 1,
       type: "urgent",
@@ -28,7 +29,7 @@ export function AlertsPanel() {
       description: "Furadeira elétrica devolvida por João Silva",
       time: "3 horas atrás",
     },
-  ]
+  ], [])
 
   return (
     <Card>
@@ -64,4 +65,4 @@ export function AlertsPanel() {
       </CardContent>
     </Card>
   )
-}
+})
