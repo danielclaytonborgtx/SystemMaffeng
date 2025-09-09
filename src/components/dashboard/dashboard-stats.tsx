@@ -8,24 +8,28 @@ export const DashboardStats = memo(function DashboardStats() {
       title: "Equipamentos Ativos",
       value: "247",
       icon: Package,
+      iconColor: "text-blue-500",
       description: "+12% em relação ao mês anterior",
     },
     {
       title: "Colaboradores",
       value: "89",
       icon: Users,
+      iconColor: "text-green-500",
       description: "3 novos contratados esta semana",
     },
     {
       title: "Veículos da Frota",
       value: "32",
       icon: Truck,
+      iconColor: "text-purple-500",
       description: "2 em manutenção preventiva",
     },
     {
       title: "Alertas Pendentes",
       value: "5",
       icon: AlertTriangle,
+      iconColor: "text-red-500",
       description: "3 manutenções vencidas",
     },
   ]
@@ -36,7 +40,7 @@ export const DashboardStats = memo(function DashboardStats() {
         <Card key={index}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-            <stat.icon className="h-4 w-4 text-muted-foreground" />
+            <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
