@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, Package, Users, Truck, FileText, Settings, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/ui/logo"
 import { useState } from "react"
  
 
@@ -53,19 +54,32 @@ export function DashboardSidebar() {
       )}
     >
       <div className="flex h-full flex-col">
-        <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-4 border-b border-sidebar-border`}>
-          {!isCollapsed && (
-            <span className="text-sm font-medium text-sidebar-foreground">Engenharia e Manutenção</span>
+        {/* Logo Section */}
+        <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} p-4`}>
+          {!isCollapsed ? (
+            <div className="flex flex-col">
+              <Logo className="[&>img]:h-8 [&>img]:w-8" />
+              <span className="text-xs text-muted-foreground mt-1">Engenharia e Manutenção</span>
+            </div>
+          ) : (
+            <div></div>
           )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer"
+            className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer h-8 w-8 flex-shrink-0"
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
         </div>
+
+        {/* Logo for collapsed state - between arrow and navigation */}
+        {isCollapsed && (
+          <div className="flex justify-center p-2">
+            <img src="/images/maffeng-logo.png" alt="MAFFENG" className="h-6 w-6 object-contain" />
+          </div>
+        )}
 
         <nav className="flex-1 space-y-1 p-2">
           {navigation.map((item) => {

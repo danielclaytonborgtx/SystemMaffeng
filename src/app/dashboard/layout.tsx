@@ -10,10 +10,10 @@ export default function DashboardLayout({
 }) {
   return (
     <ProtectedRoute>
-      <div className="h-screen bg-background overflow-hidden flex flex-col">
-        <DashboardHeader />
-        <div className="flex flex-1 overflow-hidden">
-          <DashboardSidebar />
+      <div className="h-screen bg-background overflow-hidden flex">
+        <DashboardSidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <DashboardHeader />
           <main className="flex-1 p-3 md:p-6 overflow-y-auto overflow-x-hidden">{children}</main>
         </div>
       </div>
