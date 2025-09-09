@@ -37,14 +37,16 @@ export const DashboardStats = memo(function DashboardStats() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => (
-        <Card key={index}>
+        <Card key={index} className="group hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:bg-gradient-to-br hover:from-white hover:to-gray-50 border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-            <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
+            <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-gray-700 transition-colors duration-300">{stat.title}</CardTitle>
+            <div className="p-2 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 group-hover:from-blue-100 group-hover:to-purple-100 transition-all duration-300">
+              <stat.icon className={`h-4 w-4 ${stat.iconColor} group-hover:scale-110 transition-transform duration-300`} />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+            <div className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">{stat.value}</div>
+            <p className="text-xs text-muted-foreground mt-1 group-hover:text-gray-600 transition-colors duration-300">{stat.description}</p>
           </CardContent>
         </Card>
       ))}
