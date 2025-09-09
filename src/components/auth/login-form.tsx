@@ -26,24 +26,12 @@ export function LoginForm() {
     if (success) {
       router.push("/dashboard")
     } else {
-      setError("Email ou senha incorretos. Tente: admin@construcao.com / admin123")
+      setError("Email ou senha incorretos. Verifique suas credenciais e tente novamente.")
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Alert>
-        <AlertDescription>
-          <strong>Credenciais para demonstração:</strong>
-          <br />
-          Email: admin@construcao.com | Senha: admin123
-          <br />
-          Email: gestor@construcao.com | Senha: gestor123
-          <br />
-          Email: demo@construcao.com | Senha: demo123
-        </AlertDescription>
-      </Alert>
-
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
