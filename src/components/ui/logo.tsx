@@ -25,7 +25,7 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
       />
       {showText && (
         <div className="flex flex-col">
-          <span className="text-lg font-bold text-primary-foreground">MAFFENG</span>
+          <span className="text-lg font-bold text-foreground">MAFFENG</span>
         </div>
       )}
     </div>

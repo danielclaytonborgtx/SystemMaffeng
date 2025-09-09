@@ -55,13 +55,13 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="bg-primary text-primary-foreground border-b border-border">
+    <header className="bg-sidebar text-sidebar-foreground border-b border-sidebar-border">
       <div className="px-3 md:px-6 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer">
+                <Button variant="ghost" size="icon" className="md:hidden text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -102,13 +102,13 @@ export function DashboardHeader() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer">
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
               <Bell className="h-5 w-5" />
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10 cursor-pointer">
+                <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
