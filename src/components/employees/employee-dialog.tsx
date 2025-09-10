@@ -108,18 +108,33 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
     e.preventDefault()
     
     try {
-      const employeeData = {
+      // Criar objeto base com campos obrigatórios
+      const employeeData: any = {
         name: formData.name,
         code: formData.code,
-        email: formData.email || undefined,
         position: formData.position,
         department: formData.department,
         status: mapStatusToDB(formData.status),
-        phone: formData.phone || undefined,
-        hireDate: formData.hireDate || undefined,
-        address: formData.address || undefined,
-        cpf: formData.cpf || undefined,
-        rg: formData.rg || undefined,
+      }
+
+      // Adicionar campos opcionais apenas se tiverem valor
+      if (formData.email) {
+        employeeData.email = formData.email
+      }
+      if (formData.phone) {
+        employeeData.phone = formData.phone
+      }
+      if (formData.hireDate) {
+        employeeData.hireDate = formData.hireDate
+      }
+      if (formData.address) {
+        employeeData.address = formData.address
+      }
+      if (formData.cpf) {
+        employeeData.cpf = formData.cpf
+      }
+      if (formData.rg) {
+        employeeData.rg = formData.rg
       }
 
       if (employee) {

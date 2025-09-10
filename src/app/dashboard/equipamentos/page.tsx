@@ -167,7 +167,7 @@ export default function EquipamentosPage() {
             <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
+                <TableHead>Código</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead>Status</TableHead>
@@ -193,8 +193,13 @@ export default function EquipamentosPage() {
               ) : (
                 filteredEquipments.map((equipment) => (
                 <TableRow key={equipment.id}>
-                  <TableCell className="font-medium">{equipment.id}</TableCell>
-                  <TableCell>{equipment.name}</TableCell>
+                  <TableCell className="font-medium">{equipment.code}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{equipment.name}</div>
+                      <div className="text-sm text-muted-foreground">ID: {equipment.id}</div>
+                    </div>
+                  </TableCell>
                   <TableCell>{equipment.category}</TableCell>
                   <TableCell>{getStatusBadge(equipment.status)}</TableCell>
                   <TableCell>{equipment.location}</TableCell>
@@ -240,7 +245,7 @@ export default function EquipamentosPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{equipment.name}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {equipment.id} • {equipment.category}
+                      {equipment.code} • {equipment.category}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       Local: {equipment.location}
@@ -296,6 +301,9 @@ export default function EquipamentosPage() {
         onClose={() => {
           setSelectedEquipment(null)
           setIsEquipmentDialogOpen(false)
+        }}
+        onSuccess={() => {
+          refetch() // Recarregar a lista de equipamentos
         }}
       />
 

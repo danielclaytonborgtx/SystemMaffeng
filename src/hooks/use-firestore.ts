@@ -171,3 +171,105 @@ export function useEmployeeOperations() {
 
   return { loading, error, createEmployee, updateEmployee, deleteEmployee }
 }
+
+// Hook específico para operações de equipamentos
+export function useEquipmentOperations() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createEquipment = async (equipmentData: Omit<Equipment, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const id = await equipmentService.create(equipmentData)
+      return id
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar equipamento')
+      console.error('Erro ao criar equipamento:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateEquipment = async (id: string, equipmentData: Partial<Equipment>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await equipmentService.update(id, equipmentData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar equipamento')
+      console.error('Erro ao atualizar equipamento:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteEquipment = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await equipmentService.delete(id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar equipamento')
+      console.error('Erro ao deletar equipamento:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { loading, error, createEquipment, updateEquipment, deleteEquipment }
+}
+
+// Hook específico para operações de veículos
+export function useVehicleOperations() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const id = await vehicleService.create(vehicleData)
+      return id
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar veículo')
+      console.error('Erro ao criar veículo:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateVehicle = async (id: string, vehicleData: Partial<Vehicle>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleService.update(id, vehicleData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar veículo')
+      console.error('Erro ao atualizar veículo:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteVehicle = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleService.delete(id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar veículo')
+      console.error('Erro ao deletar veículo:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { loading, error, createVehicle, updateVehicle, deleteVehicle }
+}

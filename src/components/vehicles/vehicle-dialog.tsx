@@ -11,15 +11,48 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useVehicleOperations } from "@/hooks"
+import { useToast } from "@/hooks/use-toast"
 
 interface VehicleDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   vehicle?: any
   onClose: () => void
+  onSuccess?: () => void
 }
 
-export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleDialogProps) {
+// Função para mapear status do formulário para o banco de dados
+const mapStatusToDB = (status: string): 'active' | 'maintenance' | 'retired' => {
+  switch (status) {
+    case 'Ativo':
+      return 'active'
+    case 'Manutenção':
+      return 'maintenance'
+    case 'Inativo':
+      return 'retired'
+    default:
+      return 'active'
+  }
+}
+
+// Função para mapear status do banco de dados para o formulário
+const mapStatusFromDB = (status: string): string => {
+  switch (status) {
+    case 'active':
+      return 'Ativo'
+    case 'maintenance':
+      return 'Manutenção'
+    case 'retired':
+      return 'Inativo'
+    default:
+      return 'Ativo'
+  }
+}
+
+export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: VehicleDialogProps) {
+  const { createVehicle, updateVehicle, loading } = useVehicleOperations()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     plate: "",
     model: "",
@@ -45,7 +78,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
       setFormData({
         plate: vehicle.plate || "",
         model: vehicle.model || "",
-        type: vehicle.type || "",
+        type: vehicle.brand || "",
         year: vehicle.year?.toString() || "",
         currentKm: vehicle.currentKm?.toString() || "",
         chassisNumber: vehicle.chassisNumber || "",
@@ -54,7 +87,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
         fuelType: vehicle.fuelType || "",
         engineCapacity: vehicle.engineCapacity || "",
         assignedTo: vehicle.assignedTo || "",
-        status: vehicle.status || "Ativo",
+        status: mapStatusFromDB(vehicle.status) || "Ativo",
         purchaseDate: vehicle.purchaseDate || "",
         purchaseValue: vehicle.purchaseValue?.toString() || "",
         insuranceExpiry: vehicle.insuranceExpiry || "",
@@ -84,10 +117,82 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
     }
   }, [vehicle])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Salvando veículo:", formData)
-    onClose()
+    
+    try {
+      // Criar objeto base com campos obrigatórios
+      const vehicleData: any = {
+        plate: formData.plate,
+        model: formData.model,
+        brand: formData.type,
+        year: parseInt(formData.year),
+        status: mapStatusToDB(formData.status),
+      }
+
+      // Adicionar campos opcionais apenas se tiverem valor
+      if (formData.currentKm) {
+        vehicleData.currentKm = parseInt(formData.currentKm)
+      }
+      if (formData.chassisNumber) {
+        vehicleData.chassisNumber = formData.chassisNumber
+      }
+      if (formData.renavam) {
+        vehicleData.renavam = formData.renavam
+      }
+      if (formData.color) {
+        vehicleData.color = formData.color
+      }
+      if (formData.fuelType) {
+        vehicleData.fuelType = formData.fuelType
+      }
+      if (formData.engineCapacity) {
+        vehicleData.engineCapacity = formData.engineCapacity
+      }
+      if (formData.assignedTo) {
+        vehicleData.assignedTo = formData.assignedTo
+      }
+      if (formData.purchaseDate) {
+        vehicleData.purchaseDate = formData.purchaseDate
+      }
+      if (formData.purchaseValue) {
+        vehicleData.purchaseValue = parseFloat(formData.purchaseValue)
+      }
+      if (formData.insuranceExpiry) {
+        vehicleData.insuranceExpiry = formData.insuranceExpiry
+      }
+      if (formData.licenseExpiry) {
+        vehicleData.licenseExpiry = formData.licenseExpiry
+      }
+      if (formData.observations) {
+        vehicleData.observations = formData.observations
+      }
+
+      if (vehicle) {
+        // Atualizar veículo existente
+        await updateVehicle(vehicle.id, vehicleData)
+        toast({
+          title: "Sucesso",
+          description: "Veículo atualizado com sucesso!",
+        })
+      } else {
+        // Criar novo veículo
+        await createVehicle(vehicleData)
+        toast({
+          title: "Sucesso",
+          description: "Veículo criado com sucesso!",
+        })
+      }
+      
+      onSuccess?.()
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar veículo. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   const isEditing = !!vehicle
@@ -374,10 +479,12 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose }: VehicleD
           </Card>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isEditing ? "Salvar Alterações" : "Cadastrar Veículo"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+              {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Veículo")}
+            </Button>
           </div>
         </form>
       </DialogContent>

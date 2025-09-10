@@ -10,15 +10,20 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEquipmentOperations } from "@/hooks"
+import { useToast } from "@/hooks/use-toast"
 
 interface EquipmentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   equipment?: any
   onClose: () => void
+  onSuccess?: () => void
 }
 
-export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: EquipmentDialogProps) {
+export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSuccess }: EquipmentDialogProps) {
+  const { createEquipment, updateEquipment, loading } = useEquipmentOperations()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -35,7 +40,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
     if (equipment) {
       setFormData({
         name: equipment.name || "",
-        type: equipment.type || "",
+        type: equipment.category || "",
         code: equipment.code || "",
         value: equipment.value?.toString() || "",
         description: equipment.description || "",
@@ -59,11 +64,61 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
     }
   }, [equipment])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Aqui seria implementada a lógica de salvamento
-    console.log("Salvando equipamento:", formData)
-    onClose()
+    
+    try {
+      // Criar objeto base com campos obrigatórios
+      const equipmentData: any = {
+        name: formData.name,
+        code: formData.code,
+        category: formData.type,
+        status: 'available' as const,
+        location: formData.location,
+      }
+
+      // Adicionar campos opcionais apenas se tiverem valor
+      if (formData.value) {
+        equipmentData.value = parseFloat(formData.value)
+      }
+      if (formData.description) {
+        equipmentData.description = formData.description
+      }
+      if (formData.purchaseDate) {
+        equipmentData.purchaseDate = formData.purchaseDate
+      }
+      if (formData.supplier) {
+        equipmentData.supplier = formData.supplier
+      }
+      if (formData.invoiceNumber) {
+        equipmentData.invoiceNumber = formData.invoiceNumber
+      }
+
+      if (equipment) {
+        // Atualizar equipamento existente
+        await updateEquipment(equipment.id, equipmentData)
+        toast({
+          title: "Sucesso",
+          description: "Equipamento atualizado com sucesso!",
+        })
+      } else {
+        // Criar novo equipamento
+        await createEquipment(equipmentData)
+        toast({
+          title: "Sucesso",
+          description: "Equipamento criado com sucesso!",
+        })
+      }
+      
+      onSuccess?.()
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar equipamento. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   const isEditing = !!equipment
@@ -209,10 +264,12 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose }: Equi
           </Card>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isEditing ? "Salvar Alterações" : "Cadastrar Equipamento"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+              {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Equipamento")}
+            </Button>
           </div>
         </form>
       </DialogContent>

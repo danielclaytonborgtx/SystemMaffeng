@@ -368,6 +368,9 @@ export default function VeiculosPage() {
           setSelectedVehicle(null)
           setIsVehicleDialogOpen(false)
         }}
+        onSuccess={() => {
+          refetch() // Recarregar a lista de veículos
+        }}
       />
 
       <MaintenanceDialog

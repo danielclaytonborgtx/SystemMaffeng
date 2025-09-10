@@ -34,9 +34,15 @@ export interface Employee {
 export interface Equipment {
   id?: string
   name: string
+  code: string
   category: string
   status: 'available' | 'in_use' | 'maintenance' | 'retired'
   location: string
+  value?: number
+  description?: string
+  purchaseDate?: string
+  supplier?: string
+  invoiceNumber?: string
   lastMaintenance?: Timestamp
   nextMaintenance?: Timestamp
   createdAt: Timestamp
@@ -52,7 +58,17 @@ export interface Vehicle {
   currentKm?: number
   maintenanceKm?: number
   status: 'active' | 'maintenance' | 'retired'
-  fuelType: string
+  fuelType?: string
+  chassisNumber?: string
+  renavam?: string
+  color?: string
+  engineCapacity?: string
+  assignedTo?: string
+  purchaseDate?: string
+  purchaseValue?: number
+  insuranceExpiry?: string
+  licenseExpiry?: string
+  observations?: string
   lastMaintenance?: Timestamp
   nextMaintenance?: Timestamp
   createdAt: Timestamp
