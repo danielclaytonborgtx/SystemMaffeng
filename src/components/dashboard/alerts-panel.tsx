@@ -1,35 +1,64 @@
+"use client"
+
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Clock, Wrench } from "lucide-react"
 import { memo, useMemo } from "react"
+import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 
 export const AlertsPanel = memo(function AlertsPanel() {
-  const alerts = useMemo(() => [
-    {
-      id: 1,
-      type: "urgent",
-      icon: AlertTriangle,
-      title: "Manutenção Vencida",
-      description: "Caminhão ABC-1234 - Troca de óleo vencida há 3 dias",
-      time: "2 horas atrás",
-    },
-    {
-      id: 2,
-      type: "warning",
-      icon: Clock,
-      title: "Manutenção Próxima",
-      description: "Escavadeira XYZ-5678 - Revisão em 5 dias",
-      time: "1 dia atrás",
-    },
-    {
-      id: 3,
-      type: "info",
-      icon: Wrench,
-      title: "Equipamento Devolvido",
-      description: "Furadeira elétrica devolvida por João Silva",
-      time: "3 horas atrás",
-    },
-  ], [])
+  const { data: employees } = useEmployees()
+  const { data: equipment } = useEquipment()
+  const { data: vehicles } = useVehicles()
+
+  const alerts = useMemo(() => {
+    const alertsList = []
+    
+    // Alertas de manutenção vencida
+    vehicles.forEach(vehicle => {
+      if (vehicle.nextMaintenance && vehicle.currentKm && vehicle.maintenanceKm) {
+        const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+        const today = new Date()
+        const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        
+        if (daysUntilMaintenance < 0) {
+          alertsList.push({
+            id: `maintenance-overdue-${vehicle.id}`,
+            type: "urgent",
+            icon: AlertTriangle,
+            title: "Manutenção Vencida",
+            description: `${vehicle.plate} - ${vehicle.model} - Manutenção vencida há ${Math.abs(daysUntilMaintenance)} dias`,
+            time: "Urgente",
+          })
+        } else if (daysUntilMaintenance <= 7) {
+          alertsList.push({
+            id: `maintenance-due-${vehicle.id}`,
+            type: "warning",
+            icon: Clock,
+            title: "Manutenção Próxima",
+            description: `${vehicle.plate} - ${vehicle.model} - Revisão em ${daysUntilMaintenance} dias`,
+            time: "Atenção",
+          })
+        }
+      }
+    })
+    
+    // Alertas de equipamentos disponíveis
+    const availableEquipment = equipment.filter(eq => eq.status === 'available')
+    if (availableEquipment.length > 0) {
+      alertsList.push({
+        id: "equipment-available",
+        type: "info",
+        icon: Wrench,
+        title: "Equipamentos Disponíveis",
+        description: `${availableEquipment.length} equipamentos disponíveis no almoxarifado`,
+        time: "Info",
+      })
+    }
+    
+    return alertsList.slice(0, 5) // Limitar a 5 alertas
+  }, [employees, equipment, vehicles])
 
   return (
     <Card className="border shadow-lg bg-card">

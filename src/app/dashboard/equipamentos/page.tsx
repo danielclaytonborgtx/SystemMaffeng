@@ -3,50 +3,15 @@
 import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, ArrowUpDown } from "lucide-react"
+import { Plus, Search, Eye, ArrowUpDown, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EquipmentDialog } from "@/components/equipments/equipment-dialog"
 import { MovementDialog } from "@/components/equipments/movement-dialog"
-
-// Mock data para demonstração
-const equipments = [
-  {
-    id: 1,
-    name: "Furadeira Bosch GSB 550",
-    type: "Ferramenta Elétrica",
-    code: "EQ001",
-    value: 299.99,
-    status: "Disponível",
-    location: "Almoxarifado A",
-    assignedTo: null,
-    purchaseDate: "2024-01-15",
-  },
-  {
-    id: 2,
-    name: "Martelo Pneumático Makita",
-    type: "Ferramenta Pneumática",
-    code: "EQ002",
-    value: 1299.99,
-    status: "Em Uso",
-    location: "Obra Central",
-    assignedTo: "João Silva",
-    purchaseDate: "2024-02-10",
-  },
-  {
-    id: 3,
-    name: "Serra Circular Dewalt",
-    type: "Ferramenta Elétrica",
-    code: "EQ003",
-    value: 599.99,
-    status: "Manutenção",
-    location: "Oficina",
-    assignedTo: null,
-    purchaseDate: "2024-01-20",
-  },
-]
+import { useEquipment } from "@/hooks"
+import { Equipment } from "@/lib/firestore"
 
 export default function EquipamentosPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -54,44 +19,87 @@ export default function EquipamentosPage() {
   const [typeFilter, setTypeFilter] = useState("all")
   const [isEquipmentDialogOpen, setIsEquipmentDialogOpen] = useState(false)
   const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false)
-  const [selectedEquipment, setSelectedEquipment] = useState<any>(null)
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
+
+  const { data: equipments, loading, error, refetch } = useEquipment()
 
   const filteredEquipments = useMemo(() => {
+    if (!equipments) return []
+    
     return equipments.filter((equipment) => {
       const matchesSearch =
         equipment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        equipment.code.toLowerCase().includes(searchTerm.toLowerCase())
+        equipment.category.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesStatus = statusFilter === "all" || equipment.status === statusFilter
-      const matchesType = typeFilter === "all" || equipment.type === typeFilter
+      const matchesType = typeFilter === "all" || equipment.category === typeFilter
 
       return matchesSearch && matchesStatus && matchesType
     })
-  }, [searchTerm, statusFilter, typeFilter])
+  }, [equipments, searchTerm, statusFilter, typeFilter])
+
+  // Calcular estatísticas
+  const stats = useMemo(() => {
+    if (!equipments) return { total: 0, available: 0, inUse: 0, maintenance: 0 }
+    
+    return {
+      total: equipments.length,
+      available: equipments.filter(eq => eq.status === 'available').length,
+      inUse: equipments.filter(eq => eq.status === 'in_use').length,
+      maintenance: equipments.filter(eq => eq.status === 'maintenance').length,
+    }
+  }, [equipments])
 
   const getStatusBadge = useCallback((status: string) => {
     switch (status) {
-      case "Disponível":
+      case "available":
         return (
           <Badge variant="secondary" className="bg-green-100 text-green-800">
             Disponível
           </Badge>
         )
-      case "Em Uso":
+      case "in_use":
         return (
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
             Em Uso
           </Badge>
         )
-      case "Manutenção":
+      case "maintenance":
         return (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
             Manutenção
           </Badge>
         )
+      case "retired":
+        return (
+          <Badge variant="secondary" className="bg-red-100 text-red-800">
+            Aposentado
+          </Badge>
+        )
       default:
         return <Badge variant="outline">{status}</Badge>
     }
-  }, [])
+    }, [])
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Equipamentos</h1>
+            <p className="text-muted-foreground">Gerencie os equipamentos e suas movimentações</p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600 mb-4">Erro ao carregar equipamentos: {error}</p>
+            <Button onClick={refetch} className="cursor-pointer">
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -127,9 +135,10 @@ export default function EquipamentosPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="Disponível">Disponível</SelectItem>
-                <SelectItem value="Em Uso">Em Uso</SelectItem>
-                <SelectItem value="Manutenção">Manutenção</SelectItem>
+                <SelectItem value="available">Disponível</SelectItem>
+                <SelectItem value="in_use">Em Uso</SelectItem>
+                <SelectItem value="maintenance">Manutenção</SelectItem>
+                <SelectItem value="retired">Aposentado</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -158,24 +167,38 @@ export default function EquipamentosPage() {
             <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Código</TableHead>
+                <TableHead>ID</TableHead>
                 <TableHead>Nome</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Categoria</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Valor</TableHead>
+                <TableHead>Localização</TableHead>
                 <TableHead>Responsável</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredEquipments.map((equipment) => (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    <p className="text-muted-foreground">Carregando equipamentos...</p>
+                  </TableCell>
+                </TableRow>
+              ) : filteredEquipments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <p className="text-muted-foreground">Nenhum equipamento encontrado</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredEquipments.map((equipment) => (
                 <TableRow key={equipment.id}>
-                  <TableCell className="font-medium">{equipment.code}</TableCell>
+                  <TableCell className="font-medium">{equipment.id}</TableCell>
                   <TableCell>{equipment.name}</TableCell>
-                  <TableCell>{equipment.type}</TableCell>
+                  <TableCell>{equipment.category}</TableCell>
                   <TableCell>{getStatusBadge(equipment.status)}</TableCell>
-                  <TableCell>R$ {equipment.value.toFixed(2)}</TableCell>
-                  <TableCell>{equipment.assignedTo || "-"}</TableCell>
+                  <TableCell>{equipment.location}</TableCell>
+                  <TableCell>{equipment.status === 'in_use' ? 'Em uso' : '-'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
@@ -203,7 +226,8 @@ export default function EquipamentosPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
           </div>
@@ -216,10 +240,13 @@ export default function EquipamentosPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{equipment.name}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {equipment.code} • {equipment.type}
+                      {equipment.id} • {equipment.category}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Responsável: {equipment.assignedTo || "Não atribuído"}
+                      Local: {equipment.location}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Status: {equipment.status}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -252,8 +279,8 @@ export default function EquipamentosPage() {
                 </div>
                 <div className="mt-3 pt-3 border-t">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Valor:</span>
-                    <span className="text-sm font-medium">R$ {equipment.value.toFixed(2)}</span>
+                    <span className="text-xs text-muted-foreground">Categoria:</span>
+                    <span className="text-sm font-medium">{equipment.category}</span>
                   </div>
                 </div>
               </Card>

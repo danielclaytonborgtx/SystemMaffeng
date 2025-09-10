@@ -15,49 +15,72 @@ import {
   Pie,
   Cell,
 } from "recharts"
+import { useMemo } from "react"
+import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 
 export function ReportsCharts() {
-  const equipmentData = [
-    { month: "Jan", utilizacao: 85, manutencao: 12 },
-    { month: "Fev", utilizacao: 78, manutencao: 15 },
-    { month: "Mar", utilizacao: 92, manutencao: 8 },
-    { month: "Abr", utilizacao: 88, manutencao: 10 },
-    { month: "Mai", utilizacao: 95, manutencao: 6 },
-    { month: "Jun", utilizacao: 89, manutencao: 14 },
-  ]
+  const { data: employees } = useEmployees()
+  const { data: equipment } = useEquipment()
+  const { data: vehicles } = useVehicles()
+  const equipmentData = useMemo(() => {
+    const total = equipment.length
+    const available = equipment.filter(eq => eq.status === 'available').length
+    const inUse = equipment.filter(eq => eq.status === 'in_use').length
+    const maintenance = equipment.filter(eq => eq.status === 'maintenance').length
+    
+    return [
+      { name: "Disponíveis", value: available, percentage: total > 0 ? Math.round((available / total) * 100) : 0 },
+      { name: "Em Uso", value: inUse, percentage: total > 0 ? Math.round((inUse / total) * 100) : 0 },
+      { name: "Manutenção", value: maintenance, percentage: total > 0 ? Math.round((maintenance / total) * 100) : 0 },
+    ]
+  }, [equipment])
 
-  const costData = [
-    { month: "Jan", equipamentos: 15000, manutencao: 8000, combustivel: 12000 },
-    { month: "Fev", equipamentos: 18000, manutencao: 9500, combustivel: 11500 },
-    { month: "Mar", equipamentos: 16500, manutencao: 7200, combustivel: 13200 },
-    { month: "Abr", equipamentos: 19200, manutencao: 10800, combustivel: 12800 },
-    { month: "Mai", equipamentos: 17800, manutencao: 6900, combustivel: 14100 },
-    { month: "Jun", equipamentos: 20500, manutencao: 11200, combustivel: 13600 },
-  ]
+  const vehicleData = useMemo(() => {
+    const total = vehicles.length
+    const active = vehicles.filter(v => v.status === 'active').length
+    const maintenance = vehicles.filter(v => v.status === 'maintenance').length
+    
+    return [
+      { name: "Ativos", value: active, percentage: total > 0 ? Math.round((active / total) * 100) : 0 },
+      { name: "Manutenção", value: maintenance, percentage: total > 0 ? Math.round((maintenance / total) * 100) : 0 },
+    ]
+  }, [vehicles])
 
-  const statusData = [
-    { name: "Disponível", value: 45, color: "#22c55e" },
-    { name: "Em Uso", value: 32, color: "#3b82f6" },
-    { name: "Manutenção", value: 8, color: "#f59e0b" },
-    { name: "Indisponível", value: 5, color: "#ef4444" },
-  ]
+  const employeeData = useMemo(() => {
+    const total = employees.length
+    const active = employees.filter(emp => emp.status === 'active').length
+    const vacation = employees.filter(emp => emp.status === 'vacation').length
+    const away = employees.filter(emp => emp.status === 'away').length
+    
+    return [
+      { name: "Ativos", value: active, percentage: total > 0 ? Math.round((active / total) * 100) : 0 },
+      { name: "Férias", value: vacation, percentage: total > 0 ? Math.round((vacation / total) * 100) : 0 },
+      { name: "Ausentes", value: away, percentage: total > 0 ? Math.round((away / total) * 100) : 0 },
+    ]
+  }, [employees])
+
+  const statusData = useMemo(() => [
+    { name: "Disponível", value: equipment.filter(eq => eq.status === 'available').length, color: "#22c55e" },
+    { name: "Em Uso", value: equipment.filter(eq => eq.status === 'in_use').length, color: "#3b82f6" },
+    { name: "Manutenção", value: equipment.filter(eq => eq.status === 'maintenance').length, color: "#f59e0b" },
+    { name: "Aposentado", value: equipment.filter(eq => eq.status === 'retired').length, color: "#ef4444" },
+  ], [equipment])
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Utilização de Equipamentos</CardTitle>
-          <CardDescription>Taxa de utilização vs. tempo em manutenção (%)</CardDescription>
+          <CardTitle>Status dos Equipamentos</CardTitle>
+          <CardDescription>Distribuição atual por status ({equipment.length} total)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={equipmentData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
+              <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip />
-              <Bar dataKey="utilizacao" fill="#3b82f6" name="Utilização" />
-              <Bar dataKey="manutencao" fill="#f59e0b" name="Manutenção" />
+              <Tooltip formatter={(value, name) => [`${value}`, name]} />
+              <Bar dataKey="value" fill="#3b82f6" name="Quantidade" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -65,22 +88,22 @@ export function ReportsCharts() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Status dos Equipamentos</CardTitle>
-          <CardDescription>Distribuição atual por status</CardDescription>
+          <CardTitle>Status dos Veículos</CardTitle>
+          <CardDescription>Distribuição atual por status ({vehicles.length} total)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={statusData}
+                data={vehicleData}
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
                 dataKey="value"
                 label={({ name, value }) => `${name}: ${value}`}
               >
-                {statusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                {vehicleData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={index === 0 ? "#22c55e" : "#f59e0b"} />
                 ))}
               </Pie>
               <Tooltip />
@@ -91,20 +114,18 @@ export function ReportsCharts() {
 
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle>Análise de Custos Mensais</CardTitle>
-          <CardDescription>Evolução dos custos por categoria (R$)</CardDescription>
+          <CardTitle>Status dos Colaboradores</CardTitle>
+          <CardDescription>Distribuição atual por status ({employees.length} total)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={costData}>
+            <BarChart data={employeeData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
+              <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, ""]} />
-              <Line type="monotone" dataKey="equipamentos" stroke="#3b82f6" name="Equipamentos" strokeWidth={2} />
-              <Line type="monotone" dataKey="manutencao" stroke="#f59e0b" name="Manutenção" strokeWidth={2} />
-              <Line type="monotone" dataKey="combustivel" stroke="#22c55e" name="Combustível" strokeWidth={2} />
-            </LineChart>
+              <Tooltip formatter={(value, name) => [`${value}`, name]} />
+              <Bar dataKey="value" fill="#8b5cf6" name="Quantidade" />
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

@@ -3,24 +3,31 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { memo, useMemo } from "react"
-
-const data = [
-  { name: "Jan", equipamentos: 45, manutencoes: 12 },
-  { name: "Fev", equipamentos: 52, manutencoes: 8 },
-  { name: "Mar", equipamentos: 48, manutencoes: 15 },
-  { name: "Abr", equipamentos: 61, manutencoes: 10 },
-  { name: "Mai", equipamentos: 55, manutencoes: 18 },
-  { name: "Jun", equipamentos: 67, manutencoes: 14 },
-]
+import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 
 export const DashboardCharts = memo(function DashboardCharts() {
-  const chartData = useMemo(() => data, [])
+  const { data: employees } = useEmployees()
+  const { data: equipment } = useEquipment()
+  const { data: vehicles } = useVehicles()
+
+  const chartData = useMemo(() => {
+    // Dados baseados em dados reais do Firestore
+    const totalEmployees = employees.length
+    const totalEquipment = equipment.length
+    const totalVehicles = vehicles.length
+    
+    return [
+      { name: "Colaboradores", total: totalEmployees, ativos: employees.filter(e => e.status === 'active').length },
+      { name: "Equipamentos", total: totalEquipment, disponiveis: equipment.filter(e => e.status === 'available').length },
+      { name: "Veículos", total: totalVehicles, ativos: vehicles.filter(v => v.status === 'active').length },
+    ]
+  }, [employees, equipment, vehicles])
 
   return (
     <Card className="border shadow-lg bg-card">
       <CardHeader>
-        <CardTitle>Movimentação Mensal</CardTitle>
-        <CardDescription>Equipamentos utilizados e manutenções realizadas</CardDescription>
+        <CardTitle>Resumo Geral</CardTitle>
+        <CardDescription>Total e disponibilidade de recursos</CardDescription>
       </CardHeader>
       <CardContent className="p-6">
         <ResponsiveContainer width="100%" height={300}>
@@ -38,21 +45,30 @@ export const DashboardCharts = memo(function DashboardCharts() {
               }}
             />
             <Bar 
-              dataKey="equipamentos" 
-              fill="url(#equipamentosGradient)" 
+              dataKey="total" 
+              fill="url(#totalGradient)" 
               radius={[4, 4, 0, 0]}
             />
             <Bar 
-              dataKey="manutencoes" 
-              fill="url(#manutencoesGradient)" 
+              dataKey="ativos" 
+              fill="url(#ativosGradient)" 
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar 
+              dataKey="disponiveis" 
+              fill="url(#disponiveisGradient)" 
               radius={[4, 4, 0, 0]}
             />
             <defs>
-              <linearGradient id="equipamentosGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#3b82f6" />
                 <stop offset="100%" stopColor="#1d4ed8" />
               </linearGradient>
-              <linearGradient id="manutencoesGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="ativosGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#059669" />
+              </linearGradient>
+              <linearGradient id="disponiveisGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#8b5cf6" />
                 <stop offset="100%" stopColor="#7c3aed" />
               </linearGradient>

@@ -4,57 +4,89 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Clock, Wrench, Users } from "lucide-react"
+import { useMemo } from "react"
+import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 
 export function AlertsPanel() {
-  const alerts = [
-    {
-      id: 1,
-      type: "critical",
-      category: "manutenção",
-      title: "Manutenção Vencida - Caminhão ABC-1234",
-      description: "Troca de óleo vencida há 5 dias",
-      icon: Wrench,
-      time: "há 2 horas",
-    },
-    {
-      id: 2,
-      type: "warning",
-      category: "equipamento",
-      title: "Equipamento em Atraso",
-      description: "Furadeira elétrica não devolvida por João Silva",
-      icon: AlertTriangle,
-      time: "há 1 dia",
-    },
-    {
-      id: 3,
-      type: "info",
-      category: "preventiva",
-      title: "Manutenção Preventiva Programada",
-      description: "Revisão geral do veículo XYZ-5678 em 3 dias",
-      icon: Clock,
-      time: "há 3 horas",
-    },
-    {
-      id: 4,
-      type: "warning",
-      category: "colaborador",
-      title: "Colaborador Inativo",
-      description: "Maria Santos sem movimentação há 7 dias",
-      icon: Users,
-      time: "há 6 horas",
-    },
-  ]
+  const { data: employees } = useEmployees()
+  const { data: equipment } = useEquipment()
+  const { data: vehicles } = useVehicles()
 
-  const getAlertColor = (type: string) => {
+  const alerts = useMemo(() => {
+    const alertsList = []
+    
+    // Alertas de manutenção vencida
+    vehicles.forEach(vehicle => {
+      if (vehicle.nextMaintenance && vehicle.currentKm && vehicle.maintenanceKm) {
+        const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+        const today = new Date()
+        const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        
+        if (daysUntilMaintenance < 0) {
+          alertsList.push({
+            id: `maintenance-overdue-${vehicle.id}`,
+            type: "critical",
+            category: "manutenção",
+            title: `Manutenção Vencida - ${vehicle.plate}`,
+            description: `${vehicle.model} - Manutenção vencida há ${Math.abs(daysUntilMaintenance)} dias`,
+            icon: Wrench,
+            time: "Urgente",
+          })
+        } else if (daysUntilMaintenance <= 7) {
+          alertsList.push({
+            id: `maintenance-due-${vehicle.id}`,
+            type: "warning",
+            category: "manutenção",
+            title: `Manutenção Próxima - ${vehicle.plate}`,
+            description: `${vehicle.model} - Revisão em ${daysUntilMaintenance} dias`,
+            icon: Clock,
+            time: "Atenção",
+          })
+        }
+      }
+    })
+    
+    // Alertas de equipamentos em manutenção
+    const maintenanceEquipment = equipment.filter(eq => eq.status === 'maintenance')
+    if (maintenanceEquipment.length > 0) {
+      alertsList.push({
+        id: "equipment-maintenance",
+        type: "warning",
+        category: "equipamento",
+        title: "Equipamentos em Manutenção",
+        description: `${maintenanceEquipment.length} equipamentos em manutenção`,
+        icon: AlertTriangle,
+        time: "Info",
+      })
+    }
+    
+    // Alertas de colaboradores em férias
+    const vacationEmployees = employees.filter(emp => emp.status === 'vacation')
+    if (vacationEmployees.length > 0) {
+      alertsList.push({
+        id: "employees-vacation",
+        type: "info",
+        category: "colaborador",
+        title: "Colaboradores em Férias",
+        description: `${vacationEmployees.length} colaboradores em férias`,
+        icon: Users,
+        time: "Info",
+      })
+    }
+    
+    return alertsList.slice(0, 5) // Limitar a 5 alertas
+  }, [employees, equipment, vehicles])
+
+  const getAlertBadge = (type: string) => {
     switch (type) {
       case "critical":
-        return "destructive"
+        return <Badge className="bg-red-500 text-white">Crítico</Badge>
       case "warning":
-        return "secondary"
+        return <Badge className="bg-yellow-500 text-white">Atenção</Badge>
       case "info":
-        return "outline"
+        return <Badge className="bg-blue-500 text-white">Info</Badge>
       default:
-        return "outline"
+        return <Badge variant="outline">{type}</Badge>
     }
   }
 
@@ -65,31 +97,55 @@ export function AlertsPanel() {
           <AlertTriangle className="h-5 w-5 text-orange-500" />
           Alertas do Sistema
         </CardTitle>
-        <CardDescription>Monitoramento em tempo real de situações que requerem atenção</CardDescription>
+        <CardDescription>
+          {alerts.length > 0 
+            ? `${alerts.length} alerta(s) ativo(s)` 
+            : "Nenhum alerta ativo no momento"
+          }
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {alerts.map((alert) => (
-            <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg border">
-              <alert.icon className="h-5 w-5 mt-0.5 text-muted-foreground" />
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-sm">{alert.title}</h4>
-                  <Badge variant={getAlertColor(alert.type)} className="text-xs">
-                    {alert.type === "critical" ? "Crítico" : alert.type === "warning" ? "Atenção" : "Info"}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">{alert.description}</p>
-                <p className="text-xs text-muted-foreground">{alert.time}</p>
-              </div>
-              <Button variant="outline" size="sm" className="cursor-pointer">
-                Resolver
-              </Button>
+        {alerts.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-muted-foreground mb-2">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+              <p className="text-lg font-medium">Sistema funcionando normalmente</p>
+              <p className="text-sm">Não há alertas críticos no momento</p>
             </div>
-          ))}
-        </div>
-        <div className="mt-4 pt-4 border-t">
-          <Button variant="outline" className="w-full bg-transparent cursor-pointer">
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {alerts.map((alert) => {
+              const IconComponent = alert.icon
+              return (
+                <div
+                  key={alert.id}
+                  className="flex items-start gap-3 p-4 rounded-lg border bg-muted/30"
+                >
+                  <div className="p-2 rounded-full bg-red-500/20">
+                    <IconComponent className="h-4 w-4 text-red-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-sm truncate">{alert.title}</h4>
+                      {getAlertBadge(alert.type)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{alert.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{alert.time}</span>
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {alert.category}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        
+        <div className="mt-6 pt-4 border-t">
+          <Button variant="outline" size="sm" className="w-full">
             Ver Todos os Alertas
           </Button>
         </div>

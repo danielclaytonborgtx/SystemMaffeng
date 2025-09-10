@@ -43,6 +43,8 @@ export interface Vehicle {
   model: string
   brand: string
   year: number
+  currentKm?: number
+  maintenanceKm?: number
   status: 'active' | 'maintenance' | 'retired'
   fuelType: string
   lastMaintenance?: Timestamp

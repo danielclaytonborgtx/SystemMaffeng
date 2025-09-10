@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, History } from "lucide-react"
+import { Plus, Search, Eye, History, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -11,62 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EmployeeDialog } from "@/components/employees/employee-dialog"
 import { EmployeeHistoryDialog } from "@/components/employees/employee-history-dialog"
-
-// Mock data para demonstração
-const employees = [
-  {
-    id: 1,
-    name: "João Silva",
-    code: "COL001",
-    position: "Operador de Máquinas",
-    department: "Construção",
-    phone: "(11) 99999-1111",
-    email: "joao.silva@empresa.com",
-    hireDate: "2023-01-15",
-    status: "Ativo",
-    currentEquipments: ["Furadeira Bosch GSB 550", "Capacete de Segurança"],
-    equipmentCount: 2,
-  },
-  {
-    id: 2,
-    name: "Maria Santos",
-    code: "COL002",
-    position: "Engenheira Civil",
-    department: "Engenharia",
-    phone: "(11) 99999-2222",
-    email: "maria.santos@empresa.com",
-    hireDate: "2022-08-10",
-    status: "Ativo",
-    currentEquipments: ["Tablet Industrial", "Trena Digital"],
-    equipmentCount: 2,
-  },
-  {
-    id: 3,
-    name: "Carlos Oliveira",
-    code: "COL003",
-    position: "Soldador",
-    department: "Construção",
-    phone: "(11) 99999-3333",
-    email: "carlos.oliveira@empresa.com",
-    hireDate: "2023-03-20",
-    status: "Férias",
-    currentEquipments: [],
-    equipmentCount: 0,
-  },
-  {
-    id: 4,
-    name: "Ana Costa",
-    code: "COL004",
-    position: "Supervisora",
-    department: "Supervisão",
-    phone: "(11) 99999-4444",
-    email: "ana.costa@empresa.com",
-    hireDate: "2021-11-05",
-    status: "Ativo",
-    currentEquipments: ["Rádio Comunicador", "Prancheta Digital"],
-    equipmentCount: 2,
-  },
-]
+import { useEmployees } from "@/hooks"
+import { Employee } from "@/lib/firestore"
 
 export default function ColaboradoresPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -74,42 +20,58 @@ export default function ColaboradoresPage() {
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+
+  const { data: employees, loading, error, refetch } = useEmployees()
 
   const filteredEmployees = useMemo(() => {
+    if (!employees) return []
+    
     return employees.filter((employee) => {
       const matchesSearch =
         employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.position.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesStatus = statusFilter === "all" || employee.status === statusFilter
       const matchesDepartment = departmentFilter === "all" || employee.department === departmentFilter
 
       return matchesSearch && matchesStatus && matchesDepartment
     })
-  }, [searchTerm, statusFilter, departmentFilter])
+  }, [employees, searchTerm, statusFilter, departmentFilter])
+
+  // Calcular estatísticas
+  const stats = useMemo(() => {
+    if (!employees) return { total: 0, active: 0, vacation: 0, away: 0 }
+    
+    return {
+      total: employees.length,
+      active: employees.filter(emp => emp.status === 'active').length,
+      vacation: employees.filter(emp => emp.status === 'vacation').length,
+      away: employees.filter(emp => emp.status === 'away').length,
+    }
+  }, [employees])
 
   const getStatusBadge = useCallback((status: string) => {
     switch (status) {
-      case "Ativo":
+      case "active":
         return (
           <Badge variant="secondary" className="bg-green-100 text-green-800">
             Ativo
           </Badge>
         )
-      case "Férias":
+      case "vacation":
         return (
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
             Férias
           </Badge>
         )
-      case "Afastado":
+      case "away":
         return (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
             Afastado
           </Badge>
         )
-      case "Inativo":
+      case "inactive":
         return (
           <Badge variant="secondary" className="bg-red-100 text-red-800">
             Inativo
@@ -126,7 +88,28 @@ export default function ColaboradoresPage() {
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-  }, [])
+    }, [])
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Colaboradores</h1>
+            <p className="text-muted-foreground">Gerencie os funcionários e suas atribuições</p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600 mb-4">Erro ao carregar colaboradores: {error}</p>
+            <Button onClick={refetch} className="cursor-pointer">
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -142,30 +125,38 @@ export default function ColaboradoresPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold">89</div>
-            <p className="text-xs text-muted-foreground">Total de Colaboradores</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">76</div>
-            <p className="text-xs text-muted-foreground">Ativos</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">8</div>
-            <p className="text-xs text-muted-foreground">Em Férias</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-yellow-600">5</div>
-            <p className="text-xs text-muted-foreground">Afastados</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-2xl font-bold">
+                {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.total}
+              </div>
+              <p className="text-xs text-muted-foreground">Total de Colaboradores</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-2xl font-bold text-green-600">
+                {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.active}
+              </div>
+              <p className="text-xs text-muted-foreground">Ativos</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-2xl font-bold text-blue-600">
+                {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.vacation}
+              </div>
+              <p className="text-xs text-muted-foreground">Em Férias</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-2xl font-bold text-yellow-600">
+                {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.away}
+              </div>
+              <p className="text-xs text-muted-foreground">Afastados</p>
+            </CardContent>
+          </Card>
       </div>
 
       <Card>
@@ -187,13 +178,13 @@ export default function ColaboradoresPage() {
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="Ativo">Ativo</SelectItem>
-                <SelectItem value="Férias">Férias</SelectItem>
-                <SelectItem value="Afastado">Afastado</SelectItem>
-                <SelectItem value="Inativo">Inativo</SelectItem>
-              </SelectContent>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="vacation">Férias</SelectItem>
+                  <SelectItem value="away">Afastado</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
             </Select>
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
               <SelectTrigger className="w-full sm:w-48">
@@ -220,19 +211,32 @@ export default function ColaboradoresPage() {
           {/* Desktop Table View */}
           <div className="hidden lg:block overflow-x-auto">
             <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Colaborador</TableHead>
-                <TableHead>Código</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Departamento</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Equipamentos</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployees.map((employee) => (
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Colaborador</TableHead>
+                  <TableHead>Cargo</TableHead>
+                  <TableHead>Departamento</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data de Contratação</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                      <p className="text-muted-foreground">Carregando colaboradores...</p>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredEmployees.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <p className="text-muted-foreground">Nenhum colaborador encontrado</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredEmployees.map((employee) => (
                 <TableRow key={employee.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -246,18 +250,10 @@ export default function ColaboradoresPage() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{employee.code}</TableCell>
                   <TableCell>{employee.position}</TableCell>
                   <TableCell>{employee.department}</TableCell>
                   <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{employee.equipmentCount}</Badge>
-                      {employee.equipmentCount > 0 && (
-                        <span className="text-xs text-muted-foreground">equipamentos</span>
-                      )}
-                    </div>
-                  </TableCell>
+                  <TableCell>{employee.createdAt.toDate().toLocaleDateString('pt-BR')}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
@@ -285,9 +281,10 @@ export default function ColaboradoresPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile Card View */}
@@ -304,7 +301,7 @@ export default function ColaboradoresPage() {
                       <div className="font-medium text-sm truncate">{employee.name}</div>
                       <div className="text-xs text-muted-foreground truncate">{employee.email}</div>
                       <div className="text-xs text-muted-foreground mt-1 truncate">
-                        {employee.code} • {employee.position}
+                        {employee.id} • {employee.position}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">{employee.department}</div>
                     </div>
@@ -339,13 +336,7 @@ export default function ColaboradoresPage() {
                 </div>
                 <div className="mt-3 pt-3 border-t">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Equipamentos:</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">{employee.equipmentCount}</Badge>
-                      {employee.equipmentCount > 0 && (
-                        <span className="text-xs text-muted-foreground">equipamentos</span>
-                      )}
-                    </div>
+                    <span className="text-xs text-muted-foreground">Status: {employee.status}</span>
                   </div>
                 </div>
               </Card>

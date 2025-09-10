@@ -1,110 +1,141 @@
-# Configuração do Firebase
+# **Configuração do Firebase Firestore**
 
-## 1. Configuração no Console do Firebase
+Este guia detalha os passos para configurar o Firebase Firestore e popular com dados de exemplo.
 
-### Passos já realizados:
-- ✅ Projeto criado: `gestao-maffeng`
-- ✅ Configurações básicas obtidas
+---
 
-### Próximos passos necessários:
+## **1. Configuração do Firestore no Firebase Console**
 
-#### 1.1. Habilitar Authentication
-1. No console do Firebase, vá para **Authentication**
-2. Clique em **Get started**
-3. Na aba **Sign-in method**, habilite:
-   - **Email/Password**
-   - **Google** (opcional)
+### **Passo 1: Criar o Banco de Dados**
+1. Acesse o [Firebase Console](https://console.firebase.google.com/)
+2. Selecione seu projeto "gestao-maffeng"
+3. No menu lateral, clique em **"Firestore Database"**
+4. Clique em **"Criar banco de dados"**
+5. Escolha **"Começar no modo de teste"** (para desenvolvimento)
+6. Selecione a localização mais próxima (ex: `southamerica-east1` para Brasil)
 
-#### 1.2. Configurar Firestore Database
-1. No console do Firebase, vá para **Firestore Database**
-2. Clique em **Create database**
-3. Escolha **Start in test mode** (para desenvolvimento)
-4. Escolha uma localização (recomendado: `southamerica-east1` para Brasil)
+### **Passo 2: Configurar Regras de Segurança**
+No Firestore, vá em **"Regras"** e configure:
 
-#### 1.3. Obter App ID
-1. No console do Firebase, vá para **Project Settings** (ícone da engrenagem)
-2. Na seção **Your apps**, clique em **Add app** se não houver nenhuma
-3. Escolha **Web** (ícone `</>`)
-4. Registre o app com o nome: `gestao-maffeng-web`
-5. Copie o **App ID** e substitua `your-app-id-here` no arquivo `src/lib/firebase.ts`
-
-## 2. Configuração no Projeto
-
-### 2.1. Variáveis de Ambiente (Opcional)
-Crie um arquivo `.env.local` na raiz do projeto:
-
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyCK7yqjC4DDdJyyiLX-1imM4Xz4SoGLZSk
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=gestao-maffeng.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=gestao-maffeng
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=gestao-maffeng.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=529134422664
-NEXT_PUBLIC_FIREBASE_APP_ID=SEU_APP_ID_AQUI
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permitir acesso apenas para usuários autenticados
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
 ```
 
-### 2.2. Estrutura do Firestore
-O sistema criará automaticamente as seguintes coleções:
+---
 
-- **employees**: Colaboradores
-- **equipment**: Equipamentos  
-- **vehicles**: Veículos
+## **2. População do Banco de Dados com Dados de Exemplo**
 
-## 3. Funcionalidades Implementadas
+### **Passo 1: Obter o Arquivo de Credenciais do Firebase Admin SDK**
 
-### 3.1. Autenticação
-- ✅ Login com email/senha
-- ✅ Registro de novos usuários
-- ✅ Logout
-- ✅ Persistência de sessão
+1. Acesse o [Firebase Console](https://console.firebase.google.com/)
+2. Selecione seu projeto
+3. Vá em **"Configurações do Projeto"** (ícone de engrenagem)
+4. Clique na aba **"Contas de Serviço"**
+5. Clique em **"Gerar nova chave privada"** e depois em **"Gerar chave"**
+6. Um arquivo JSON será baixado. **Renomeie-o para `serviceAccountKey.json`** e mova-o para a pasta `scripts/` do seu projeto
 
-### 3.2. Firestore Services
-- ✅ CRUD para Colaboradores
-- ✅ CRUD para Equipamentos
-- ✅ CRUD para Veículos
-- ✅ Tipos TypeScript definidos
+### **Passo 2: Instalar Dependências do Admin SDK**
 
-## 4. Como Usar
+No terminal, na raiz do projeto:
 
-### 4.1. Login
-```typescript
-const { login } = useAuth()
-const success = await login('email@exemplo.com', 'senha123')
+```bash
+npm install firebase-admin
 ```
 
-### 4.2. Registro
-```typescript
-const { register } = useAuth()
-const success = await register('email@exemplo.com', 'senha123', 'Nome do Usuário')
+### **Passo 3: Executar o Script de População**
+
+No terminal, na raiz do projeto:
+
+```bash
+node scripts/populate-firestore.js
 ```
 
-### 4.3. Usar Firestore
-```typescript
-import { employeeService } from '@/lib/firestore'
+Você verá mensagens no console indicando o progresso da população.
 
-// Buscar todos os colaboradores
-const employees = await employeeService.getAll()
+---
 
-// Criar novo colaborador
-const newEmployee = await employeeService.create({
-  name: 'João Silva',
-  email: 'joao@exemplo.com',
-  position: 'Engenheiro',
-  department: 'Construção',
-  status: 'active'
-})
-```
+## **3. Estrutura das Coleções**
 
-## 5. Próximos Passos
+O sistema criará as seguintes coleções no Firestore:
 
-1. **Habilitar Authentication no console**
-2. **Criar Firestore Database**
-3. **Obter App ID e atualizar configuração**
-4. **Testar login/registro**
-5. **Implementar integração com as páginas existentes**
+### **`employees`** - Colaboradores
+- `name`: Nome do colaborador
+- `email`: Email
+- `position`: Cargo
+- `department`: Departamento
+- `status`: Status (`active`, `vacation`, `away`)
+- `hireDate`: Data de contratação
+- `createdAt`: Data de criação
+- `updatedAt`: Data de atualização
 
-## 6. Segurança
+### **`equipment`** - Equipamentos
+- `name`: Nome do equipamento
+- `category`: Categoria
+- `status`: Status (`available`, `in_use`, `maintenance`, `retired`)
+- `location`: Localização
+- `lastMaintenance`: Última manutenção
+- `nextMaintenance`: Próxima manutenção
+- `createdAt`: Data de criação
+- `updatedAt`: Data de atualização
 
-⚠️ **Importante**: 
-- Configure as regras do Firestore adequadamente para produção
-- Use variáveis de ambiente para as configurações sensíveis
-- Implemente validação de dados no frontend e backend
+### **`vehicles`** - Veículos
+- `plate`: Placa
+- `model`: Modelo
+- `brand`: Marca
+- `year`: Ano
+- `currentKm`: Quilometragem atual
+- `maintenanceKm`: Quilometragem para manutenção
+- `status`: Status (`active`, `maintenance`, `retired`)
+- `fuelType`: Tipo de combustível
+- `lastMaintenance`: Última manutenção
+- `nextMaintenance`: Próxima manutenção
+- `createdAt`: Data de criação
+- `updatedAt`: Data de atualização
+
+---
+
+## **4. Verificação da Integração**
+
+Após popular o banco de dados:
+
+1. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+
+2. **Acesse o Dashboard** (`/dashboard`):
+   - Os cards de estatísticas devem exibir os números reais do Firestore
+   - Você deve ver loading states enquanto os dados carregam
+
+3. **Acesse a página de Colaboradores** (`/dashboard/colaboradores`):
+   - A lista deve exibir os colaboradores cadastrados no Firestore
+   - Os filtros devem funcionar corretamente
+
+---
+
+## **5. Solução de Problemas**
+
+### **"Permission denied" no Firestore**
+- Verifique as regras de segurança do Firestore
+- Certifique-se de que `allow read, write: if request.auth != null;` está configurado
+
+### **Dados não aparecem**
+- Verifique se o script `populate-firestore.js` foi executado sem erros
+- Confira se as variáveis de ambiente do Firebase estão corretas
+- Reinicie o servidor de desenvolvimento
+
+### **Erro de importação de hooks**
+- Certifique-se de que o arquivo `src/hooks/index.ts` existe e está exportando corretamente
+- Reinicie o servidor de desenvolvimento
+
+---
+
+A integração com o Firebase Firestore está completa! 🎉

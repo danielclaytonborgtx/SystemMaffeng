@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, Wrench, Fuel, AlertTriangle } from "lucide-react"
+import { Plus, Search, Eye, Wrench, Fuel, AlertTriangle, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,55 +12,8 @@ import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
 import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { FuelDialog } from "@/components/vehicles/fuel-dialog"
 import { VehicleHistoryDialog } from "@/components/vehicles/vehicle-history-dialog"
-
-// Mock data para demonstração
-const vehicles = [
-  {
-    id: 1,
-    plate: "ABC-1234",
-    model: "Volvo FH 540",
-    type: "Caminhão",
-    year: 2022,
-    currentKm: 45000,
-    status: "Ativo",
-    lastMaintenance: "2024-02-15",
-    nextMaintenance: "2024-04-15",
-    maintenanceKm: 50000,
-    fuelConsumption: 3.2,
-    assignedTo: "João Silva",
-    maintenanceAlerts: 1,
-  },
-  {
-    id: 2,
-    plate: "XYZ-5678",
-    model: "Caterpillar 320D",
-    type: "Escavadeira",
-    year: 2021,
-    currentKm: 2800,
-    status: "Manutenção",
-    lastMaintenance: "2024-03-01",
-    nextMaintenance: "2024-06-01",
-    maintenanceKm: 3000,
-    fuelConsumption: 15.5,
-    assignedTo: null,
-    maintenanceAlerts: 0,
-  },
-  {
-    id: 3,
-    plate: "DEF-9012",
-    model: "Ford Ranger XLT",
-    type: "Caminhonete",
-    year: 2023,
-    currentKm: 12000,
-    status: "Ativo",
-    lastMaintenance: "2024-01-20",
-    nextMaintenance: "2024-04-20",
-    maintenanceKm: 15000,
-    fuelConsumption: 8.5,
-    assignedTo: "Maria Santos",
-    maintenanceAlerts: 0,
-  },
-]
+import { useVehicles } from "@/hooks"
+import { Vehicle } from "@/lib/firestore"
 
 export default function VeiculosPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -70,36 +23,54 @@ export default function VeiculosPage() {
   const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
   const [isFuelDialogOpen, setIsFuelDialogOpen] = useState(false)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null)
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
 
-  const filteredVehicles = vehicles.filter((vehicle) => {
-    const matchesSearch =
-      vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || vehicle.status === statusFilter
-    const matchesType = typeFilter === "all" || vehicle.type === typeFilter
+  const { data: vehicles, loading, error, refetch } = useVehicles()
 
-    return matchesSearch && matchesStatus && matchesType
-  })
+  const filteredVehicles = useMemo(() => {
+    if (!vehicles) return []
+    
+    return vehicles.filter((vehicle: Vehicle) => {
+      const matchesSearch =
+        vehicle.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesStatus = statusFilter === "all" || vehicle.status === statusFilter
+      const matchesType = typeFilter === "all" || vehicle.brand === typeFilter
+
+      return matchesSearch && matchesStatus && matchesType
+    })
+  }, [vehicles, searchTerm, statusFilter, typeFilter])
+
+  // Calcular estatísticas
+  const stats = useMemo(() => {
+    if (!vehicles) return { total: 0, active: 0, maintenance: 0 }
+    
+    return {
+      total: vehicles.length,
+      active: vehicles.filter(veh => veh.status === 'active').length,
+      maintenance: vehicles.filter(veh => veh.status === 'maintenance').length,
+    }
+  }, [vehicles])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Ativo":
+      case "active":
         return (
           <Badge variant="secondary" className="bg-green-100 text-green-800">
             Ativo
           </Badge>
         )
-      case "Manutenção":
+      case "maintenance":
         return (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
             Manutenção
           </Badge>
         )
-      case "Inativo":
+      case "retired":
         return (
           <Badge variant="secondary" className="bg-red-100 text-red-800">
-            Inativo
+            Aposentado
           </Badge>
         )
       default:
@@ -114,10 +85,26 @@ export default function VeiculosPage() {
     return daysUntilMaintenance <= 7 || vehicle.currentKm >= vehicle.maintenanceKm
   }
 
-  const totalVehicles = vehicles.length
-  const activeVehicles = vehicles.filter((v) => v.status === "Ativo").length
-  const inMaintenance = vehicles.filter((v) => v.status === "Manutenção").length
-  const maintenanceAlerts = vehicles.filter((v) => isMaintenanceDue(v)).length
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Veículos</h1>
+            <p className="text-muted-foreground">Gerencie a frota de veículos</p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600 mb-4">Erro ao carregar veículos: {error}</p>
+            <Button onClick={refetch} className="cursor-pointer">
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -132,29 +119,29 @@ export default function VeiculosPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">{totalVehicles}</div>
+            <div className="text-2xl font-bold">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.total}
+            </div>
             <p className="text-xs text-muted-foreground">Total de Veículos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">{activeVehicles}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.active}
+            </div>
             <p className="text-xs text-muted-foreground">Ativos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-yellow-600">{inMaintenance}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.maintenance}
+            </div>
             <p className="text-xs text-muted-foreground">Em Manutenção</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-red-600">{maintenanceAlerts}</div>
-            <p className="text-xs text-muted-foreground">Alertas de Manutenção</p>
           </CardContent>
         </Card>
       </div>
@@ -180,9 +167,9 @@ export default function VeiculosPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="Ativo">Ativo</SelectItem>
-                <SelectItem value="Manutenção">Manutenção</SelectItem>
-                <SelectItem value="Inativo">Inativo</SelectItem>
+                <SelectItem value="active">Ativo</SelectItem>
+                <SelectItem value="maintenance">Manutenção</SelectItem>
+                <SelectItem value="retired">Aposentado</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -214,7 +201,7 @@ export default function VeiculosPage() {
               <TableRow>
                 <TableHead>Placa</TableHead>
                 <TableHead>Modelo</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Marca</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>KM Atual</TableHead>
                 <TableHead>Próxima Manutenção</TableHead>
@@ -223,11 +210,25 @@ export default function VeiculosPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredVehicles.map((vehicle) => (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    <p className="text-muted-foreground">Carregando veículos...</p>
+                  </TableCell>
+                </TableRow>
+              ) : filteredVehicles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-muted-foreground">Nenhum veículo encontrado</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredVehicles.map((vehicle: Vehicle) => (
                 <TableRow key={vehicle.id}>
                   <TableCell className="font-medium">{vehicle.plate}</TableCell>
                   <TableCell>{vehicle.model}</TableCell>
-                  <TableCell>{vehicle.type}</TableCell>
+                  <TableCell>{vehicle.brand}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {getStatusBadge(vehicle.status)}
@@ -236,9 +237,9 @@ export default function VeiculosPage() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{vehicle.currentKm.toLocaleString('pt-BR')} km</TableCell>
-                  <TableCell>{new Date(vehicle.nextMaintenance).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell>{vehicle.assignedTo || "-"}</TableCell>
+                  <TableCell>{vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
+                  <TableCell>{vehicle.nextMaintenance ? vehicle.nextMaintenance.toDate().toLocaleDateString("pt-BR") : '-'}</TableCell>
+                  <TableCell>{vehicle.status === 'active' ? 'Ativo' : '-'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
@@ -277,23 +278,24 @@ export default function VeiculosPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
           </div>
 
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-4">
-            {filteredVehicles.map((vehicle) => (
+            {filteredVehicles.map((vehicle: Vehicle) => (
               <Card key={vehicle.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{vehicle.model}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {vehicle.plate} • {vehicle.type}
+                      {vehicle.plate} • {vehicle.brand}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Responsável: {vehicle.assignedTo || "Não atribuído"}
+                      Status: {vehicle.status}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -344,11 +346,11 @@ export default function VeiculosPage() {
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <span className="text-muted-foreground">KM Atual:</span>
-                      <div className="font-medium">{vehicle.currentKm.toLocaleString('pt-BR')} km</div>
+                      <div className="font-medium">{vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : '-'}</div>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Próxima Manutenção:</span>
-                      <div className="font-medium">{new Date(vehicle.nextMaintenance).toLocaleDateString("pt-BR")}</div>
+                      <div className="font-medium">{vehicle.nextMaintenance ? vehicle.nextMaintenance.toDate().toLocaleDateString("pt-BR") : '-'}</div>
                     </div>
                   </div>
                 </div>

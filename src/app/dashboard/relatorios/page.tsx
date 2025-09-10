@@ -7,10 +7,14 @@ import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { AlertsPanel } from "@/components/reports/alerts-panel"
 import { ReportsCharts } from "@/components/reports/reports-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
+import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 import { toast } from "sonner"
 
 export default function RelatoriosPage() {
   const { generatePDF, isGenerating } = usePDFGenerator()
+  const { data: employees, loading: employeesLoading } = useEmployees()
+  const { data: equipment, loading: equipmentLoading } = useEquipment()
+  const { data: vehicles, loading: vehiclesLoading } = useVehicles()
 
   const handleGeneratePDF = async (category: string, title: string) => {
     const result = await generatePDF({
@@ -29,27 +33,31 @@ export default function RelatoriosPage() {
   const reportTypes = [
     {
       title: "Relatório de Equipamentos",
-      description: "Movimentação, status e utilização dos equipamentos",
+      description: `Movimentação, status e utilização dos ${equipment.length} equipamentos`,
       icon: FileText,
       category: "equipamentos",
+      loading: equipmentLoading,
     },
     {
       title: "Relatório de Manutenções",
-      description: "Histórico, custos e próximas manutenções",
+      description: `Histórico, custos e próximas manutenções de ${vehicles.length} veículos`,
       icon: FileText,
       category: "manutencoes",
+      loading: vehiclesLoading,
     },
     {
       title: "Relatório Financeiro",
       description: "Custos, valores e análise de ROI por período",
       icon: TrendingUp,
       category: "financeiro",
+      loading: false,
     },
     {
       title: "Relatório de Colaboradores",
-      description: "Produtividade e equipamentos por funcionário",
+      description: `Produtividade e equipamentos por ${employees.length} funcionários`,
       icon: FileText,
       category: "colaboradores",
+      loading: employeesLoading,
     },
   ]
 
@@ -89,10 +97,10 @@ export default function RelatoriosPage() {
                     size="sm" 
                     className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700 flex-1 sm:flex-none py-3 sm:py-2"
                     onClick={() => handleGeneratePDF(report.category, report.title)}
-                    disabled={isGenerating}
+                    disabled={isGenerating || report.loading}
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    {isGenerating ? "Gerando..." : "Gerar PDF"}
+                    {isGenerating ? "Gerando..." : report.loading ? "Carregando..." : "Gerar PDF"}
                   </Button>
                   <Button variant="outline" size="sm" className="cursor-pointer flex-1 sm:flex-none py-3 sm:py-2">
                     <BarChart3 className="mr-2 h-4 w-4" />
