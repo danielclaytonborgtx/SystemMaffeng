@@ -11,15 +11,53 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useEmployeeOperations } from "@/hooks"
+import { useToast } from "@/hooks/use-toast"
 
 interface EmployeeDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   employee?: any
   onClose: () => void
+  onSuccess?: () => void
 }
 
-export function EmployeeDialog({ open, onOpenChange, employee, onClose }: EmployeeDialogProps) {
+// Função para mapear status do formulário para o banco de dados
+const mapStatusToDB = (status: string): 'active' | 'vacation' | 'away' | 'inactive' => {
+  switch (status) {
+    case 'Ativo':
+      return 'active'
+    case 'Férias':
+      return 'vacation'
+    case 'Afastado':
+      return 'away'
+    case 'Inativo':
+      return 'inactive'
+    default:
+      return 'active'
+  }
+}
+
+// Função para mapear status do banco de dados para o formulário
+const mapStatusFromDB = (status: string): string => {
+  switch (status) {
+    case 'active':
+      return 'Ativo'
+    case 'vacation':
+      return 'Férias'
+    case 'away':
+      return 'Afastado'
+    case 'inactive':
+      return 'Inativo'
+    default:
+      return 'Ativo'
+  }
+}
+
+export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSuccess }: EmployeeDialogProps) {
+  const { createEmployee, updateEmployee, loading } = useEmployeeOperations()
+  const { toast } = useToast()
+  
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -44,7 +82,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
         phone: employee.phone || "",
         email: employee.email || "",
         hireDate: employee.hireDate || "",
-        status: employee.status || "Ativo",
+        status: mapStatusFromDB(employee.status) || "Ativo",
         address: employee.address || "",
         cpf: employee.cpf || "",
         rg: employee.rg || "",
@@ -66,10 +104,49 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
     }
   }, [employee])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Salvando colaborador:", formData)
-    onClose()
+    
+    try {
+      const employeeData = {
+        name: formData.name,
+        code: formData.code,
+        email: formData.email || undefined,
+        position: formData.position,
+        department: formData.department,
+        status: mapStatusToDB(formData.status),
+        phone: formData.phone || undefined,
+        hireDate: formData.hireDate || undefined,
+        address: formData.address || undefined,
+        cpf: formData.cpf || undefined,
+        rg: formData.rg || undefined,
+      }
+
+      if (employee) {
+        // Atualizar colaborador existente
+        await updateEmployee(employee.id, employeeData)
+        toast({
+          title: "Sucesso",
+          description: "Colaborador atualizado com sucesso!",
+        })
+      } else {
+        // Criar novo colaborador
+        await createEmployee(employeeData)
+        toast({
+          title: "Sucesso",
+          description: "Colaborador criado com sucesso!",
+        })
+      }
+      
+      onSuccess?.()
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar colaborador. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   const isEditing = !!employee
@@ -296,10 +373,12 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose }: Employ
           </Card>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isEditing ? "Salvar Alterações" : "Cadastrar Colaborador"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+              {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Colaborador")}
+            </Button>
           </div>
         </form>
       </DialogContent>

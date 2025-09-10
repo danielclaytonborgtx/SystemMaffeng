@@ -3,6 +3,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
+import { Toaster as UIToaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/contexts/auth-context'
 import '../styles/globals.css'
@@ -31,6 +32,7 @@ export default function RootLayout({
             {children}
             <Analytics />
             <Toaster />
+            <UIToaster />
           </AuthProvider>
         </ThemeProvider>
       </body>

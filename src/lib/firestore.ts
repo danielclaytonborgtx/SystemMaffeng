@@ -17,10 +17,16 @@ import { db } from './firebase'
 export interface Employee {
   id?: string
   name: string
-  email: string
+  code: string
+  email?: string
   position: string
   department: string
-  status: 'active' | 'vacation' | 'away'
+  status: 'active' | 'vacation' | 'away' | 'inactive'
+  phone?: string
+  hireDate?: string
+  address?: string
+  cpf?: string
+  rg?: string
   createdAt: Timestamp
   updatedAt: Timestamp
 }

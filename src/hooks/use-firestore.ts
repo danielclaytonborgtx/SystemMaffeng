@@ -120,3 +120,54 @@ export function useFirestoreOperation() {
 
   return { loading, error, execute }
 }
+
+// Hook específico para operações de colaboradores
+export function useEmployeeOperations() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createEmployee = async (employeeData: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const id = await employeeService.create(employeeData)
+      return id
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar colaborador')
+      console.error('Erro ao criar colaborador:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateEmployee = async (id: string, employeeData: Partial<Employee>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await employeeService.update(id, employeeData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar colaborador')
+      console.error('Erro ao atualizar colaborador:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteEmployee = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await employeeService.delete(id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar colaborador')
+      console.error('Erro ao deletar colaborador:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { loading, error, createEmployee, updateEmployee, deleteEmployee }
+}

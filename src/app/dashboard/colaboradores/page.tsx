@@ -246,7 +246,8 @@ export default function ColaboradoresPage() {
                       </Avatar>
                       <div>
                         <div className="font-medium">{employee.name}</div>
-                        <div className="text-sm text-muted-foreground">{employee.email}</div>
+                        <div className="text-sm text-muted-foreground">{employee.email || 'Sem email'}</div>
+                        <div className="text-xs text-muted-foreground">Código: {employee.code}</div>
                       </div>
                     </div>
                   </TableCell>
@@ -299,9 +300,9 @@ export default function ColaboradoresPage() {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{employee.name}</div>
-                      <div className="text-xs text-muted-foreground truncate">{employee.email}</div>
+                      <div className="text-xs text-muted-foreground truncate">{employee.email || 'Sem email'}</div>
                       <div className="text-xs text-muted-foreground mt-1 truncate">
-                        {employee.id} • {employee.position}
+                        {employee.code} • {employee.position}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">{employee.department}</div>
                     </div>
@@ -352,6 +353,9 @@ export default function ColaboradoresPage() {
         onClose={() => {
           setSelectedEmployee(null)
           setIsEmployeeDialogOpen(false)
+        }}
+        onSuccess={() => {
+          refetch() // Recarregar a lista de colaboradores
         }}
       />
 
