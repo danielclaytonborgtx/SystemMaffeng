@@ -300,8 +300,8 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                       <div key={movement.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Badge variant={movement.type === 'out' ? 'secondary' : 'outline'}>
-                              {movement.type === 'out' ? 'Saída' : 'Devolução'}
+                            <Badge variant={movement.actualReturnDate ? 'outline' : 'secondary'}>
+                              {movement.actualReturnDate ? 'Devolução' : 'Saída'}
                             </Badge>
                             <span className="text-sm font-medium">{movement.employeeName}</span>
                             <span className="text-xs text-muted-foreground">({movement.employeeCode})</span>
@@ -309,8 +309,15 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                           <div className="text-sm text-muted-foreground mt-1">
                             Projeto: {movement.project}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {movement.createdAt.toDate().toLocaleDateString('pt-BR')} às {movement.createdAt.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <div>
+                              <span className="font-medium">Saída:</span> {movement.createdAt.toDate().toLocaleDateString('pt-BR')} às {movement.createdAt.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            {movement.actualReturnDate && (
+                              <div>
+                                <span className="font-medium">Devolução:</span> {new Date(movement.actualReturnDate).toLocaleDateString('pt-BR')}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

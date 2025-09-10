@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useEmployeeOperations, useEquipmentMovements } from "@/hooks"
+import { useEmployeeOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
 interface EmployeeDialogProps {
@@ -56,7 +56,6 @@ const mapStatusFromDB = (status: string): string => {
 
 export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSuccess }: EmployeeDialogProps) {
   const { createEmployee, updateEmployee, deleteEmployee, loading } = useEmployeeOperations()
-  const { data: movements, loading: movementsLoading } = useEquipmentMovements(undefined, employee?.id)
   const { toast } = useToast()
   
   const [formData, setFormData] = useState({
@@ -207,67 +206,33 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
 
         {isEditing && employee && (
           <Card className="mx-0">
-            <CardHeader className="px-4 sm:px-6">
-              <CardTitle className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-semibold">{employee.name}</div>
-                  <div className="text-sm text-muted-foreground">{employee.position}</div>
+            <CardHeader className="px-4 sm:px-6 py-3">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/placeholder.svg" />
+                    <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">{employee.name}</span>
+                    <span className="text-sm text-muted-foreground">•</span>
+                    <span className="text-sm text-muted-foreground">{employee.position}</span>
+                  </div>
                 </div>
+                <Badge
+                  variant={employee.status === "Ativo" ? "secondary" : "outline"}
+                  className={
+                    employee.status === "Ativo"
+                      ? "bg-green-100 text-green-800"
+                      : employee.status === "Férias"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-yellow-100 text-yellow-800"
+                  }
+                >
+                  {employee.status}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 sm:px-6">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Equipamentos Recentes:</span>
-                  <div className="mt-1 space-y-1">
-                    {movementsLoading ? (
-                      <span className="text-muted-foreground">Carregando...</span>
-                    ) : movements && movements.length > 0 ? (
-                      <div className="space-y-1">
-                        {movements.slice(0, 3).map((movement) => (
-                          <div key={movement.id} className="text-xs">
-                            <Badge variant={movement.type === 'out' ? 'secondary' : 'outline'} className="mr-1">
-                              {movement.type === 'out' ? 'Saída' : 'Devolução'}
-                            </Badge>
-                            <span className="text-muted-foreground">
-                              {movement.equipmentName} ({movement.equipmentCode})
-                            </span>
-                          </div>
-                        ))}
-                        {movements.length > 3 && (
-                          <span className="text-xs text-muted-foreground">
-                            E mais {movements.length - 3} movimentações...
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">Nenhuma movimentação</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <span className="font-medium">Status:</span>
-                  <div className="mt-1">
-                    <Badge
-                      variant={employee.status === "Ativo" ? "secondary" : "outline"}
-                      className={
-                        employee.status === "Ativo"
-                          ? "bg-green-100 text-green-800"
-                          : employee.status === "Férias"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-yellow-100 text-yellow-800"
-                      }
-                    >
-                      {employee.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
           </Card>
         )}
 

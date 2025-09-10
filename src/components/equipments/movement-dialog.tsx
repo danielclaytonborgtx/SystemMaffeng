@@ -24,11 +24,14 @@ interface MovementDialogProps {
 }
 
 export function MovementDialog({ open, onOpenChange, equipment, onClose, onSuccess }: MovementDialogProps) {
-  const { createMovement, loading } = useEquipmentMovementOperations()
+  const { createMovement, updateMovement, loading } = useEquipmentMovementOperations()
   const { updateEquipment } = useEquipmentOperations()
   const { data: employees } = useEmployees()
-  const { data: movements } = useEquipmentMovements(equipment?.id)
+  const { data: movements, loading: movementsLoading } = useEquipmentMovements(equipment?.id)
   const { toast } = useToast()
+  
+  // Debug: log das movimentações quando mudam
+  console.log("Movimentações carregadas para equipamento:", equipment?.id, movements)
   const [movementType, setMovementType] = useState<"saida" | "devolucao">("saida")
   const [formData, setFormData] = useState({
     employeeId: "",
@@ -54,7 +57,8 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
     try {
       console.log("Iniciando movimentação:", { isReturn, equipment: equipment.id, formData })
       
-      let selectedEmployee = null
+      let selectedEmployee: any = null
+      let lastOutMovement: any = null
       
       // Para saídas, validar colaborador
       if (!isReturn) {
@@ -73,8 +77,11 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         console.log("Equipamento para devolução:", equipment)
         console.log("Movimentações do equipamento:", movements)
         
-        // Buscar a última movimentação de saída (type: 'out')
-        const lastOutMovement = movements?.find(mov => mov.type === 'out')
+        // Buscar a movimentação de saída que ainda não foi devolvida
+        lastOutMovement = movements?.find(mov => mov.type === 'out' && !mov.actualReturnDate)
+        
+        console.log("Movimentações encontradas:", movements?.length || 0)
+        console.log("Movimentação ativa encontrada:", lastOutMovement)
         
         if (lastOutMovement) {
           selectedEmployee = {
@@ -130,24 +137,74 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
 
       console.log("Dados da movimentação:", movementData)
       
-      await createMovement(movementData)
-      console.log("Movimentação criada com sucesso")
+      if (isReturn) {
+        if (lastOutMovement) {
+          // Para devoluções, atualizar a movimentação existente
+          console.log("Atualizando movimentação existente:", lastOutMovement.id)
+          console.log("Movimentação antes da atualização:", lastOutMovement)
+          
+          const updateData: any = {
+            actualReturnDate: new Date().toISOString().split('T')[0],
+            checklist: {
+              equipmentGoodCondition: checklistItems[0].checked,
+              accessoriesIncluded: checklistItems[1].checked,
+              manualPresent: checklistItems[2].checked,
+              equipmentClean: checklistItems[3].checked,
+              noVisibleDamage: checklistItems[4].checked,
+            }
+          }
+          
+          // Adicionar observações apenas se tiverem valor
+          if (formData.observations) {
+            updateData.observations = formData.observations
+          }
+          
+          console.log("Dados para atualização:", updateData)
+          await updateMovement(lastOutMovement.id!, updateData)
+          console.log("Movimentação atualizada com sucesso")
+        } else {
+          // Fallback: criar nova movimentação de devolução se não encontrar a original
+          console.log("Não encontrou movimentação original, criando nova de devolução")
+          const returnMovementData = {
+            ...movementData,
+            type: 'return',
+            actualReturnDate: new Date().toISOString().split('T')[0],
+          }
+          await createMovement(returnMovementData)
+          console.log("Movimentação de devolução criada com sucesso")
+        }
+      } else {
+        // Para saídas, criar nova movimentação
+        console.log("Criando nova movimentação de saída")
+        await createMovement(movementData)
+        console.log("Movimentação criada com sucesso")
+      }
       
       // Atualizar o status do equipamento
       const newStatus = isReturn ? 'available' : 'in_use'
       
-      console.log("Atualizando equipamento:", { id: equipment.id, status: newStatus, isReturn })
+      console.log("Atualizando equipamento:", { id: equipment.id, status: newStatus, isReturn, project: formData.project })
       
       // Preparar dados de atualização
       const updateData: any = {
         status: newStatus
       }
       
-      // Para saídas, adicionar assignedTo
+      // Para saídas, adicionar assignedTo e atualizar localização
       if (!isReturn) {
         updateData.assignedTo = selectedEmployee.name
+        // Mapear projeto para localização
+        const projectLocationMap: { [key: string]: string } = {
+          'obra-central': 'Obra Central',
+          'obra-norte': 'Obra Norte', 
+          'obra-sul': 'Obra Sul',
+          'manutencao': 'Manutenção'
+        }
+        updateData.location = projectLocationMap[formData.project] || "Obra"
+      } else {
+        // Para devoluções, voltar para almoxarifado
+        updateData.location = "Almoxarifado"
       }
-      // Para devoluções, não incluir assignedTo (será removido do documento)
       
       await updateEquipment(equipment.id, updateData)
       console.log("Equipamento atualizado com sucesso")
@@ -157,6 +214,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         description: isReturn ? "Devolução registrada com sucesso!" : "Saída registrada com sucesso!",
       })
       
+      console.log("Chamando onSuccess para atualizar listas")
       onSuccess?.()
       onClose()
     } catch (error) {

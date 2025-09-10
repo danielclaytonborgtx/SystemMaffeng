@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { CalendarDays, Package, ArrowUpDown } from "lucide-react"
+import { CalendarDays, Package, ArrowUpDown, Loader2 } from "lucide-react"
+import { useEquipmentMovements } from "@/hooks"
 
 interface EmployeeHistoryDialogProps {
   open: boolean
@@ -14,51 +15,14 @@ interface EmployeeHistoryDialogProps {
   onClose: () => void
 }
 
-// Mock data para histórico de equipamentos
-const equipmentHistory = [
-  {
-    id: 1,
-    equipmentName: "Furadeira Bosch GSB 550",
-    equipmentCode: "EQ001",
-    action: "Retirada",
-    date: "2024-03-15",
-    returnDate: "2024-03-20",
-    project: "Obra Central",
-    status: "Devolvido",
-  },
-  {
-    id: 2,
-    equipmentName: "Martelo Pneumático Makita",
-    equipmentCode: "EQ002",
-    action: "Retirada",
-    date: "2024-03-10",
-    returnDate: null,
-    project: "Obra Norte",
-    status: "Em Uso",
-  },
-  {
-    id: 3,
-    equipmentName: "Serra Circular Dewalt",
-    equipmentCode: "EQ003",
-    action: "Retirada",
-    date: "2024-02-28",
-    returnDate: "2024-03-05",
-    project: "Obra Central",
-    status: "Devolvido",
-  },
-  {
-    id: 4,
-    equipmentName: "Capacete de Segurança",
-    equipmentCode: "EQ015",
-    action: "Retirada",
-    date: "2024-01-15",
-    returnDate: null,
-    project: "Permanente",
-    status: "Em Uso",
-  },
-]
-
 export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }: EmployeeHistoryDialogProps) {
+  const { data: movements, loading, error } = useEquipmentMovements(undefined, employee?.id)
+  
+  // Debug: log das movimentações do colaborador
+  console.log("Colaborador:", employee?.id, employee?.name, employee)
+  console.log("Movimentações encontradas:", movements)
+  console.log("Loading:", loading, "Error:", error)
+  
   if (!employee) return null
 
   const getInitials = (name: string) => {
@@ -69,32 +33,32 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
       .toUpperCase()
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "Em Uso":
-        return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            Em Uso
-          </Badge>
-        )
-      case "Devolvido":
-        return (
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
-            Devolvido
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">{status}</Badge>
+  const getStatusBadge = (movement: any) => {
+    if (movement.actualReturnDate) {
+      return (
+        <Badge variant="secondary" className="bg-green-100 text-green-800">
+          Devolvido
+        </Badge>
+      )
+    } else {
+      return (
+        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+          Em Uso
+        </Badge>
+      )
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR")
+  const formatDate = (timestamp: any) => {
+    if (timestamp && timestamp.toDate) {
+      return timestamp.toDate().toLocaleDateString("pt-BR")
+    }
+    return new Date(timestamp).toLocaleDateString("pt-BR")
   }
 
-  const calculateDaysUsed = (startDate: string, endDate?: string | null) => {
-    const start = new Date(startDate)
-    const end = endDate ? new Date(endDate) : new Date()
+  const calculateDaysUsed = (startTimestamp: any, endTimestamp?: any) => {
+    const start = startTimestamp && startTimestamp.toDate ? startTimestamp.toDate() : new Date(startTimestamp)
+    const end = endTimestamp && endTimestamp.toDate ? endTimestamp.toDate() : (endTimestamp ? new Date(endTimestamp) : new Date())
     const diffTime = Math.abs(end.getTime() - start.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
@@ -136,7 +100,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                 <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <div className="text-sm font-medium">Total de Movimentações</div>
-                  <div className="text-2xl font-bold">{equipmentHistory.length}</div>
+                  <div className="text-2xl font-bold">{movements?.length || 0}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -165,62 +129,108 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                     <TableHead>Data Retirada</TableHead>
                     <TableHead>Data Devolução</TableHead>
                     <TableHead>Dias de Uso</TableHead>
-                    <TableHead>Projeto</TableHead>
+                    <TableHead>Localização</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {equipmentHistory.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.equipmentName}</TableCell>
-                      <TableCell>{item.equipmentCode}</TableCell>
-                      <TableCell>{formatDate(item.date)}</TableCell>
-                      <TableCell>{item.returnDate ? formatDate(item.returnDate) : "-"}</TableCell>
-                      <TableCell>{calculateDaysUsed(item.date, item.returnDate)} dias</TableCell>
-                      <TableCell>{item.project}</TableCell>
-                      <TableCell>{getStatusBadge(item.status)}</TableCell>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                        <p className="text-muted-foreground">Carregando histórico...</p>
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <p className="text-red-500">Erro ao carregar histórico</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : movements && movements.length > 0 ? (
+                    movements.map((movement) => (
+                      <TableRow key={movement.id}>
+                        <TableCell className="font-medium">{movement.equipmentName}</TableCell>
+                        <TableCell>{movement.equipmentCode}</TableCell>
+                        <TableCell>{formatDate(movement.createdAt)}</TableCell>
+                        <TableCell>{movement.actualReturnDate ? formatDate(movement.actualReturnDate) : "-"}</TableCell>
+                        <TableCell>
+                          {movement.type === 'out' 
+                            ? calculateDaysUsed(movement.createdAt, movement.actualReturnDate) + " dias"
+                            : "-"
+                          }
+                        </TableCell>
+                        <TableCell>{movement.project}</TableCell>
+                        <TableCell>{getStatusBadge(movement)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <p className="text-muted-foreground">Nenhuma movimentação encontrada</p>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
 
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-4">
-              {equipmentHistory.map((item) => (
-                <Card key={item.id} className="p-3 sm:p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{item.equipmentName}</div>
-                        <div className="text-xs text-muted-foreground">{item.equipmentCode}</div>
+              {loading ? (
+                <div className="text-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                  <p className="text-muted-foreground">Carregando histórico...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-8">
+                  <p className="text-red-500">Erro ao carregar histórico</p>
+                </div>
+              ) : movements && movements.length > 0 ? (
+                movements.map((movement) => (
+                  <Card key={movement.id} className="p-3 sm:p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">{movement.equipmentName}</div>
+                          <div className="text-xs text-muted-foreground">{movement.equipmentCode}</div>
+                        </div>
+                        <div className="flex-shrink-0 ml-2">
+                          {getStatusBadge(movement)}
+                        </div>
                       </div>
-                      <div className="flex-shrink-0 ml-2">
-                        {getStatusBadge(item.status)}
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">Data Retirada:</span>
+                          <div className="font-medium">{formatDate(movement.createdAt)}</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Data Devolução:</span>
+                          <div className="font-medium">{movement.actualReturnDate ? formatDate(movement.actualReturnDate) : "-"}</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Dias de Uso:</span>
+                          <div className="font-medium">
+                            {movement.actualReturnDate 
+                              ? calculateDaysUsed(movement.createdAt, movement.actualReturnDate) + " dias"
+                              : "-"
+                            }
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Localização:</span>
+                          <div className="font-medium truncate">{movement.project}</div>
+                        </div>
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
-                      <div>
-                        <span className="text-muted-foreground">Data Retirada:</span>
-                        <div className="font-medium">{formatDate(item.date)}</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Data Devolução:</span>
-                        <div className="font-medium">{item.returnDate ? formatDate(item.returnDate) : "-"}</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Dias de Uso:</span>
-                        <div className="font-medium">{calculateDaysUsed(item.date, item.returnDate)} dias</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Projeto:</span>
-                        <div className="font-medium truncate">{item.project}</div>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Nenhuma movimentação encontrada</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
