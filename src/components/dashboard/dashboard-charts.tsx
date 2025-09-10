@@ -17,7 +17,7 @@ export const DashboardCharts = memo(function DashboardCharts() {
   const chartData = useMemo(() => data, [])
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/30">
+    <Card className="border shadow-lg bg-card">
       <CardHeader>
         <CardTitle>Movimentação Mensal</CardTitle>
         <CardDescription>Equipamentos utilizados e manutenções realizadas</CardDescription>
@@ -25,15 +25,15 @@ export const DashboardCharts = memo(function DashboardCharts() {
       <CardContent className="p-6">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="name" stroke="#64748b" />
-            <YAxis stroke="#64748b" />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis dataKey="name" className="stroke-muted-foreground" />
+            <YAxis className="stroke-muted-foreground" />
             <Tooltip 
               contentStyle={{
-                backgroundColor: 'rgba(59, 130, 246, 0.95)',
-                border: 'none',
+                backgroundColor: 'hsl(var(--popover))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
-                color: 'white',
+                color: 'hsl(var(--popover-foreground))',
                 boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
               }}
             />
@@ -41,13 +41,11 @@ export const DashboardCharts = memo(function DashboardCharts() {
               dataKey="equipamentos" 
               fill="url(#equipamentosGradient)" 
               radius={[4, 4, 0, 0]}
-              className="hover:opacity-80 transition-opacity duration-300"
             />
             <Bar 
               dataKey="manutencoes" 
               fill="url(#manutencoesGradient)" 
               radius={[4, 4, 0, 0]}
-              className="hover:opacity-80 transition-opacity duration-300"
             />
             <defs>
               <linearGradient id="equipamentosGradient" x1="0" y1="0" x2="0" y2="1">
