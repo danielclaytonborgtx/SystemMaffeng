@@ -12,15 +12,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useEquipmentMovementOperations, useEmployees } from "@/hooks"
+import { useToast } from "@/hooks/use-toast"
 
 interface MovementDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   equipment?: any
   onClose: () => void
+  onSuccess?: () => void
 }
 
-export function MovementDialog({ open, onOpenChange, equipment, onClose }: MovementDialogProps) {
+export function MovementDialog({ open, onOpenChange, equipment, onClose, onSuccess }: MovementDialogProps) {
+  const { createMovement, loading } = useEquipmentMovementOperations()
+  const { data: employees } = useEmployees()
+  const { toast } = useToast()
   const [movementType, setMovementType] = useState<"saida" | "devolucao">("saida")
   const [formData, setFormData] = useState({
     employeeId: "",
@@ -38,10 +44,73 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose }: Movem
     { id: 5, item: "Sem danos visíveis", checked: false },
   ])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Registrando movimentação:", { movementType, formData, checklistItems })
-    onClose()
+    
+    if (!equipment?.id) return
+
+    try {
+      const selectedEmployee = employees?.find(emp => emp.code === formData.employeeId)
+      
+      if (!selectedEmployee) {
+        toast({
+          title: "Erro",
+          description: "Colaborador não encontrado. Verifique o código.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const movementData: any = {
+        equipmentId: equipment.id,
+        equipmentName: equipment.name,
+        equipmentCode: equipment.code,
+        employeeId: selectedEmployee.id!,
+        employeeName: selectedEmployee.name,
+        employeeCode: selectedEmployee.code,
+        type: isReturn ? 'return' as const : 'out' as const,
+        project: formData.project,
+      }
+
+      // Adicionar campos opcionais apenas se tiverem valor
+      if (formData.expectedReturn) {
+        movementData.expectedReturnDate = formData.expectedReturn
+      }
+      
+      if (isReturn) {
+        movementData.actualReturnDate = new Date().toISOString().split('T')[0]
+      }
+      
+      if (formData.observations) {
+        movementData.observations = formData.observations
+      }
+      
+      if (isReturn) {
+        movementData.checklist = {
+          equipmentGoodCondition: checklistItems[0].checked,
+          accessoriesIncluded: checklistItems[1].checked,
+          manualPresent: checklistItems[2].checked,
+          equipmentClean: checklistItems[3].checked,
+          noVisibleDamage: checklistItems[4].checked,
+        }
+      }
+
+      await createMovement(movementData)
+      
+      toast({
+        title: "Sucesso",
+        description: isReturn ? "Devolução registrada com sucesso!" : "Saída registrada com sucesso!",
+      })
+      
+      onSuccess?.()
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar movimentação. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleChecklistChange = (id: number, checked: boolean) => {
@@ -190,10 +259,12 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose }: Movem
           )}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
+            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
               Cancelar
             </Button>
-            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">{isReturn ? "Registrar Devolução" : "Registrar Saída"}</Button>
+            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+              {loading ? "Registrando..." : (isReturn ? "Registrar Devolução" : "Registrar Saída")}
+            </Button>
           </div>
         </form>
       </DialogContent>

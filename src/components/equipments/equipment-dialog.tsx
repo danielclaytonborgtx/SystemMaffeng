@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useEquipmentOperations } from "@/hooks"
+import { Badge } from "@/components/ui/badge"
+import { useEquipmentOperations, useEquipmentMovements } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
 interface EquipmentDialogProps {
@@ -24,6 +25,7 @@ interface EquipmentDialogProps {
 
 export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSuccess }: EquipmentDialogProps) {
   const { createEquipment, updateEquipment, deleteEquipment, loading } = useEquipmentOperations()
+  const { data: movements, loading: movementsLoading } = useEquipmentMovements(equipment?.id)
   const { toast } = useToast()
   const [formData, setFormData] = useState({
     name: "",
@@ -283,6 +285,48 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
               </div>
             </CardContent>
           </Card>
+
+          {isEditing && equipment && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Histórico de Movimentações</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {movementsLoading ? (
+                  <p className="text-muted-foreground">Carregando histórico...</p>
+                ) : movements && movements.length > 0 ? (
+                  <div className="space-y-3">
+                    {movements.slice(0, 5).map((movement) => (
+                      <div key={movement.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={movement.type === 'out' ? 'secondary' : 'outline'}>
+                              {movement.type === 'out' ? 'Saída' : 'Devolução'}
+                            </Badge>
+                            <span className="text-sm font-medium">{movement.employeeName}</span>
+                            <span className="text-xs text-muted-foreground">({movement.employeeCode})</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            Projeto: {movement.project}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {movement.createdAt.toDate().toLocaleDateString('pt-BR')} às {movement.createdAt.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {movements.length > 5 && (
+                      <p className="text-sm text-muted-foreground text-center">
+                        E mais {movements.length - 5} movimentações...
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">Nenhuma movimentação registrada</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex justify-between gap-2">
             {isEditing && (

@@ -308,6 +308,9 @@ export default function EquipamentosPage() {
           setSelectedEquipment(null)
           setIsMovementDialogOpen(false)
         }}
+        onSuccess={() => {
+          refetch() // Recarregar a lista de equipamentos
+        }}
       />
     </div>
   )

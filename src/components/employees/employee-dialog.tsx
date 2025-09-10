@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useEmployeeOperations } from "@/hooks"
+import { useEmployeeOperations, useEquipmentMovements } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
 interface EmployeeDialogProps {
@@ -56,6 +56,7 @@ const mapStatusFromDB = (status: string): string => {
 
 export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSuccess }: EmployeeDialogProps) {
   const { createEmployee, updateEmployee, deleteEmployee, loading } = useEmployeeOperations()
+  const { data: movements, loading: movementsLoading } = useEquipmentMovements(undefined, employee?.id)
   const { toast } = useToast()
   
   const [formData, setFormData] = useState({
@@ -221,16 +222,30 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
             <CardContent className="px-4 sm:px-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium">Equipamentos Ativos:</span>
+                  <span className="font-medium">Equipamentos Recentes:</span>
                   <div className="mt-1 space-y-1">
-                    {employee.currentEquipments && employee.currentEquipments.length > 0 ? (
-                      employee.currentEquipments.map((equipment: string, index: number) => (
-                        <Badge key={index} variant="outline" className="mr-1">
-                          {equipment}
-                        </Badge>
-                      ))
+                    {movementsLoading ? (
+                      <span className="text-muted-foreground">Carregando...</span>
+                    ) : movements && movements.length > 0 ? (
+                      <div className="space-y-1">
+                        {movements.slice(0, 3).map((movement) => (
+                          <div key={movement.id} className="text-xs">
+                            <Badge variant={movement.type === 'out' ? 'secondary' : 'outline'} className="mr-1">
+                              {movement.type === 'out' ? 'Saída' : 'Devolução'}
+                            </Badge>
+                            <span className="text-muted-foreground">
+                              {movement.equipmentName} ({movement.equipmentCode})
+                            </span>
+                          </div>
+                        ))}
+                        {movements.length > 3 && (
+                          <span className="text-xs text-muted-foreground">
+                            E mais {movements.length - 3} movimentações...
+                          </span>
+                        )}
+                      </div>
                     ) : (
-                      <span className="text-muted-foreground">Nenhum equipamento</span>
+                      <span className="text-muted-foreground">Nenhuma movimentação</span>
                     )}
                   </div>
                 </div>

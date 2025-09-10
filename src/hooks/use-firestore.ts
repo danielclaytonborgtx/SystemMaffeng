@@ -5,9 +5,11 @@ import {
   employeeService, 
   equipmentService, 
   vehicleService,
+  equipmentMovementService,
   Employee,
   Equipment,
-  Vehicle
+  Vehicle,
+  EquipmentMovement
 } from '@/lib/firestore'
 
 interface UseFirestoreState<T> {
@@ -272,4 +274,91 @@ export function useVehicleOperations() {
   }
 
   return { loading, error, createVehicle, updateVehicle, deleteVehicle }
+}
+
+// Hook para Movimentações de Equipamentos
+export function useEquipmentMovements(equipmentId?: string, employeeId?: string): UseFirestoreState<EquipmentMovement> {
+  const [data, setData] = useState<EquipmentMovement[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      let movements: EquipmentMovement[]
+      
+      if (equipmentId) {
+        movements = await equipmentMovementService.getByEquipmentId(equipmentId)
+      } else if (employeeId) {
+        movements = await equipmentMovementService.getByEmployeeId(employeeId)
+      } else {
+        movements = await equipmentMovementService.getAll()
+      }
+      
+      setData(movements)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar movimentações')
+      console.error('Erro ao buscar movimentações:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [equipmentId, employeeId])
+
+  return { data, loading, error, refetch: fetchData }
+}
+
+// Hook específico para operações de movimentações
+export function useEquipmentMovementOperations() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createMovement = async (movementData: Omit<EquipmentMovement, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const id = await equipmentMovementService.create(movementData)
+      return id
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar movimentação')
+      console.error('Erro ao criar movimentação:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateMovement = async (id: string, movementData: Partial<EquipmentMovement>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await equipmentMovementService.update(id, movementData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar movimentação')
+      console.error('Erro ao atualizar movimentação:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteMovement = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await equipmentMovementService.delete(id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar movimentação')
+      console.error('Erro ao deletar movimentação:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { loading, error, createMovement, updateMovement, deleteMovement }
 }

@@ -75,6 +75,30 @@ export interface Vehicle {
   updatedAt: Timestamp
 }
 
+export interface EquipmentMovement {
+  id?: string
+  equipmentId: string
+  equipmentName: string
+  equipmentCode: string
+  employeeId: string
+  employeeName: string
+  employeeCode: string
+  type: 'out' | 'return'
+  project: string
+  expectedReturnDate?: string
+  actualReturnDate?: string
+  observations?: string
+  checklist?: {
+    equipmentGoodCondition: boolean
+    accessoriesIncluded: boolean
+    manualPresent: boolean
+    equipmentClean: boolean
+    noVisibleDamage: boolean
+  }
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
 // Funções para Colaboradores
 export const employeeService = {
   async getAll(): Promise<Employee[]> {
@@ -194,6 +218,60 @@ export const vehicleService = {
 
   async delete(id: string): Promise<void> {
     const docRef = doc(db, 'vehicles', id)
+    await deleteDoc(docRef)
+  }
+}
+
+// Funções para Movimentações de Equipamentos
+export const equipmentMovementService = {
+  async getAll(): Promise<EquipmentMovement[]> {
+    const q = query(collection(db, 'equipmentMovements'), orderBy('createdAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as EquipmentMovement))
+  },
+
+  async getByEquipmentId(equipmentId: string): Promise<EquipmentMovement[]> {
+    const q = query(
+      collection(db, 'equipmentMovements'), 
+      where('equipmentId', '==', equipmentId)
+    )
+    const querySnapshot = await getDocs(q)
+    const movements = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as EquipmentMovement))
+    // Ordenar no cliente para evitar necessidade de índice composto
+    return movements.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
+  },
+
+  async getByEmployeeId(employeeId: string): Promise<EquipmentMovement[]> {
+    const q = query(
+      collection(db, 'equipmentMovements'), 
+      where('employeeId', '==', employeeId)
+    )
+    const querySnapshot = await getDocs(q)
+    const movements = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as EquipmentMovement))
+    // Ordenar no cliente para evitar necessidade de índice composto
+    return movements.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
+  },
+
+  async create(movement: Omit<EquipmentMovement, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const now = Timestamp.now()
+    const docRef = await addDoc(collection(db, 'equipmentMovements'), {
+      ...movement,
+      createdAt: now,
+      updatedAt: now
+    })
+    return docRef.id
+  },
+
+  async update(id: string, movement: Partial<EquipmentMovement>): Promise<void> {
+    const docRef = doc(db, 'equipmentMovements', id)
+    await updateDoc(docRef, {
+      ...movement,
+      updatedAt: Timestamp.now()
+    })
+  },
+
+  async delete(id: string): Promise<void> {
+    const docRef = doc(db, 'equipmentMovements', id)
     await deleteDoc(docRef)
   }
 }
