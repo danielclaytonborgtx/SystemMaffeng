@@ -21,6 +21,7 @@ interface EquipmentDialogProps {
   onSuccess?: () => void
 }
 
+
 export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSuccess }: EquipmentDialogProps) {
   const { createEquipment, updateEquipment, deleteEquipment, loading } = useEquipmentOperations()
   const { toast } = useToast()

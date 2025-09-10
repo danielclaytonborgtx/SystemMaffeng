@@ -36,7 +36,7 @@ export interface Equipment {
   name: string
   code: string
   category: string
-  status: 'available' | 'in_use' | 'maintenance' | 'retired'
+  status: 'available' | 'in_use' | 'maintenance'
   location: string
   value?: number
   description?: string

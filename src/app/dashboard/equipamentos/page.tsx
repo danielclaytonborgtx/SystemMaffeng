@@ -69,12 +69,6 @@ export default function EquipamentosPage() {
             Manutenção
           </Badge>
         )
-      case "retired":
-        return (
-          <Badge variant="secondary" className="bg-red-100 text-red-800">
-            Aposentado
-          </Badge>
-        )
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -138,7 +132,6 @@ export default function EquipamentosPage() {
                 <SelectItem value="available">Disponível</SelectItem>
                 <SelectItem value="in_use">Em Uso</SelectItem>
                 <SelectItem value="maintenance">Manutenção</SelectItem>
-                <SelectItem value="retired">Aposentado</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
