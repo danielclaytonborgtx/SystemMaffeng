@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useEquipmentMovementOperations, useEmployees } from "@/hooks"
+import { useEquipmentMovementOperations, useEmployees, useEquipmentOperations, useEquipmentMovements } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
 interface MovementDialogProps {
@@ -25,7 +25,9 @@ interface MovementDialogProps {
 
 export function MovementDialog({ open, onOpenChange, equipment, onClose, onSuccess }: MovementDialogProps) {
   const { createMovement, loading } = useEquipmentMovementOperations()
+  const { updateEquipment } = useEquipmentOperations()
   const { data: employees } = useEmployees()
+  const { data: movements } = useEquipmentMovements(equipment?.id)
   const { toast } = useToast()
   const [movementType, setMovementType] = useState<"saida" | "devolucao">("saida")
   const [formData, setFormData] = useState({
@@ -50,15 +52,46 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
     if (!equipment?.id) return
 
     try {
-      const selectedEmployee = employees?.find(emp => emp.code === formData.employeeId)
+      console.log("Iniciando movimentação:", { isReturn, equipment: equipment.id, formData })
       
-      if (!selectedEmployee) {
-        toast({
-          title: "Erro",
-          description: "Colaborador não encontrado. Verifique o código.",
-          variant: "destructive",
-        })
-        return
+      let selectedEmployee = null
+      
+      // Para saídas, validar colaborador
+      if (!isReturn) {
+        selectedEmployee = employees?.find(emp => emp.code === formData.employeeId)
+        
+        if (!selectedEmployee) {
+          toast({
+            title: "Erro",
+            description: "Colaborador não encontrado. Verifique o código.",
+            variant: "destructive",
+          })
+          return
+        }
+      } else {
+        // Para devoluções, buscar o colaborador que está usando o equipamento
+        console.log("Equipamento para devolução:", equipment)
+        console.log("Movimentações do equipamento:", movements)
+        
+        // Buscar a última movimentação de saída (type: 'out')
+        const lastOutMovement = movements?.find(mov => mov.type === 'out')
+        
+        if (lastOutMovement) {
+          selectedEmployee = {
+            id: lastOutMovement.employeeId,
+            name: lastOutMovement.employeeName,
+            code: lastOutMovement.employeeCode
+          }
+          console.log("Colaborador encontrado na movimentação:", selectedEmployee)
+        } else {
+          // Fallback: usar dados do assignedTo do equipamento
+          selectedEmployee = {
+            id: equipment.assignedTo || "unknown",
+            name: equipment.assignedTo || "Colaborador",
+            code: "DEV001"
+          }
+          console.log("Usando fallback para colaborador:", selectedEmployee)
+        }
       }
 
       const movementData: any = {
@@ -95,7 +128,29 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         }
       }
 
+      console.log("Dados da movimentação:", movementData)
+      
       await createMovement(movementData)
+      console.log("Movimentação criada com sucesso")
+      
+      // Atualizar o status do equipamento
+      const newStatus = isReturn ? 'available' : 'in_use'
+      
+      console.log("Atualizando equipamento:", { id: equipment.id, status: newStatus, isReturn })
+      
+      // Preparar dados de atualização
+      const updateData: any = {
+        status: newStatus
+      }
+      
+      // Para saídas, adicionar assignedTo
+      if (!isReturn) {
+        updateData.assignedTo = selectedEmployee.name
+      }
+      // Para devoluções, não incluir assignedTo (será removido do documento)
+      
+      await updateEquipment(equipment.id, updateData)
+      console.log("Equipamento atualizado com sucesso")
       
       toast({
         title: "Sucesso",
@@ -105,9 +160,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
       onSuccess?.()
       onClose()
     } catch (error) {
+      console.error("Erro detalhado:", error)
       toast({
         title: "Erro",
-        description: "Erro ao registrar movimentação. Tente novamente.",
+        description: `Erro ao registrar movimentação: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         variant: "destructive",
       })
     }
@@ -119,7 +175,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
 
   if (!equipment) return null
 
-  const isReturn = equipment.status === "Em Uso"
+  const isReturn = equipment.status === "in_use"
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -135,7 +191,11 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Status Atual
-              <Badge variant={equipment.status === "Disponível" ? "secondary" : "outline"}>{equipment.status}</Badge>
+              <Badge variant={equipment.status === "available" ? "secondary" : "outline"}>
+                {equipment.status === "available" ? "Disponível" : 
+                 equipment.status === "in_use" ? "Em Uso" : 
+                 equipment.status === "maintenance" ? "Manutenção" : equipment.status}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>

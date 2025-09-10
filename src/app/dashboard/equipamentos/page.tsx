@@ -196,7 +196,7 @@ export default function EquipamentosPage() {
                   <TableCell>{equipment.category}</TableCell>
                   <TableCell>{getStatusBadge(equipment.status)}</TableCell>
                   <TableCell>{equipment.location}</TableCell>
-                  <TableCell>{equipment.status === 'in_use' ? 'Em uso' : '-'}</TableCell>
+                  <TableCell>{equipment.assignedTo || '-'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
@@ -245,6 +245,9 @@ export default function EquipamentosPage() {
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       Status: {equipment.status}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Responsável: {equipment.assignedTo || 'Nenhum'}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">

@@ -38,6 +38,7 @@ export interface Equipment {
   category: string
   status: 'available' | 'in_use' | 'maintenance'
   location: string
+  assignedTo?: string
   value?: number
   description?: string
   purchaseDate?: string
