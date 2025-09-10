@@ -51,7 +51,7 @@ const mapStatusFromDB = (status: string): string => {
 }
 
 export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: VehicleDialogProps) {
-  const { createVehicle, updateVehicle, loading } = useVehicleOperations()
+  const { createVehicle, updateVehicle, deleteVehicle, loading } = useVehicleOperations()
   const { toast } = useToast()
   const [formData, setFormData] = useState({
     plate: "",
@@ -190,6 +190,26 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
       toast({
         title: "Erro",
         description: "Erro ao salvar veículo. Tente novamente.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!vehicle?.id) return
+
+    try {
+      await deleteVehicle(vehicle.id)
+      toast({
+        title: "Sucesso",
+        description: "Veículo excluído com sucesso!",
+      })
+      onSuccess?.()
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir veículo. Tente novamente.",
         variant: "destructive",
       })
     }
@@ -478,13 +498,26 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
-              Cancelar
-            </Button>
-            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
-              {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Veículo")}
-            </Button>
+          <div className="flex justify-between gap-2">
+            {isEditing && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleDelete} 
+                className="cursor-pointer" 
+                disabled={loading}
+              >
+                {loading ? "Excluindo..." : "Excluir Veículo"}
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
+                Cancelar
+              </Button>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+                {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Veículo")}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

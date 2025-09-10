@@ -22,7 +22,7 @@ interface EquipmentDialogProps {
 }
 
 export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSuccess }: EquipmentDialogProps) {
-  const { createEquipment, updateEquipment, loading } = useEquipmentOperations()
+  const { createEquipment, updateEquipment, deleteEquipment, loading } = useEquipmentOperations()
   const { toast } = useToast()
   const [formData, setFormData] = useState({
     name: "",
@@ -116,6 +116,26 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
       toast({
         title: "Erro",
         description: "Erro ao salvar equipamento. Tente novamente.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!equipment?.id) return
+
+    try {
+      await deleteEquipment(equipment.id)
+      toast({
+        title: "Sucesso",
+        description: "Equipamento excluído com sucesso!",
+      })
+      onSuccess?.()
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir equipamento. Tente novamente.",
         variant: "destructive",
       })
     }
@@ -263,13 +283,26 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
-              Cancelar
-            </Button>
-            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
-              {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Equipamento")}
-            </Button>
+          <div className="flex justify-between gap-2">
+            {isEditing && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleDelete} 
+                className="cursor-pointer" 
+                disabled={loading}
+              >
+                {loading ? "Excluindo..." : "Excluir Equipamento"}
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
+                Cancelar
+              </Button>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+                {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Equipamento")}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

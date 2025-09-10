@@ -55,7 +55,7 @@ const mapStatusFromDB = (status: string): string => {
 }
 
 export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSuccess }: EmployeeDialogProps) {
-  const { createEmployee, updateEmployee, loading } = useEmployeeOperations()
+  const { createEmployee, updateEmployee, deleteEmployee, loading } = useEmployeeOperations()
   const { toast } = useToast()
   
   const [formData, setFormData] = useState({
@@ -164,6 +164,26 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
     }
   }
 
+  const handleDelete = async () => {
+    if (!employee?.id) return
+
+    try {
+      await deleteEmployee(employee.id)
+      toast({
+        title: "Sucesso",
+        description: "Colaborador excluído com sucesso!",
+      })
+      onSuccess?.()
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir colaborador. Tente novamente.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const isEditing = !!employee
 
   const getInitials = (name: string) => {
@@ -203,7 +223,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                 <div>
                   <span className="font-medium">Equipamentos Ativos:</span>
                   <div className="mt-1 space-y-1">
-                    {employee.currentEquipments.length > 0 ? (
+                    {employee.currentEquipments && employee.currentEquipments.length > 0 ? (
                       employee.currentEquipments.map((equipment: string, index: number) => (
                         <Badge key={index} variant="outline" className="mr-1">
                           {equipment}
@@ -387,13 +407,26 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
-              Cancelar
-            </Button>
-            <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
-              {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Colaborador")}
-            </Button>
+          <div className="flex justify-between gap-2">
+            {isEditing && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleDelete} 
+                className="cursor-pointer" 
+                disabled={loading}
+              >
+                {loading ? "Excluindo..." : "Excluir Colaborador"}
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
+                Cancelar
+              </Button>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+                {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Colaborador")}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
