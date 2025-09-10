@@ -196,8 +196,8 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                       <SelectItem value="Ferramenta Elétrica">Ferramenta Elétrica</SelectItem>
                       <SelectItem value="Ferramenta Pneumática">Ferramenta Pneumática</SelectItem>
                       <SelectItem value="Equipamento de Segurança">Equipamento de Segurança</SelectItem>
-                      <SelectItem value="Máquina Pesada">Máquina Pesada</SelectItem>
-                      <SelectItem value="Mobiliário">Mobiliário</SelectItem>
+                      <SelectItem value="Máquina Pesada">ferramentas Manuais</SelectItem>
+                      <SelectItem value="Mobiliário">Ferramentas descartáveis</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

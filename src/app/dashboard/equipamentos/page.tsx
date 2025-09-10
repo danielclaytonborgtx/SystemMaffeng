@@ -142,6 +142,8 @@ export default function EquipamentosPage() {
                 <SelectItem value="all">Todos os Tipos</SelectItem>
                 <SelectItem value="Ferramenta Elétrica">Ferramenta Elétrica</SelectItem>
                 <SelectItem value="Ferramenta Pneumática">Ferramenta Pneumática</SelectItem>
+                <SelectItem value="Equipamento de Segurança">Ferramentas Manuais</SelectItem>
+                <SelectItem value="Equipamento de Segurança">Ferramentas Descartáveis</SelectItem>
                 <SelectItem value="Equipamento de Segurança">Equipamento de Segurança</SelectItem>
               </SelectContent>
             </Select>
