@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Fuel, Hash, DollarSign, MapPin, FileText, Calendar } from "lucide-react"
 
 interface FuelDialogProps {
   open: boolean
@@ -147,7 +148,10 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="currentKm">Quilometragem Atual</Label>
+                    <Label htmlFor="currentKm" className="flex items-center gap-2">
+                      <Hash className="h-4 w-4 text-blue-600" />
+                      Quilometragem Atual
+                    </Label>
                     <Input
                       id="currentKm"
                       type="number"
@@ -158,7 +162,10 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="liters">Litros Abastecidos</Label>
+                    <Label htmlFor="liters" className="flex items-center gap-2">
+                      <Fuel className="h-4 w-4 text-green-600" />
+                      Litros Abastecidos
+                    </Label>
                     <Input
                       id="liters"
                       type="number"
@@ -173,7 +180,10 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cost">Valor Total (R$)</Label>
+                    <Label htmlFor="cost" className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      Valor Total (R$)
+                    </Label>
                     <Input
                       id="cost"
                       type="number"
@@ -185,7 +195,10 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pricePerLiter">Preço por Litro (R$)</Label>
+                    <Label htmlFor="pricePerLiter" className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-yellow-600" />
+                      Preço por Litro (R$)
+                    </Label>
                     <Input
                       id="pricePerLiter"
                       type="number"
@@ -199,7 +212,10 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="station">Posto de Combustível</Label>
+                  <Label htmlFor="station" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-blue-600" />
+                    Posto de Combustível
+                  </Label>
                   <Input
                     id="station"
                     value={formData.station}
@@ -221,7 +237,10 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="observations">Observações</Label>
+                  <Label htmlFor="observations" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-yellow-600" />
+                    Observações
+                  </Label>
                   <Textarea
                     id="observations"
                     value={formData.observations}

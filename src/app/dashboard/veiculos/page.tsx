@@ -153,7 +153,7 @@ export default function VeiculosPage() {
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 h-4 w-4" />
               <Input
                 placeholder="Buscar por placa ou modelo..."
                 className="pl-10"
@@ -251,7 +251,7 @@ export default function VeiculosPage() {
                         }}
                         className="cursor-pointer"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -262,7 +262,7 @@ export default function VeiculosPage() {
                         }}
                         className="cursor-pointer"
                       >
-                        <Wrench className="h-4 w-4" />
+                        <Wrench className="h-4 w-4 text-yellow-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -273,7 +273,7 @@ export default function VeiculosPage() {
                         }}
                         className="cursor-pointer"
                       >
-                        <Fuel className="h-4 w-4" />
+                        <Fuel className="h-4 w-4 text-green-600" />
                       </Button>
                     </div>
                   </TableCell>
@@ -315,7 +315,7 @@ export default function VeiculosPage() {
                         }}
                         className="cursor-pointer h-7 w-7"
                       >
-                        <Eye className="h-3 w-3" />
+                        <Eye className="h-3 w-3 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -326,7 +326,7 @@ export default function VeiculosPage() {
                         }}
                         className="cursor-pointer h-7 w-7"
                       >
-                        <Wrench className="h-3 w-3" />
+                        <Wrench className="h-3 w-3 text-yellow-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -337,7 +337,7 @@ export default function VeiculosPage() {
                         }}
                         className="cursor-pointer h-7 w-7"
                       >
-                        <Fuel className="h-3 w-3" />
+                        <Fuel className="h-3 w-3 text-green-600" />
                       </Button>
                     </div>
                   </div>

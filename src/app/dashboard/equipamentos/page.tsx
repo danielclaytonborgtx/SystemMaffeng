@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, ArrowUpDown, Loader2 } from "lucide-react"
+import { Plus, Search, Eye, ArrowUpDown, Loader2, Package, Hash, Wrench, MapPin } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -115,7 +115,7 @@ export default function EquipamentosPage() {
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 h-4 w-4" />
               <Input
                 placeholder="Buscar por nome ou código..."
                 className="pl-10"
@@ -210,7 +210,7 @@ export default function EquipamentosPage() {
                         }}
                         className="cursor-pointer"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -221,7 +221,7 @@ export default function EquipamentosPage() {
                         }}
                         className="cursor-pointer"
                       >
-                        <ArrowUpDown className="h-4 w-4" />
+                        <ArrowUpDown className="h-4 w-4 text-green-600" />
                       </Button>
                     </div>
                   </TableCell>
@@ -264,7 +264,7 @@ export default function EquipamentosPage() {
                         }}
                         className="cursor-pointer h-8 w-8"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -275,7 +275,7 @@ export default function EquipamentosPage() {
                         }}
                         className="cursor-pointer h-8 w-8"
                       >
-                        <ArrowUpDown className="h-4 w-4" />
+                        <ArrowUpDown className="h-4 w-4 text-green-600" />
                       </Button>
                     </div>
                   </div>

@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useEquipmentOperations, useEquipmentMovements } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
+import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench } from "lucide-react"
 
 interface EquipmentDialogProps {
   open: boolean
@@ -228,7 +229,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Equipamento</Label>
+                  <Label htmlFor="name" className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-blue-600" />
+                    Nome do Equipamento
+                  </Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -238,7 +242,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="code">Código</Label>
+                  <Label htmlFor="code" className="flex items-center gap-2">
+                    <Hash className="h-4 w-4 text-green-600" />
+                    Código
+                  </Label>
                   <Input
                     id="code"
                     value={formData.code}
@@ -251,7 +258,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="type">Tipo</Label>
+                  <Label htmlFor="type" className="flex items-center gap-2">
+                    <Wrench className="h-4 w-4 text-yellow-600" />
+                    Tipo
+                  </Label>
                   <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o tipo" />
@@ -266,7 +276,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="value">Valor (R$)</Label>
+                  <Label htmlFor="value" className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    Valor (R$)
+                  </Label>
                   <Input
                     id="value"
                     type="number"
@@ -280,7 +293,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  Descrição
+                </Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -299,7 +315,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="purchaseDate">Data de Compra</Label>
+                  <Label htmlFor="purchaseDate" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-yellow-600" />
+                    Data de Compra
+                  </Label>
                   <Input
                     id="purchaseDate"
                     type="date"
@@ -308,7 +327,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="supplier">Fornecedor</Label>
+                  <Label htmlFor="supplier" className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-green-600" />
+                    Fornecedor
+                  </Label>
                   <Input
                     id="supplier"
                     value={formData.supplier}
@@ -329,7 +351,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="location">Localização Atual</Label>
+                  <Label htmlFor="location" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-yellow-600" />
+                    Localização Atual
+                  </Label>
                   <Select
                     value={formData.location}
                     onValueChange={(value) => setFormData({ ...formData, location: value })}

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { X } from "lucide-react"
+import { X, User, Mail, Phone, MapPin, Calendar, Building, Briefcase, FileText } from "lucide-react"
 import { useEmployeeOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
@@ -277,7 +277,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome Completo</Label>
+                  <Label htmlFor="name" className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-blue-600" />
+                    Nome Completo
+                  </Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -287,7 +290,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="code">Código</Label>
+                  <Label htmlFor="code" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-green-600" />
+                    Código
+                  </Label>
                   <Input
                     id="code"
                     value={formData.code}
@@ -321,7 +327,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-green-600" />
+                    Telefone
+                  </Label>
                   <Input
                     id="phone"
                     value={formData.phone}
@@ -330,7 +339,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-blue-600" />
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -342,7 +354,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">Endereço</Label>
+                <Label htmlFor="address" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-yellow-600" />
+                  Endereço
+                </Label>
                 <Input
                   id="address"
                   value={formData.address}
@@ -360,7 +375,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="position">Cargo</Label>
+                  <Label htmlFor="position" className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-blue-600" />
+                    Cargo
+                  </Label>
                   <Input
                     id="position"
                     value={formData.position}
@@ -370,7 +388,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="department">Departamento</Label>
+                  <Label htmlFor="department" className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-green-600" />
+                    Departamento
+                  </Label>
                   <Select
                     value={formData.department}
                     onValueChange={(value) => setFormData({ ...formData, department: value })}
@@ -391,7 +412,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="hireDate">Data de Contratação</Label>
+                  <Label htmlFor="hireDate" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-yellow-600" />
+                    Data de Contratação
+                  </Label>
                   <Input
                     id="hireDate"
                     type="date"

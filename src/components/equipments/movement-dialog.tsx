@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useEquipmentMovementOperations, useEmployees, useEquipmentOperations, useEquipmentMovements } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
+import { User, Hash, Calendar, MapPin, FileText, CheckSquare } from "lucide-react"
 
 interface MovementDialogProps {
   open: boolean
@@ -275,7 +276,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="employeeId">ID do Colaborador</Label>
+                    <Label htmlFor="employeeId" className="flex items-center gap-2">
+                      <Hash className="h-4 w-4 text-green-600" />
+                      ID do Colaborador
+                    </Label>
                     <Input
                       id="employeeId"
                       value={formData.employeeId}
@@ -285,7 +289,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="employeeName">Nome do Colaborador</Label>
+                    <Label htmlFor="employeeName" className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-blue-600" />
+                      Nome do Colaborador
+                    </Label>
                     <Input
                       id="employeeName"
                       value={formData.employeeName}
@@ -298,7 +305,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="project">Projeto/Obra</Label>
+                    <Label htmlFor="project" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-yellow-600" />
+                      Projeto/Obra
+                    </Label>
                     <Select
                       value={formData.project}
                       onValueChange={(value) => setFormData({ ...formData, project: value })}
@@ -315,7 +325,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="expectedReturn">Previsão de Devolução</Label>
+                    <Label htmlFor="expectedReturn" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-green-600" />
+                      Previsão de Devolução
+                    </Label>
                     <Input
                       id="expectedReturn"
                       type="date"
@@ -326,7 +339,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="observations">Observações</Label>
+                  <Label htmlFor="observations" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    Observações
+                  </Label>
                   <Textarea
                     id="observations"
                     value={formData.observations}
@@ -345,7 +361,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
-                  <Label>Checklist de Devolução</Label>
+                  <Label className="flex items-center gap-2">
+                    <CheckSquare className="h-4 w-4 text-green-600" />
+                    Checklist de Devolução
+                  </Label>
                   <div className="space-y-3">
                     {checklistItems.map((item) => (
                       <div key={item.id} className="flex items-center space-x-2">
@@ -363,7 +382,10 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="returnObservations">Observações da Devolução</Label>
+                  <Label htmlFor="returnObservations" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    Observações da Devolução
+                  </Label>
                   <Textarea
                     id="returnObservations"
                     value={formData.observations}

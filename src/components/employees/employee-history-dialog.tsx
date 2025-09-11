@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { CalendarDays, Package, ArrowUpDown, Loader2 } from "lucide-react"
+import { CalendarDays, Package, ArrowUpDown, Loader2, User, Hash, MapPin, Clock } from "lucide-react"
 import { useEquipmentMovements } from "@/hooks"
 
 interface EmployeeHistoryDialogProps {
@@ -90,21 +90,21 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
           <CardContent className="px-4 sm:px-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-muted-foreground" />
+                <Package className="h-4 w-4 text-blue-600" />
                 <div>
                   <div className="text-sm font-medium">Equipamentos Ativos</div>
                   <div className="text-2xl font-bold">{employee.equipmentCount}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <ArrowUpDown className="h-4 w-4 text-green-600" />
                 <div>
                   <div className="text-sm font-medium">Total de Movimentações</div>
                   <div className="text-2xl font-bold">{movements?.length || 0}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                <CalendarDays className="h-4 w-4 text-yellow-600" />
                 <div>
                   <div className="text-sm font-medium">Desde</div>
                   <div className="text-lg font-semibold">{formatDate(employee.hireDate)}</div>

@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Wrench, Hash, DollarSign, FileText, Calendar, CheckSquare } from "lucide-react"
 
 interface MaintenanceDialogProps {
   open: boolean
@@ -171,7 +172,10 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="type">Tipo de Manutenção</Label>
+                    <Label htmlFor="type" className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4 text-blue-600" />
+                      Tipo de Manutenção
+                    </Label>
                     <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo" />
@@ -184,7 +188,10 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="currentKm">Quilometragem Atual</Label>
+                    <Label htmlFor="currentKm" className="flex items-center gap-2">
+                      <Hash className="h-4 w-4 text-green-600" />
+                      Quilometragem Atual
+                    </Label>
                     <Input
                       id="currentKm"
                       type="number"
@@ -197,7 +204,10 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Descrição da Manutenção</Label>
+                  <Label htmlFor="description" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-yellow-600" />
+                    Descrição da Manutenção
+                  </Label>
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -210,7 +220,10 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cost">Custo Total (R$)</Label>
+                    <Label htmlFor="cost" className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      Custo Total (R$)
+                    </Label>
                     <Input
                       id="cost"
                       type="number"
@@ -222,7 +235,10 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="nextMaintenanceKm">Próxima Manutenção (KM)</Label>
+                    <Label htmlFor="nextMaintenanceKm" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                      Próxima Manutenção (KM)
+                    </Label>
                     <Input
                       id="nextMaintenanceKm"
                       type="number"
@@ -234,7 +250,10 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="items">Itens Substituídos/Utilizados</Label>
+                  <Label htmlFor="items" className="flex items-center gap-2">
+                    <CheckSquare className="h-4 w-4 text-yellow-600" />
+                    Itens Substituídos/Utilizados
+                  </Label>
                   <Textarea
                     id="items"
                     value={formData.items}

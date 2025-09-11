@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useVehicleOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
+import { Car, Hash, Calendar, MapPin, FileText, DollarSign, Wrench, Fuel, User, AlertTriangle } from "lucide-react"
 
 interface VehicleDialogProps {
   open: boolean
@@ -278,7 +279,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="plate">Placa</Label>
+                    <Label htmlFor="plate" className="flex items-center gap-2">
+                      <Car className="h-4 w-4 text-blue-600" />
+                      Placa
+                    </Label>
                     <Input
                       id="plate"
                       value={formData.plate}
@@ -288,7 +292,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="model">Modelo</Label>
+                    <Label htmlFor="model" className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-green-600" />
+                      Modelo
+                    </Label>
                     <Input
                       id="model"
                       value={formData.model}
@@ -301,7 +308,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="type">Tipo</Label>
+                    <Label htmlFor="type" className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4 text-yellow-600" />
+                      Tipo
+                    </Label>
                     <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo" />
@@ -317,7 +327,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="year">Ano</Label>
+                    <Label htmlFor="year" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-green-600" />
+                      Ano
+                    </Label>
                     <Input
                       id="year"
                       type="number"
@@ -331,7 +344,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="currentKm">Quilometragem Atual</Label>
+                    <Label htmlFor="currentKm" className="flex items-center gap-2">
+                      <Hash className="h-4 w-4 text-blue-600" />
+                      Quilometragem Atual
+                    </Label>
                     <Input
                       id="currentKm"
                       type="number"
@@ -342,7 +358,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="color">Cor</Label>
+                    <Label htmlFor="color" className="flex items-center gap-2">
+                      <Car className="h-4 w-4 text-yellow-600" />
+                      Cor
+                    </Label>
                     <Input
                       id="color"
                       value={formData.color}
