@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { X } from "lucide-react"
 import { useEmployeeOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
@@ -70,7 +71,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
     address: "",
     cpf: "",
     rg: "",
+    contracts: [] as string[],
   })
+
+  const [newContract, setNewContract] = useState("")
 
   useEffect(() => {
     if (employee) {
@@ -86,6 +90,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
         address: employee.address || "",
         cpf: employee.cpf || "",
         rg: employee.rg || "",
+        contracts: employee.contracts || [],
       })
     } else {
       setFormData({
@@ -100,6 +105,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
         address: "",
         cpf: "",
         rg: "",
+        contracts: [],
       })
     }
   }, [employee])
@@ -135,6 +141,9 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
       }
       if (formData.rg) {
         employeeData.rg = formData.rg
+      }
+      if (formData.contracts && formData.contracts.length > 0) {
+        employeeData.contracts = formData.contracts
       }
 
       if (employee) {
@@ -192,6 +201,30 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
       .map((n) => n[0])
       .join("")
       .toUpperCase()
+  }
+
+  const addContract = () => {
+    if (newContract.trim() && !formData.contracts.includes(newContract.trim())) {
+      setFormData({
+        ...formData,
+        contracts: [...formData.contracts, newContract.trim()]
+      })
+      setNewContract("")
+    }
+  }
+
+  const removeContract = (contractToRemove: string) => {
+    setFormData({
+      ...formData,
+      contracts: formData.contracts.filter(contract => contract !== contractToRemove)
+    })
+  }
+
+  const handleContractKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addContract()
+    }
   }
 
   return (
@@ -383,6 +416,71 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Contratos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <Label htmlFor="contracts">Contratos em que o colaborador trabalha</Label>
+                
+                {/* Input para adicionar novo contrato */}
+                <div className="flex gap-2">
+                  <Input
+                    id="contracts"
+                    value={newContract}
+                    onChange={(e) => setNewContract(e.target.value)}
+                    onKeyPress={handleContractKeyPress}
+                    placeholder="Digite o nome do contrato e pressione Enter"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addContract}
+                    disabled={!newContract.trim() || formData.contracts.includes(newContract.trim())}
+                    className="px-4"
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+
+                {/* Lista de contratos adicionados */}
+                {formData.contracts.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Contratos adicionados:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.contracts.map((contract) => (
+                        <Badge 
+                          key={contract} 
+                          variant="secondary" 
+                          className="text-xs flex items-center gap-1 pr-1"
+                        >
+                          {contract}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-transparent"
+                            onClick={() => removeContract(contract)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {formData.contracts.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum contrato adicionado. Digite o nome do contrato acima para adicionar.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

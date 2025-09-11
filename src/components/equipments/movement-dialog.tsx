@@ -144,7 +144,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
           console.log("Movimentação antes da atualização:", lastOutMovement)
           
           const updateData: any = {
-            actualReturnDate: new Date().toISOString().split('T')[0],
+            actualReturnDate: new Date().toISOString(),
             checklist: {
               equipmentGoodCondition: checklistItems[0].checked,
               accessoriesIncluded: checklistItems[1].checked,
@@ -168,7 +168,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
           const returnMovementData = {
             ...movementData,
             type: 'return',
-            actualReturnDate: new Date().toISOString().split('T')[0],
+            actualReturnDate: new Date().toISOString(),
           }
           await createMovement(returnMovementData)
           console.log("Movimentação de devolução criada com sucesso")

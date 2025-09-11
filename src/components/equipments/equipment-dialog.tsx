@@ -22,6 +22,70 @@ interface EquipmentDialogProps {
   onSuccess?: () => void
 }
 
+// Helper: formata data/hora para pt-BR, com detecção de Timestamp do Firestore, strings ISO e "date-only"
+function formatDateTime(value: any): { date: string; time: string | null } {
+  if (!value) return { date: "", time: null }
+
+  // Firestore Timestamp (possui toDate)
+  if (typeof value === "object" && value !== null && typeof value.toDate === "function") {
+    const d: Date = value.toDate()
+    return {
+      date: d.toLocaleDateString("pt-BR"),
+      time: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    }
+  }
+
+  // String: checar formatos
+  if (typeof value === "string") {
+    // 1) date-only: YYYY-MM-DD (sem horário) => criar Date local (garante não "recuar" o dia)
+    const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (dateOnlyMatch) {
+      const y = Number(dateOnlyMatch[1])
+      const m = Number(dateOnlyMatch[2])
+      const d = Number(dateOnlyMatch[3])
+      const local = new Date(y, m - 1, d) // cria no horário local
+      return { date: local.toLocaleDateString("pt-BR"), time: local.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }
+    }
+
+    // 2) ISO com Z (UTC): YYYY-MM-DDTHH:MM:SSZ
+    // Se for meia-noite UTC (00:00:00Z), normalmente foi usado somente para representar "apenas a data" no backend.
+    // Neste caso, tratamos como date-only para evitar o "-3h" que o JS aplicaria e mostraria dia anterior.
+    const isoZMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?Z$/)
+    if (isoZMatch) {
+      const hh = isoZMatch[4]
+      const mm = isoZMatch[5]
+      const ss = isoZMatch[6]
+      if (hh === "00" && mm === "00" && ss === "00") {
+        const y = Number(isoZMatch[1])
+        const m = Number(isoZMatch[2])
+        const d = Number(isoZMatch[3])
+        const local = new Date(y, m - 1, d)
+        return { date: local.toLocaleDateString("pt-BR"), time: local.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }
+      }
+      // caso contrário, interpretar normalmente (conversão UTC -> local é apropriada)
+      const dObj = new Date(value)
+      return {
+        date: dObj.toLocaleDateString("pt-BR"),
+        time: dObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      }
+    }
+
+    // 3) outras strings ISO (com offset ou sem Z): parse normal
+    const parsed = new Date(value)
+    if (isNaN(parsed.getTime())) {
+      return { date: String(value), time: null }
+    }
+    return {
+      date: parsed.toLocaleDateString("pt-BR"),
+      time: parsed.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    }
+  }
+
+  // Fallback para outros tipos (número, Date, etc.)
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return { date: String(value), time: null }
+  return { date: d.toLocaleDateString("pt-BR"), time: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }
+}
 
 export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSuccess }: EquipmentDialogProps) {
   const { createEquipment, updateEquipment, deleteEquipment, loading } = useEquipmentOperations()
@@ -69,7 +133,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     try {
       // Criar objeto base com campos obrigatórios
       const equipmentData: any = {
@@ -112,7 +176,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
           description: "Equipamento criado com sucesso!",
         })
       }
-      
+
       onSuccess?.()
       onClose()
     } catch (error) {
@@ -296,36 +360,44 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   <p className="text-muted-foreground">Carregando histórico...</p>
                 ) : movements && movements.length > 0 ? (
                   <div className="space-y-3">
-                    {movements.slice(0, 5).map((movement) => (
-                      <div key={movement.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant={movement.actualReturnDate ? 'outline' : 'secondary'}>
-                              {movement.actualReturnDate ? 'Devolução' : 'Saída'}
-                            </Badge>
-                            <span className="text-sm font-medium">{movement.employeeName}</span>
-                            <span className="text-xs text-muted-foreground">({movement.employeeCode})</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Projeto: {movement.project}
-                          </div>
-                          <div className="text-xs text-muted-foreground space-y-1">
-                            <div>
-                              <span className="font-medium">Saída:</span> {movement.createdAt.toDate().toLocaleDateString('pt-BR')} às {movement.createdAt.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    {movements.slice(0, 5).map((movement: any) => {
+                      const created = formatDateTime(movement.createdAt)
+                      const returned = formatDateTime(movement.actualReturnDate)
+
+                      return (
+                        <div key={movement.id} className="p-3 border rounded-lg">
+                          {/* Cabeçalho: Badge + Funcionário + Projeto */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={movement.actualReturnDate ? "outline" : "secondary"}>
+                                {movement.actualReturnDate ? "Devolvido" : "Saída"}
+                              </Badge>
+                              <span className="text-sm font-medium">{movement.employeeName}</span>
+                              <span className="text-xs text-muted-foreground">({movement.employeeCode})</span>
                             </div>
+                            <span className="text-xs text-muted-foreground">Projeto: {movement.project}</span>
+                          </div>
+
+                          {/* Corpo: datas em colunas */}
+                          <div className="grid grid-cols-2 gap-4 mt-2 text-xs text-muted-foreground">
+                            <div>
+                              <span className="font-medium">Saída:</span><br />
+                              {created.date} {created.time ? `às ${created.time}` : ""}
+                            </div>
+
                             {movement.actualReturnDate && (
                               <div>
-                                <span className="font-medium">Devolução:</span> {new Date(movement.actualReturnDate).toLocaleDateString('pt-BR')}
+                                <span className="font-medium">Devolução:</span><br />
+                                {returned.date}{returned.time ? ` às ${returned.time}` : ""}
                               </div>
                             )}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
+
                     {movements.length > 5 && (
-                      <p className="text-sm text-muted-foreground text-center">
-                        E mais {movements.length - 5} movimentações...
-                      </p>
+                      <p className="text-sm text-muted-foreground text-center">E mais {movements.length - 5} movimentações...</p>
                     )}
                   </div>
                 ) : (

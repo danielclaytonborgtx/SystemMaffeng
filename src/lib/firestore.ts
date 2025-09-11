@@ -27,6 +27,7 @@ export interface Employee {
   address?: string
   cpf?: string
   rg?: string
+  contracts?: string[]
   createdAt: Timestamp
   updatedAt: Timestamp
 }
