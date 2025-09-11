@@ -169,7 +169,6 @@ export default function VeiculosPage() {
                 <SelectItem value="all">Todos os Status</SelectItem>
                 <SelectItem value="active">Ativo</SelectItem>
                 <SelectItem value="maintenance">Manutenção</SelectItem>
-                <SelectItem value="retired">Aposentado</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>

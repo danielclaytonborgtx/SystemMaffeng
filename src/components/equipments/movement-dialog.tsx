@@ -307,19 +307,18 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
                   <div className="space-y-2">
                     <Label htmlFor="project" className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-yellow-600" />
-                      Projeto/Obra
+                      Localização
                     </Label>
                     <Select
                       value={formData.project}
                       onValueChange={(value) => setFormData({ ...formData, project: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o projeto" />
+                        <SelectValue placeholder="Selecione a localização" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="obra-central">Obra Central</SelectItem>
-                        <SelectItem value="obra-norte">Obra Norte</SelectItem>
-                        <SelectItem value="obra-sul">Obra Sul</SelectItem>
+                        <SelectItem value="almoxarifado">Almoxarifado</SelectItem>
+                        <SelectItem value="obra">Obra</SelectItem>
                         <SelectItem value="manutencao">Manutenção</SelectItem>
                       </SelectContent>
                     </Select>

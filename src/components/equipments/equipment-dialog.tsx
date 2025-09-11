@@ -364,10 +364,8 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                       <SelectValue placeholder="Selecione a localização" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Almoxarifado A">Almoxarifado A</SelectItem>
-                      <SelectItem value="Almoxarifado B">Almoxarifado B</SelectItem>
-                      <SelectItem value="Obra Central">Obra Central</SelectItem>
-                      <SelectItem value="Obra Norte">Obra Norte</SelectItem>
+                      <SelectItem value="Almoxarifado">Almoxarifado</SelectItem>      
+                      <SelectItem value="Obra">Obra</SelectItem>
                       <SelectItem value="Oficina">Oficina</SelectItem>
                     </SelectContent>
                   </Select>

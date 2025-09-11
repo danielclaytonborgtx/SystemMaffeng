@@ -111,6 +111,41 @@ export default function EquipamentosPage() {
         </Button>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.total}
+            </div>
+            <p className="text-xs text-muted-foreground">Total de Equipamentos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold text-green-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.available}
+            </div>
+            <p className="text-xs text-muted-foreground">Disponíveis</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold text-blue-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.inUse}
+            </div>
+            <p className="text-xs text-muted-foreground">Em Uso</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold text-yellow-600">
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.maintenance}
+            </div>
+            <p className="text-xs text-muted-foreground">Em Manutenção</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Filtros</CardTitle>
