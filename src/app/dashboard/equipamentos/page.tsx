@@ -102,7 +102,10 @@ export default function EquipamentosPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Equipamentos</h1>
           <p className="text-muted-foreground">Gerencie o estoque de equipamentos</p>
         </div>
-        <Button onClick={() => setIsEquipmentDialogOpen(true)} className="cursor-pointer w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-700">
+        <Button onClick={() => {
+          setSelectedEquipment(null)
+          setIsEquipmentDialogOpen(true)
+        }} className="cursor-pointer w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-700">
           <Plus className="mr-2 h-4 w-4" />
           Novo Equipamento
         </Button>

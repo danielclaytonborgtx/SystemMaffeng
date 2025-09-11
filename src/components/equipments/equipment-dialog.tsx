@@ -118,6 +118,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         location: equipment.location || "",
       })
     } else {
+      // Resetar formulário para novo equipamento
       setFormData({
         name: "",
         type: "",
@@ -130,7 +131,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         location: "",
       })
     }
-  }, [equipment])
+  }, [equipment, open]) // Adicionar 'open' como dependência para resetar quando o dialog abre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
