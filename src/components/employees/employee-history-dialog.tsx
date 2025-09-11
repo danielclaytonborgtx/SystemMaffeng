@@ -50,10 +50,41 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
   }
 
   const formatDate = (timestamp: any) => {
+    if (!timestamp) return "-"
+    
+    let date: Date
+    
+    // Firestore Timestamp
     if (timestamp && timestamp.toDate) {
-      return timestamp.toDate().toLocaleDateString("pt-BR")
+      date = timestamp.toDate()
     }
-    return new Date(timestamp).toLocaleDateString("pt-BR")
+    // String de data (formato YYYY-MM-DD ou ISO)
+    else if (typeof timestamp === 'string') {
+      // Se for uma string de data simples (YYYY-MM-DD), criar data local diretamente
+      if (/^\d{4}-\d{2}-\d{2}$/.test(timestamp)) {
+        const [year, month, day] = timestamp.split('-').map(Number)
+        date = new Date(year, month - 1, day) // month é 0-indexed
+      }
+      // Se for uma string ISO com Z (UTC), tratar como data local para evitar problemas de fuso
+      else if (timestamp.includes('T') && timestamp.includes('Z')) {
+        const isoDate = new Date(timestamp)
+        // Criar data local para evitar problemas de fuso horário
+        date = new Date(isoDate.getFullYear(), isoDate.getMonth(), isoDate.getDate())
+      } else {
+        date = new Date(timestamp)
+      }
+    }
+    // Outros tipos (Date, number, etc.)
+    else {
+      date = new Date(timestamp)
+    }
+    
+    // Verificar se a data é válida
+    if (isNaN(date.getTime())) {
+      return "-"
+    }
+    
+    return date.toLocaleDateString("pt-BR")
   }
 
   const calculateDaysUsed = (startTimestamp: any, endTimestamp?: any) => {
