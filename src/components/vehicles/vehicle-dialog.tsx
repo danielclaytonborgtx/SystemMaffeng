@@ -188,9 +188,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
       onSuccess?.()
       onClose()
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro ao salvar veículo. Tente novamente."
       toast({
         title: "Erro",
-        description: "Erro ao salvar veículo. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       })
     }

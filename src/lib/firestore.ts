@@ -119,6 +119,12 @@ export const employeeService = {
   },
 
   async create(employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    // Verificar se o código já existe
+    const existingEmployee = await this.getByCode(employee.code)
+    if (existingEmployee) {
+      throw new Error(`Já existe um colaborador com o código "${employee.code}"`)
+    }
+
     const now = Timestamp.now()
     const docRef = await addDoc(collection(db, 'employees'), {
       ...employee,
@@ -128,7 +134,25 @@ export const employeeService = {
     return docRef.id
   },
 
+  async getByCode(code: string): Promise<Employee | null> {
+    const q = query(collection(db, 'employees'), where('code', '==', code))
+    const querySnapshot = await getDocs(q)
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0]
+      return { id: doc.id, ...doc.data() } as Employee
+    }
+    return null
+  },
+
   async update(id: string, employee: Partial<Employee>): Promise<void> {
+    // Se está atualizando o código, verificar se já existe
+    if (employee.code) {
+      const existingEmployee = await this.getByCode(employee.code)
+      if (existingEmployee && existingEmployee.id !== id) {
+        throw new Error(`Já existe um colaborador com o código "${employee.code}"`)
+      }
+    }
+
     const docRef = doc(db, 'employees', id)
     await updateDoc(docRef, {
       ...employee,
@@ -160,6 +184,12 @@ export const equipmentService = {
   },
 
   async create(equipment: Omit<Equipment, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    // Verificar se o código já existe
+    const existingEquipment = await this.getByCode(equipment.code)
+    if (existingEquipment) {
+      throw new Error(`Já existe um equipamento com o código "${equipment.code}"`)
+    }
+
     const now = Timestamp.now()
     const docRef = await addDoc(collection(db, 'equipment'), {
       ...equipment,
@@ -169,7 +199,25 @@ export const equipmentService = {
     return docRef.id
   },
 
+  async getByCode(code: string): Promise<Equipment | null> {
+    const q = query(collection(db, 'equipment'), where('code', '==', code))
+    const querySnapshot = await getDocs(q)
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0]
+      return { id: doc.id, ...doc.data() } as Equipment
+    }
+    return null
+  },
+
   async update(id: string, equipment: Partial<Equipment>): Promise<void> {
+    // Se está atualizando o código, verificar se já existe
+    if (equipment.code) {
+      const existingEquipment = await this.getByCode(equipment.code)
+      if (existingEquipment && existingEquipment.id !== id) {
+        throw new Error(`Já existe um equipamento com o código "${equipment.code}"`)
+      }
+    }
+
     const docRef = doc(db, 'equipment', id)
     await updateDoc(docRef, {
       ...equipment,

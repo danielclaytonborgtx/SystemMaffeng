@@ -182,9 +182,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
       onSuccess?.()
       onClose()
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro ao salvar equipamento. Tente novamente."
       toast({
         title: "Erro",
-        description: "Erro ao salvar equipamento. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -202,9 +203,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
       onSuccess?.()
       onClose()
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro ao excluir equipamento. Tente novamente."
       toast({
         title: "Erro",
-        description: "Erro ao excluir equipamento. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       })
     }

@@ -166,9 +166,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
       onSuccess?.()
       onClose()
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro ao salvar colaborador. Tente novamente."
       toast({
         title: "Erro",
-        description: "Erro ao salvar colaborador. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -186,9 +187,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
       onSuccess?.()
       onClose()
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro ao excluir colaborador. Tente novamente."
       toast({
         title: "Erro",
-        description: "Erro ao excluir colaborador. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       })
     }
