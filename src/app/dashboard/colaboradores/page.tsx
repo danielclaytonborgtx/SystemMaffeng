@@ -118,7 +118,10 @@ export default function ColaboradoresPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Colaboradores</h1>
           <p className="text-muted-foreground">Gerencie os funcionários e suas atribuições</p>
         </div>
-        <Button onClick={() => setIsEmployeeDialogOpen(true)} className="cursor-pointer w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-700">
+        <Button onClick={() => {
+          setSelectedEmployee(null)
+          setIsEmployeeDialogOpen(true)
+        }} className="cursor-pointer w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-700">
           <Plus className="mr-2 h-4 w-4" />
           Novo Colaborador
         </Button>

@@ -93,6 +93,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
         contracts: employee.contracts || [],
       })
     } else {
+      // Resetar formulário para novo colaborador
       setFormData({
         name: "",
         code: "",
@@ -108,7 +109,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
         contracts: [],
       })
     }
-  }, [employee])
+  }, [employee, open]) // Adicionar 'open' como dependência para resetar quando o dialog abre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
