@@ -380,6 +380,9 @@ export default function VeiculosPage() {
           setSelectedVehicle(null)
           setIsMaintenanceDialogOpen(false)
         }}
+        onSuccess={() => {
+          refetch() // Recarregar a lista de veículos
+        }}
       />
 
       <FuelDialog
@@ -389,6 +392,9 @@ export default function VeiculosPage() {
         onClose={() => {
           setSelectedVehicle(null)
           setIsFuelDialogOpen(false)
+        }}
+        onSuccess={() => {
+          refetch() // Recarregar a lista de veículos
         }}
       />
 

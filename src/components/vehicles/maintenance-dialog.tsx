@@ -15,38 +15,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Wrench, Hash, DollarSign, FileText, Calendar, CheckSquare } from "lucide-react"
+import { Wrench, Hash, DollarSign, FileText, Calendar, CheckSquare, Loader2 } from "lucide-react"
+import { useVehicleMaintenances, useVehicleMaintenanceOperations, useVehicleOperations } from "@/hooks/use-firestore"
+import { Vehicle } from "@/lib/firestore"
+import { useToast } from "@/hooks/use-toast"
 
 interface MaintenanceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  vehicle?: any
+  vehicle?: Vehicle | null
   onClose: () => void
+  onSuccess?: () => void
 }
-
-// Mock data para histórico de manutenções
-const maintenanceHistory = [
-  {
-    id: 1,
-    date: "2024-02-15",
-    type: "Preventiva",
-    description: "Troca de óleo e filtros",
-    km: 42000,
-    cost: 350.0,
-    items: ["Óleo 15W40", "Filtro de óleo", "Filtro de ar"],
-    nextMaintenanceKm: 47000,
-  },
-  {
-    id: 2,
-    date: "2024-01-10",
-    type: "Corretiva",
-    description: "Troca de pneus dianteiros",
-    km: 40000,
-    cost: 1200.0,
-    items: ["2x Pneu 295/80R22.5"],
-    nextMaintenanceKm: null,
-  },
-]
 
 const maintenanceTypes = [
   { id: "oleo", name: "Troca de Óleo", intervalKm: 5000 },
@@ -57,7 +37,7 @@ const maintenanceTypes = [
   { id: "revisao", name: "Revisão Geral", intervalKm: 10000 },
 ]
 
-export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: MaintenanceDialogProps) {
+export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: MaintenanceDialogProps) {
   const [activeTab, setActiveTab] = useState<"new" | "history" | "schedule">("new")
   const [formData, setFormData] = useState({
     type: "",
@@ -73,14 +53,95 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
     maintenanceTypes.map((type) => ({
       ...type,
       enabled: false,
-      nextKm: vehicle ? vehicle.currentKm + type.intervalKm : 0,
+      nextKm: vehicle ? (vehicle.currentKm || 0) + type.intervalKm : 0,
     })),
   )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { data: maintenanceHistory, loading: historyLoading, refetch: refetchHistory } = useVehicleMaintenances(vehicle?.id)
+  const { createMaintenance, loading: createLoading } = useVehicleMaintenanceOperations()
+  const { updateVehicle } = useVehicleOperations()
+  const { toast } = useToast()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Registrando manutenção:", formData)
-    onClose()
+    
+    if (!vehicle?.id) {
+      toast({
+        title: "Erro",
+        description: "Veículo não encontrado",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const itemsArray = formData.items ? formData.items.split('\n').filter(item => item.trim()) : []
+      
+      const maintenanceData: any = {
+        vehicleId: vehicle.id,
+        vehiclePlate: vehicle.plate,
+        vehicleModel: vehicle.model,
+        type: formData.type as 'preventiva' | 'corretiva' | 'preditiva',
+        description: formData.description,
+        currentKm: Number(formData.currentKm),
+        cost: Number(formData.cost),
+        items: itemsArray,
+      }
+
+      // Só adicionar campos opcionais se tiverem valor
+      if (formData.nextMaintenanceKm && formData.nextMaintenanceKm.trim()) {
+        maintenanceData.nextMaintenanceKm = Number(formData.nextMaintenanceKm)
+      }
+      
+      if (formData.observations && formData.observations.trim()) {
+        maintenanceData.observations = formData.observations
+      }
+
+      await createMaintenance(maintenanceData)
+
+      // Atualizar o veículo com a nova quilometragem e última manutenção
+      const updateData: any = {
+        currentKm: Number(formData.currentKm),
+        lastMaintenance: new Date(),
+      }
+
+      // Se foi especificada uma próxima manutenção, atualizar também
+      if (formData.nextMaintenanceKm && formData.nextMaintenanceKm.trim()) {
+        updateData.maintenanceKm = Number(formData.nextMaintenanceKm)
+      }
+
+      await updateVehicle(vehicle.id, updateData)
+
+      toast({
+        title: "Sucesso",
+        description: "Manutenção registrada com sucesso!"
+      })
+
+      // Limpar formulário
+      setFormData({
+        type: "",
+        description: "",
+        currentKm: "",
+        cost: "",
+        items: "",
+        nextMaintenanceKm: "",
+        observations: "",
+      })
+
+      // Recarregar histórico
+      refetchHistory()
+      
+      // Chamar callback de sucesso se fornecido
+      onSuccess?.()
+      
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar manutenção",
+        variant: "destructive"
+      })
+    }
   }
 
   const handleScheduleToggle = (typeId: string, enabled: boolean) => {
@@ -104,16 +165,16 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
             <CardTitle className="flex items-center justify-between">
               Status do Veículo
               <Badge
-                variant={vehicle.status === "Ativo" ? "secondary" : "outline"}
+                variant={vehicle.status === "active" ? "secondary" : "outline"}
                 className={
-                  vehicle.status === "Ativo"
+                  vehicle.status === "active"
                     ? "bg-green-100 text-green-800"
-                    : vehicle.status === "Manutenção"
+                    : vehicle.status === "maintenance"
                       ? "bg-yellow-100 text-yellow-800"
                       : "bg-red-100 text-red-800"
                 }
               >
-                {vehicle.status}
+                {vehicle.status === "active" ? "Ativo" : vehicle.status === "maintenance" ? "Manutenção" : "Aposentado"}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -129,7 +190,14 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
               </div>
               <div>
                 <span className="font-medium">Última Manutenção:</span>
-                <div className="text-lg font-bold">{new Date(vehicle.lastMaintenance).toLocaleDateString("pt-BR")}</div>
+                <div className="text-lg font-bold">
+                  {maintenanceHistory.length > 0 
+                    ? maintenanceHistory[0].createdAt.toDate().toLocaleDateString("pt-BR")
+                    : vehicle.lastMaintenance 
+                      ? vehicle.lastMaintenance.toDate().toLocaleDateString("pt-BR")
+                      : "N/A"
+                  }
+                </div>
               </div>
               <div>
                 <span className="font-medium">Responsável:</span>
@@ -181,9 +249,9 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Preventiva">Preventiva</SelectItem>
-                        <SelectItem value="Corretiva">Corretiva</SelectItem>
-                        <SelectItem value="Preditiva">Preditiva</SelectItem>
+                        <SelectItem value="preventiva">Preventiva</SelectItem>
+                        <SelectItem value="corretiva">Corretiva</SelectItem>
+                        <SelectItem value="preditiva">Preditiva</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -277,10 +345,19 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
             </Card>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={createLoading}>
                 Cancelar
               </Button>
-              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">Registrar Manutenção</Button>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={createLoading}>
+                {createLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registrando...
+                  </>
+                ) : (
+                  "Registrar Manutenção"
+                )}
+              </Button>
             </div>
           </form>
         )}
@@ -291,81 +368,94 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose }: Main
               <CardTitle>Histórico de Manutenções</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Desktop Table View */}
-              <div className="hidden lg:block overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>KM</TableHead>
-                      <TableHead>Custo</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {maintenanceHistory.map((maintenance) => (
-                      <TableRow key={maintenance.id}>
-                        <TableCell>{new Date(maintenance.date).toLocaleDateString("pt-BR")}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={maintenance.type === "Preventiva" ? "secondary" : "outline"}
-                            className={
-                              maintenance.type === "Preventiva"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }
-                          >
-                            {maintenance.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{maintenance.description}</TableCell>
-                        <TableCell>{maintenance.km.toLocaleString('pt-BR')} km</TableCell>
-                        <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              {historyLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>Carregando histórico...</span>
+                </div>
+              ) : maintenanceHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhuma manutenção registrada para este veículo
+                </div>
+              ) : (
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden lg:block overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead>KM</TableHead>
+                          <TableHead>Custo</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {maintenanceHistory.map((maintenance) => (
+                          <TableRow key={maintenance.id}>
+                            <TableCell>{maintenance.createdAt.toDate().toLocaleDateString("pt-BR")}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={maintenance.type === "preventiva" ? "secondary" : "outline"}
+                                className={
+                                  maintenance.type === "preventiva"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                                }
+                              >
+                                {maintenance.type.charAt(0).toUpperCase() + maintenance.type.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{maintenance.description}</TableCell>
+                            <TableCell>{maintenance.currentKm.toLocaleString('pt-BR')} km</TableCell>
+                            <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
 
-              {/* Mobile Card View */}
-              <div className="lg:hidden space-y-4">
-                {maintenanceHistory.map((maintenance) => (
-                  <Card key={maintenance.id} className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">{new Date(maintenance.date).toLocaleDateString("pt-BR")}</div>
-                          <div className="text-xs text-muted-foreground mt-1 truncate">{maintenance.description}</div>
+                  {/* Mobile Card View */}
+                  <div className="lg:hidden space-y-4">
+                    {maintenanceHistory.map((maintenance) => (
+                      <Card key={maintenance.id} className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">{maintenance.createdAt.toDate().toLocaleDateString("pt-BR")}</div>
+                              <div className="text-xs text-muted-foreground mt-1 truncate">{maintenance.description}</div>
+                            </div>
+                            <div className="flex-shrink-0 ml-2">
+                              <Badge
+                                variant={maintenance.type === "preventiva" ? "secondary" : "outline"}
+                                className={
+                                  maintenance.type === "preventiva"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                                }
+                              >
+                                {maintenance.type.charAt(0).toUpperCase() + maintenance.type.slice(1)}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                              <span className="text-muted-foreground">KM:</span>
+                              <div className="font-medium">{maintenance.currentKm.toLocaleString('pt-BR')} km</div>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Custo:</span>
+                              <div className="font-medium">R$ {maintenance.cost.toFixed(2)}</div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-shrink-0 ml-2">
-                          <Badge
-                            variant={maintenance.type === "Preventiva" ? "secondary" : "outline"}
-                            className={
-                              maintenance.type === "Preventiva"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }
-                          >
-                            {maintenance.type}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div>
-                          <span className="text-muted-foreground">KM:</span>
-                          <div className="font-medium">{maintenance.km.toLocaleString('pt-BR')} km</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Custo:</span>
-                          <div className="font-medium">R$ {maintenance.cost.toFixed(2)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         )}

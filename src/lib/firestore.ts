@@ -101,6 +101,39 @@ export interface EquipmentMovement {
   updatedAt: Timestamp
 }
 
+export interface VehicleMaintenance {
+  id?: string
+  vehicleId: string
+  vehiclePlate: string
+  vehicleModel: string
+  type: 'preventiva' | 'corretiva' | 'preditiva'
+  description: string
+  currentKm: number
+  cost: number
+  items: string[]
+  nextMaintenanceKm?: number
+  observations?: string
+  performedBy?: string
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+export interface VehicleFuel {
+  id?: string
+  vehicleId: string
+  vehiclePlate: string
+  vehicleModel: string
+  currentKm: number
+  liters: number
+  cost: number
+  pricePerLiter: number
+  station: string
+  observations?: string
+  performedBy?: string
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
 // Funções para Colaboradores
 export const employeeService = {
   async getAll(): Promise<Employee[]> {
@@ -322,6 +355,110 @@ export const equipmentMovementService = {
 
   async delete(id: string): Promise<void> {
     const docRef = doc(db, 'equipmentMovements', id)
+    await deleteDoc(docRef)
+  }
+}
+
+// Funções para Manutenções de Veículos
+export const vehicleMaintenanceService = {
+  async getAll(): Promise<VehicleMaintenance[]> {
+    const q = query(collection(db, 'vehicleMaintenances'), orderBy('createdAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VehicleMaintenance))
+  },
+
+  async getByVehicleId(vehicleId: string): Promise<VehicleMaintenance[]> {
+    const q = query(
+      collection(db, 'vehicleMaintenances'), 
+      where('vehicleId', '==', vehicleId)
+    )
+    const querySnapshot = await getDocs(q)
+    const maintenances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VehicleMaintenance))
+    // Ordenar no cliente para evitar necessidade de índice composto
+    return maintenances.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
+  },
+
+  async getById(id: string): Promise<VehicleMaintenance | null> {
+    const docRef = doc(db, 'vehicleMaintenances', id)
+    const docSnap = await getDoc(docRef)
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as VehicleMaintenance
+    }
+    return null
+  },
+
+  async create(maintenance: Omit<VehicleMaintenance, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const now = Timestamp.now()
+    const docRef = await addDoc(collection(db, 'vehicleMaintenances'), {
+      ...maintenance,
+      createdAt: now,
+      updatedAt: now
+    })
+    return docRef.id
+  },
+
+  async update(id: string, maintenance: Partial<VehicleMaintenance>): Promise<void> {
+    const docRef = doc(db, 'vehicleMaintenances', id)
+    await updateDoc(docRef, {
+      ...maintenance,
+      updatedAt: Timestamp.now()
+    })
+  },
+
+  async delete(id: string): Promise<void> {
+    const docRef = doc(db, 'vehicleMaintenances', id)
+    await deleteDoc(docRef)
+  }
+}
+
+// Funções para Abastecimentos de Combustível
+export const vehicleFuelService = {
+  async getAll(): Promise<VehicleFuel[]> {
+    const q = query(collection(db, 'vehicleFuels'), orderBy('createdAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VehicleFuel))
+  },
+
+  async getByVehicleId(vehicleId: string): Promise<VehicleFuel[]> {
+    const q = query(
+      collection(db, 'vehicleFuels'), 
+      where('vehicleId', '==', vehicleId)
+    )
+    const querySnapshot = await getDocs(q)
+    const fuels = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VehicleFuel))
+    // Ordenar no cliente para evitar necessidade de índice composto
+    return fuels.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
+  },
+
+  async getById(id: string): Promise<VehicleFuel | null> {
+    const docRef = doc(db, 'vehicleFuels', id)
+    const docSnap = await getDoc(docRef)
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as VehicleFuel
+    }
+    return null
+  },
+
+  async create(fuel: Omit<VehicleFuel, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const now = Timestamp.now()
+    const docRef = await addDoc(collection(db, 'vehicleFuels'), {
+      ...fuel,
+      createdAt: now,
+      updatedAt: now
+    })
+    return docRef.id
+  },
+
+  async update(id: string, fuel: Partial<VehicleFuel>): Promise<void> {
+    const docRef = doc(db, 'vehicleFuels', id)
+    await updateDoc(docRef, {
+      ...fuel,
+      updatedAt: Timestamp.now()
+    })
+  },
+
+  async delete(id: string): Promise<void> {
+    const docRef = doc(db, 'vehicleFuels', id)
     await deleteDoc(docRef)
   }
 }

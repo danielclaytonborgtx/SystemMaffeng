@@ -6,10 +6,14 @@ import {
   equipmentService, 
   vehicleService,
   equipmentMovementService,
+  vehicleMaintenanceService,
+  vehicleFuelService,
   Employee,
   Equipment,
   Vehicle,
-  EquipmentMovement
+  EquipmentMovement,
+  VehicleMaintenance,
+  VehicleFuel
 } from '@/lib/firestore'
 
 interface UseFirestoreState<T> {
@@ -361,4 +365,174 @@ export function useEquipmentMovementOperations() {
   }
 
   return { loading, error, createMovement, updateMovement, deleteMovement }
+}
+
+// Hook para Manutenções de Veículos
+export function useVehicleMaintenances(vehicleId?: string): UseFirestoreState<VehicleMaintenance> {
+  const [data, setData] = useState<VehicleMaintenance[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      let maintenances: VehicleMaintenance[]
+      
+      if (vehicleId) {
+        maintenances = await vehicleMaintenanceService.getByVehicleId(vehicleId)
+      } else {
+        maintenances = await vehicleMaintenanceService.getAll()
+      }
+      
+      setData(maintenances)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar manutenções')
+      console.error('Erro ao buscar manutenções:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [vehicleId])
+
+  return { data, loading, error, refetch: fetchData }
+}
+
+// Hook específico para operações de manutenções
+export function useVehicleMaintenanceOperations() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createMaintenance = async (maintenanceData: Omit<VehicleMaintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const id = await vehicleMaintenanceService.create(maintenanceData)
+      return id
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar manutenção')
+      console.error('Erro ao criar manutenção:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateMaintenance = async (id: string, maintenanceData: Partial<VehicleMaintenance>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleMaintenanceService.update(id, maintenanceData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar manutenção')
+      console.error('Erro ao atualizar manutenção:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteMaintenance = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleMaintenanceService.delete(id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar manutenção')
+      console.error('Erro ao deletar manutenção:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { loading, error, createMaintenance, updateMaintenance, deleteMaintenance }
+}
+
+// Hook para Abastecimentos de Combustível
+export function useVehicleFuels(vehicleId?: string): UseFirestoreState<VehicleFuel> {
+  const [data, setData] = useState<VehicleFuel[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      let fuels: VehicleFuel[]
+      
+      if (vehicleId) {
+        fuels = await vehicleFuelService.getByVehicleId(vehicleId)
+      } else {
+        fuels = await vehicleFuelService.getAll()
+      }
+      
+      setData(fuels)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar abastecimentos')
+      console.error('Erro ao buscar abastecimentos:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [vehicleId])
+
+  return { data, loading, error, refetch: fetchData }
+}
+
+// Hook específico para operações de combustível
+export function useVehicleFuelOperations() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createFuel = async (fuelData: Omit<VehicleFuel, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const id = await vehicleFuelService.create(fuelData)
+      return id
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar abastecimento')
+      console.error('Erro ao criar abastecimento:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateFuel = async (id: string, fuelData: Partial<VehicleFuel>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleFuelService.update(id, fuelData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar abastecimento')
+      console.error('Erro ao atualizar abastecimento:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteFuel = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleFuelService.delete(id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar abastecimento')
+      console.error('Erro ao deletar abastecimento:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { loading, error, createFuel, updateFuel, deleteFuel }
 }

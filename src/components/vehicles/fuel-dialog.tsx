@@ -10,50 +10,20 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Fuel, Hash, DollarSign, MapPin, FileText, Calendar } from "lucide-react"
+import { Fuel, Hash, DollarSign, MapPin, FileText, Calendar, Loader2 } from "lucide-react"
+import { useVehicleFuels, useVehicleFuelOperations } from "@/hooks/use-firestore"
+import { Vehicle } from "@/lib/firestore"
+import { useToast } from "@/hooks/use-toast"
 
 interface FuelDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  vehicle?: any
+  vehicle?: Vehicle | null
   onClose: () => void
+  onSuccess?: () => void
 }
 
-// Mock data para histórico de combustível
-const fuelHistory = [
-  {
-    id: 1,
-    date: "2024-03-15",
-    km: 45000,
-    liters: 120,
-    cost: 720.0,
-    pricePerLiter: 6.0,
-    consumption: 8.5,
-    station: "Posto Shell Centro",
-  },
-  {
-    id: 2,
-    date: "2024-03-10",
-    km: 44000,
-    liters: 115,
-    cost: 690.0,
-    pricePerLiter: 6.0,
-    consumption: 8.7,
-    station: "Posto BR Norte",
-  },
-  {
-    id: 3,
-    date: "2024-03-05",
-    km: 43000,
-    liters: 118,
-    cost: 708.0,
-    pricePerLiter: 6.0,
-    consumption: 8.5,
-    station: "Posto Ipiranga Sul",
-  },
-]
-
-export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogProps) {
+export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: FuelDialogProps) {
   const [activeTab, setActiveTab] = useState<"new" | "history">("new")
   const [formData, setFormData] = useState({
     currentKm: "",
@@ -64,10 +34,70 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
     observations: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { data: fuelHistory, loading: historyLoading, refetch: refetchHistory } = useVehicleFuels(vehicle?.id)
+  const { createFuel, loading: createLoading } = useVehicleFuelOperations()
+  const { toast } = useToast()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Registrando abastecimento:", formData)
-    onClose()
+    
+    if (!vehicle?.id) {
+      toast({
+        title: "Erro",
+        description: "Veículo não encontrado",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const fuelData: any = {
+        vehicleId: vehicle.id,
+        vehiclePlate: vehicle.plate,
+        vehicleModel: vehicle.model,
+        currentKm: Number(formData.currentKm),
+        liters: Number(formData.liters),
+        cost: Number(formData.cost),
+        pricePerLiter: Number(formData.pricePerLiter),
+        station: formData.station,
+      }
+
+      // Só adicionar campo opcional se tiver valor
+      if (formData.observations && formData.observations.trim()) {
+        fuelData.observations = formData.observations
+      }
+
+      await createFuel(fuelData)
+
+      toast({
+        title: "Sucesso",
+        description: "Abastecimento registrado com sucesso!"
+      })
+
+      // Limpar formulário
+      setFormData({
+        currentKm: "",
+        liters: "",
+        cost: "",
+        pricePerLiter: "",
+        station: "",
+        observations: "",
+      })
+
+      // Recarregar histórico
+      refetchHistory()
+      
+      // Chamar callback de sucesso se fornecido
+      onSuccess?.()
+      
+      onClose()
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar abastecimento",
+        variant: "destructive"
+      })
+    }
   }
 
   const calculateConsumption = () => {
@@ -80,8 +110,17 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
     return "0"
   }
 
-  const averageConsumption = fuelHistory.length
-    ? (fuelHistory.reduce((sum, record) => sum + record.consumption, 0) / fuelHistory.length).toFixed(2)
+  // Calcular consumo médio baseado no histórico real
+  const averageConsumption = fuelHistory.length > 1
+    ? (fuelHistory.slice(0, -1).reduce((sum, record, index) => {
+        if (index < fuelHistory.length - 1) {
+          const nextRecord = fuelHistory[index + 1]
+          const kmTraveled = record.currentKm - nextRecord.currentKm
+          const consumption = kmTraveled > 0 ? kmTraveled / record.liters : 0
+          return sum + consumption
+        }
+        return sum
+      }, 0) / Math.max(fuelHistory.length - 1, 1)).toFixed(2)
     : "0"
 
   const totalSpent = fuelHistory.reduce((sum, record) => sum + record.cost, 0)
@@ -253,10 +292,19 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
             </Card>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={createLoading}>
                 Cancelar
               </Button>
-              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700">Registrar Abastecimento</Button>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={createLoading}>
+                {createLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registrando...
+                  </>
+                ) : (
+                  "Registrar Abastecimento"
+                )}
+              </Button>
             </div>
           </form>
         )}
@@ -267,32 +315,53 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose }: FuelDialogP
               <CardTitle>Histórico de Abastecimentos</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>KM</TableHead>
-                    <TableHead>Litros</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Preço/L</TableHead>
-                    <TableHead>Consumo</TableHead>
-                    <TableHead>Posto</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {fuelHistory.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>{new Date(record.date).toLocaleDateString("pt-BR")}</TableCell>
-                      <TableCell>{record.km.toLocaleString('pt-BR')} km</TableCell>
-                      <TableCell>{record.liters.toFixed(2)} L</TableCell>
-                      <TableCell>R$ {record.cost.toFixed(2)}</TableCell>
-                      <TableCell>R$ {record.pricePerLiter.toFixed(3)}</TableCell>
-                      <TableCell>{record.consumption.toFixed(2)} km/l</TableCell>
-                      <TableCell>{record.station}</TableCell>
+              {historyLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>Carregando histórico...</span>
+                </div>
+              ) : fuelHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhum abastecimento registrado para este veículo
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>KM</TableHead>
+                      <TableHead>Litros</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Preço/L</TableHead>
+                      <TableHead>Consumo</TableHead>
+                      <TableHead>Posto</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {fuelHistory.map((record, index) => {
+                      // Calcular consumo baseado no próximo registro
+                      let consumption = 0
+                      if (index < fuelHistory.length - 1) {
+                        const nextRecord = fuelHistory[index + 1]
+                        const kmTraveled = record.currentKm - nextRecord.currentKm
+                        consumption = kmTraveled > 0 ? kmTraveled / record.liters : 0
+                      }
+                      
+                      return (
+                        <TableRow key={record.id}>
+                          <TableCell>{record.createdAt.toDate().toLocaleDateString("pt-BR")}</TableCell>
+                          <TableCell>{record.currentKm.toLocaleString('pt-BR')} km</TableCell>
+                          <TableCell>{record.liters.toFixed(2)} L</TableCell>
+                          <TableCell>R$ {record.cost.toFixed(2)}</TableCell>
+                          <TableCell>R$ {record.pricePerLiter.toFixed(3)}</TableCell>
+                          <TableCell>{consumption > 0 ? consumption.toFixed(2) : '-'} km/l</TableCell>
+                          <TableCell>{record.station}</TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         )}
