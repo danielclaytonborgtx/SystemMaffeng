@@ -389,6 +389,9 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                           <TableHead>Descrição</TableHead>
                           <TableHead>KM</TableHead>
                           <TableHead>Custo</TableHead>
+                          <TableHead>Itens</TableHead>
+                          <TableHead>Próxima KM</TableHead>
+                          <TableHead>Observações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -401,15 +404,57 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                                 className={
                                   maintenance.type === "preventiva"
                                     ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
+                                    : maintenance.type === "corretiva"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-blue-100 text-blue-800"
                                 }
                               >
                                 {maintenance.type.charAt(0).toUpperCase() + maintenance.type.slice(1)}
                               </Badge>
                             </TableCell>
-                            <TableCell>{maintenance.description}</TableCell>
+                            <TableCell className="max-w-xs">
+                              <div className="truncate" title={maintenance.description}>
+                                {maintenance.description}
+                              </div>
+                            </TableCell>
                             <TableCell>{maintenance.currentKm.toLocaleString('pt-BR')} km</TableCell>
                             <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
+                            <TableCell className="max-w-xs">
+                              {maintenance.items && maintenance.items.length > 0 ? (
+                                <div className="text-sm">
+                                  {maintenance.items.slice(0, 2).map((item, index) => (
+                                    <div key={index} className="truncate" title={item}>
+                                      • {item}
+                                    </div>
+                                  ))}
+                                  {maintenance.items.length > 2 && (
+                                    <div className="text-muted-foreground">
+                                      +{maintenance.items.length - 2} mais
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {maintenance.nextMaintenanceKm ? (
+                                <span className="font-medium">
+                                  {maintenance.nextMaintenanceKm.toLocaleString('pt-BR')} km
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="max-w-xs">
+                              {maintenance.observations ? (
+                                <div className="truncate text-sm" title={maintenance.observations}>
+                                  {maintenance.observations}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -432,7 +477,9 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                                 className={
                                   maintenance.type === "preventiva"
                                     ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
+                                    : maintenance.type === "corretiva"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-blue-100 text-blue-800"
                                 }
                               >
                                 {maintenance.type.charAt(0).toUpperCase() + maintenance.type.slice(1)}
@@ -449,7 +496,34 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                               <span className="text-muted-foreground">Custo:</span>
                               <div className="font-medium">R$ {maintenance.cost.toFixed(2)}</div>
                             </div>
+                            {maintenance.nextMaintenanceKm && (
+                              <div>
+                                <span className="text-muted-foreground">Próxima KM:</span>
+                                <div className="font-medium">{maintenance.nextMaintenanceKm.toLocaleString('pt-BR')} km</div>
+                              </div>
+                            )}
                           </div>
+
+                          {maintenance.items && maintenance.items.length > 0 && (
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">Itens utilizados:</span>
+                              <div className="mt-1 space-y-1">
+                                {maintenance.items.slice(0, 3).map((item, index) => (
+                                  <div key={index} className="text-foreground">• {item}</div>
+                                ))}
+                                {maintenance.items.length > 3 && (
+                                  <div className="text-muted-foreground">+{maintenance.items.length - 3} mais itens</div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {maintenance.observations && (
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">Observações:</span>
+                              <div className="mt-1 text-foreground">{maintenance.observations}</div>
+                            </div>
+                          )}
                         </div>
                       </Card>
                     ))}
