@@ -246,7 +246,7 @@ export default function EquipamentosPage() {
                           setSelectedEquipment(equipment)
                           setIsEquipmentDialogOpen(true)
                         }}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
@@ -257,7 +257,7 @@ export default function EquipamentosPage() {
                           setSelectedEquipment(equipment)
                           setIsMovementDialogOpen(true)
                         }}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <ArrowUpDown className="h-4 w-4 text-green-600" />
                       </Button>
@@ -300,7 +300,7 @@ export default function EquipamentosPage() {
                           setSelectedEquipment(equipment)
                           setIsEquipmentDialogOpen(true)
                         }}
-                        className="cursor-pointer h-8 w-8"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
@@ -311,7 +311,7 @@ export default function EquipamentosPage() {
                           setSelectedEquipment(equipment)
                           setIsMovementDialogOpen(true)
                         }}
-                        className="cursor-pointer h-8 w-8"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <ArrowUpDown className="h-4 w-4 text-green-600" />
                       </Button>

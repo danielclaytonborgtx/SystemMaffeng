@@ -113,7 +113,10 @@ export default function VeiculosPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Veículos</h1>
           <p className="text-muted-foreground">Gerencie a frota e manutenções</p>
         </div>
-        <Button onClick={() => setIsVehicleDialogOpen(true)} className="cursor-pointer w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-700">
+        <Button onClick={() => {
+          setSelectedVehicle(null)
+          setIsVehicleDialogOpen(true)
+        }} className="cursor-pointer w-full sm:w-auto bg-gray-800 text-white hover:bg-gray-700">
           <Plus className="mr-2 h-4 w-4" />
           Novo Veículo
         </Button>
@@ -248,7 +251,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsVehicleDialogOpen(true)
                         }}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
@@ -259,7 +262,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsMaintenanceDialogOpen(true)
                         }}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Wrench className="h-4 w-4 text-yellow-600" />
                       </Button>
@@ -270,7 +273,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsFuelDialogOpen(true)
                         }}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Fuel className="h-4 w-4 text-green-600" />
                       </Button>
@@ -312,7 +315,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsVehicleDialogOpen(true)
                         }}
-                        className="cursor-pointer h-7 w-7"
+                        className="cursor-pointer h-7 w-7 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Eye className="h-3 w-3 text-blue-600" />
                       </Button>
@@ -323,7 +326,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsMaintenanceDialogOpen(true)
                         }}
-                        className="cursor-pointer h-7 w-7"
+                        className="cursor-pointer h-7 w-7 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Wrench className="h-3 w-3 text-yellow-600" />
                       </Button>
@@ -334,7 +337,7 @@ export default function VeiculosPage() {
                           setSelectedVehicle(vehicle)
                           setIsFuelDialogOpen(true)
                         }}
-                        className="cursor-pointer h-7 w-7"
+                        className="cursor-pointer h-7 w-7 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Fuel className="h-3 w-3 text-green-600" />
                       </Button>

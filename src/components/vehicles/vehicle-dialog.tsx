@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -96,6 +94,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
         observations: vehicle.observations || "",
       })
     } else {
+      // Resetar formulário para novo veículo
       setFormData({
         plate: "",
         model: "",
@@ -116,7 +115,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
         observations: "",
       })
     }
-  }, [vehicle])
+  }, [vehicle, open]) // Adicionar 'open' como dependência para resetar quando o dialog abre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -233,38 +232,77 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                {vehicle.plate} - {vehicle.model}
+                <div className="flex items-center gap-3">
+                  <Car className="h-6 w-6 text-blue-600" />
+                  <div>
+                    <div className="text-xl font-bold">{vehicle.plate}</div>
+                    <div className="text-sm text-muted-foreground">{vehicle.model} - {vehicle.brand}</div>
+                  </div>
+                </div>
                 <Badge
-                  variant={vehicle.status === "Ativo" ? "secondary" : "outline"}
+                  variant={vehicle.status === "active" ? "secondary" : "outline"}
                   className={
-                    vehicle.status === "Ativo"
+                    vehicle.status === "active"
                       ? "bg-green-100 text-green-800"
-                      : vehicle.status === "Manutenção"
+                      : vehicle.status === "maintenance"
                         ? "bg-yellow-100 text-yellow-800"
                         : "bg-red-100 text-red-800"
                   }
                 >
-                  {vehicle.status}
+                  {mapStatusFromDB(vehicle.status)}
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">KM Atual:</span>
-                  <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString('pt-BR')} km</div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Hash className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <span className="font-medium text-muted-foreground">KM Atual</span>
+                    <div className="text-lg font-bold text-blue-600">
+                      {vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : 'Não informado'}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Próxima Manutenção:</span>
-                  <div className="text-lg font-bold">{vehicle.maintenanceKm?.toLocaleString('pt-BR')} km</div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-yellow-100 rounded-lg">
+                    <Wrench className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <span className="font-medium text-muted-foreground">Próxima Manutenção</span>
+                    <div className="text-lg font-bold text-yellow-600">
+                      {vehicle.nextMaintenance 
+                        ? vehicle.nextMaintenance.toDate().toLocaleDateString('pt-BR')
+                        : vehicle.maintenanceKm 
+                          ? vehicle.maintenanceKm.toLocaleString('pt-BR') + ' km'
+                          : 'Não agendada'
+                      }
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Consumo:</span>
-                  <div className="text-lg font-bold">{vehicle.fuelConsumption} km/l</div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Fuel className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <span className="font-medium text-muted-foreground">Combustível</span>
+                    <div className="text-lg font-bold text-green-600">
+                      {vehicle.fuelType || 'Não informado'}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Responsável:</span>
-                  <div className="text-lg font-bold">{vehicle.assignedTo || "Não atribuído"}</div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <User className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <span className="font-medium text-muted-foreground">Responsável</span>
+                    <div className="text-lg font-bold text-purple-600">
+                      {vehicle.assignedTo || "Não atribuído"}
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -544,3 +582,4 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
     </Dialog>
   )
 }
+

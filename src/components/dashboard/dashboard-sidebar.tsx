@@ -68,7 +68,7 @@ export function DashboardSidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer h-8 w-8 flex-shrink-0"
+            className="text-sidebar-foreground hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer h-8 w-8 flex-shrink-0"
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>

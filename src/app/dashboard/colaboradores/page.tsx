@@ -267,7 +267,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsEmployeeDialogOpen(true)
                         }}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
@@ -278,7 +278,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsHistoryDialogOpen(true)
                         }}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <History className="h-4 w-4 text-green-600" />
                       </Button>
@@ -320,7 +320,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsEmployeeDialogOpen(true)
                         }}
-                        className="cursor-pointer h-8 w-8"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
@@ -331,7 +331,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsHistoryDialogOpen(true)
                         }}
-                        className="cursor-pointer h-8 w-8"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <History className="h-4 w-4 text-green-600" />
                       </Button>
