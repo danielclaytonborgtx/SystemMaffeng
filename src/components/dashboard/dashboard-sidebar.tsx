@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Package, Users, Truck, FileText, Settings, ChevronLeft, ChevronRight } from "lucide-react"
+import { LayoutDashboard, Package, Users, Truck, FileText, Settings, ChevronLeft, ChevronRight, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/ui/logo"
 import { useState } from "react"
@@ -29,6 +29,11 @@ const navigation = [
     name: "Veículos",
     href: "/dashboard/veiculos",
     icon: Truck,
+  },
+  {
+    name: "Atividades",
+    href: "/dashboard/atividades",
+    icon: Activity,
   },
   {
     name: "Relatórios",
