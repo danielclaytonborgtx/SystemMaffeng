@@ -240,7 +240,7 @@ export default function VeiculosPage() {
                     </div>
                   </TableCell>
                   <TableCell>{vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
-                  <TableCell>{vehicle.nextMaintenance ? vehicle.nextMaintenance.toDate().toLocaleDateString("pt-BR") : '-'}</TableCell>
+                  <TableCell>{vehicle.maintenanceKm ? vehicle.maintenanceKm.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
                   <TableCell>{vehicle.assignedTo || 'Não atribuído'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export default function VeiculosPage() {
                     </div>
                     <div>
                       <span className="text-muted-foreground">Próxima Manutenção:</span>
-                      <div className="font-medium">{vehicle.nextMaintenance ? vehicle.nextMaintenance.toDate().toLocaleDateString("pt-BR") : '-'}</div>
+                      <div className="font-medium">{vehicle.maintenanceKm ? vehicle.maintenanceKm.toLocaleString('pt-BR') + ' km' : '-'}</div>
                     </div>
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Responsável:</span>
