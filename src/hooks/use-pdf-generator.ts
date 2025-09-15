@@ -215,9 +215,10 @@ Este relatório foi gerado automaticamente pelo sistema e reflete o histórico d
 
 function generateEmployeeReportData(employees: any[]): string {
   const total = employees.length
-  const active = employees.filter(e => e.status === 'Ativo').length
-  const inactive = employees.filter(e => e.status === 'Inativo').length
-  const onVacation = employees.filter(e => e.status === 'Férias').length
+  const active = employees.filter(e => e.status === 'active').length
+  const inactive = employees.filter(e => e.status === 'inactive').length
+  const onVacation = employees.filter(e => e.status === 'vacation').length
+  const away = employees.filter(e => e.status === 'away').length
 
   // Agrupar por departamento
   const departments = employees.reduce((acc, item) => {
@@ -252,6 +253,7 @@ DADOS GERAIS:
 • Colaboradores Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
 • Colaboradores Inativos: ${inactive} (${total > 0 ? ((inactive / total) * 100).toFixed(1) : 0}%)
 • Colaboradores em Férias: ${onVacation} (${total > 0 ? ((onVacation / total) * 100).toFixed(1) : 0}%)
+• Colaboradores Afastados: ${away} (${total > 0 ? ((away / total) * 100).toFixed(1) : 0}%)
 
 DISTRIBUIÇÃO POR DEPARTAMENTO:
 ${departmentText || '• Nenhum departamento encontrado'}
@@ -266,6 +268,7 @@ ANÁLISE DE STATUS:
 • Colaboradores Ativos: ${active}
 • Colaboradores Inativos: ${inactive}
 • Colaboradores em Férias: ${onVacation}
+• Colaboradores Afastados: ${away}
 • Taxa de Atividade: ${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%
 
 RECOMENDAÇÕES:
