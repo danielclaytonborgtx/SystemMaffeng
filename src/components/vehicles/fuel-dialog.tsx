@@ -29,7 +29,6 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
     currentKm: "",
     liters: "",
     cost: "",
-    pricePerLiter: "",
     station: "",
     observations: "",
   })
@@ -37,6 +36,16 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
   const { data: fuelHistory, loading: historyLoading, refetch: refetchHistory } = useVehicleFuels(vehicle?.id)
   const { createFuel, loading: createLoading } = useVehicleFuelOperations()
   const { toast } = useToast()
+
+  // Calcular preço por litro automaticamente
+  const calculatePricePerLiter = () => {
+    const liters = Number.parseFloat(formData.liters)
+    const cost = Number.parseFloat(formData.cost)
+    if (liters > 0 && cost > 0) {
+      return (cost / liters).toFixed(3)
+    }
+    return "0.000"
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,7 +67,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
         currentKm: Number(formData.currentKm),
         liters: Number(formData.liters),
         cost: Number(formData.cost),
-        pricePerLiter: Number(formData.pricePerLiter),
+        pricePerLiter: Number(calculatePricePerLiter()),
         station: formData.station,
       }
 
@@ -71,7 +80,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
 
       toast({
         title: "Sucesso",
-        description: "Abastecimento registrado com sucesso!"
+        description: "Abastecimento registrado e quilometragem atualizada com sucesso!"
       })
 
       // Limpar formulário
@@ -79,7 +88,6 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
         currentKm: "",
         liters: "",
         cost: "",
-        pricePerLiter: "",
         station: "",
         observations: "",
       })
@@ -240,13 +248,15 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
                     </Label>
                     <Input
                       id="pricePerLiter"
-                      type="number"
-                      step="0.001"
-                      value={formData.pricePerLiter}
-                      onChange={(e) => setFormData({ ...formData, pricePerLiter: e.target.value })}
+                      type="text"
+                      value={calculatePricePerLiter()}
+                      readOnly
+                      className="bg-gray-50 cursor-not-allowed"
                       placeholder="0,000"
-                      required
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Calculado automaticamente: Valor Total ÷ Litros
+                    </p>
                   </div>
                 </div>
 

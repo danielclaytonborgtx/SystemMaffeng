@@ -495,7 +495,17 @@ export function useVehicleFuelOperations() {
     try {
       setLoading(true)
       setError(null)
+      
+      // Criar o registro de abastecimento
       const id = await vehicleFuelService.create(fuelData)
+      
+      // Atualizar a quilometragem atual do veículo
+      if (fuelData.vehicleId && fuelData.currentKm) {
+        await vehicleService.update(fuelData.vehicleId, {
+          currentKm: fuelData.currentKm
+        })
+      }
+      
       return id
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar abastecimento')

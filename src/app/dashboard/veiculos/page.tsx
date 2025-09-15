@@ -203,7 +203,7 @@ export default function VeiculosPage() {
               <TableRow>
                 <TableHead>Placa</TableHead>
                 <TableHead>Modelo</TableHead>
-                <TableHead>Marca</TableHead>
+                <TableHead>Tipo de Veículo</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>KM Atual</TableHead>
                 <TableHead>Próxima Manutenção</TableHead>
@@ -241,7 +241,7 @@ export default function VeiculosPage() {
                   </TableCell>
                   <TableCell>{vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
                   <TableCell>{vehicle.nextMaintenance ? vehicle.nextMaintenance.toDate().toLocaleDateString("pt-BR") : '-'}</TableCell>
-                  <TableCell>{vehicle.status === 'active' ? 'Ativo' : '-'}</TableCell>
+                  <TableCell>{vehicle.assignedTo || 'Não atribuído'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
@@ -353,6 +353,10 @@ export default function VeiculosPage() {
                     <div>
                       <span className="text-muted-foreground">Próxima Manutenção:</span>
                       <div className="font-medium">{vehicle.nextMaintenance ? vehicle.nextMaintenance.toDate().toLocaleDateString("pt-BR") : '-'}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Responsável:</span>
+                      <div className="font-medium">{vehicle.assignedTo || 'Não atribuído'}</div>
                     </div>
                   </div>
                 </div>

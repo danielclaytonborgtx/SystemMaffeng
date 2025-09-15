@@ -261,7 +261,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">KM Atual</span>
-                    <div className="text-lg font-bold text-blue-600">
+                    <div className="text-lg font-bold">
                       {vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : 'Não informado'}
                     </div>
                   </div>
@@ -272,7 +272,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">Próxima Manutenção</span>
-                    <div className="text-lg font-bold text-yellow-600">
+                    <div className="text-lg font-bold">
                       {vehicle.nextMaintenance 
                         ? vehicle.nextMaintenance.toDate().toLocaleDateString('pt-BR')
                         : vehicle.maintenanceKm 
@@ -288,7 +288,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">Combustível</span>
-                    <div className="text-lg font-bold text-green-600">
+                    <div className="text-lg font-bold">
                       {vehicle.fuelType || 'Não informado'}
                     </div>
                   </div>
@@ -299,7 +299,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">Responsável</span>
-                    <div className="text-lg font-bold text-purple-600">
+                    <div className="text-lg font-bold">
                       {vehicle.assignedTo || "Não atribuído"}
                     </div>
                   </div>
