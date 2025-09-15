@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Calendar, FileText } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
-import { AlertsPanel } from "@/components/reports/alerts-panel"
 import { ReportsCharts } from "@/components/reports/reports-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
 import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels } from "@/hooks"
@@ -80,11 +79,9 @@ export default function RelatoriosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Relatórios e Alertas</h1>
-        <p className="text-muted-foreground">Gere relatórios detalhados e monitore alertas do sistema</p>
+        <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
+        <p className="text-muted-foreground">Gere relatórios detalhados do sistema</p>
       </div>
-
-      <AlertsPanel />
 
       <ReportsCharts />
 
