@@ -8,6 +8,13 @@ interface PDFGeneratorOptions {
   filename: string
   title: string
   includeCharts?: boolean
+  data?: {
+    employees?: any[]
+    equipment?: any[]
+    vehicles?: any[]
+    maintenances?: any[]
+    fuels?: any[]
+  }
 }
 
 export function usePDFGenerator() {
@@ -17,7 +24,7 @@ export function usePDFGenerator() {
     setIsGenerating(true)
     
     try {
-      const { filename, title, includeCharts = true } = options
+      const { filename, title, includeCharts = true, data } = options
       
       // Criar novo documento PDF
       const pdf = new jsPDF()
@@ -45,16 +52,19 @@ export function usePDFGenerator() {
       
       switch (filename.toLowerCase()) {
         case "relatorio-equipamentos":
-          reportData = generateEquipmentReportData()
+          reportData = generateEquipmentReportData(data?.equipment || [])
+          break
+        case "relatorio-veiculos":
+          reportData = generateVehicleReportData(data?.vehicles || [])
           break
         case "relatorio-manutencoes":
-          reportData = generateMaintenanceReportData()
+          reportData = generateMaintenanceReportData(data?.maintenances || [])
           break
-        case "relatorio-financeiro":
-          reportData = generateFinancialReportData()
+        case "relatorio-abastecimentos":
+          reportData = generateFuelReportData(data?.fuels || [])
           break
         case "relatorio-colaboradores":
-          reportData = generateEmployeeReportData()
+          reportData = generateEmployeeReportData(data?.employees || [])
           break
         default:
           reportData = "Relatório gerado automaticamente pelo sistema."
@@ -99,7 +109,23 @@ export function usePDFGenerator() {
 }
 
 // Funções auxiliares para gerar dados dos relatórios
-function generateEquipmentReportData(): string {
+function generateEquipmentReportData(equipment: any[]): string {
+  const total = equipment.length
+  const available = equipment.filter(e => e.status === 'Disponível').length
+  const inUse = equipment.filter(e => e.status === 'Em Uso').length
+  const maintenance = equipment.filter(e => e.status === 'Manutenção').length
+  const unavailable = equipment.filter(e => e.status === 'Indisponível').length
+
+  // Agrupar por categoria
+  const categories = equipment.reduce((acc, item) => {
+    acc[item.category] = (acc[item.category] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const categoryText = Object.entries(categories)
+    .map(([category, count]) => `• ${category}: ${count} unidades`)
+    .join('\n')
+
   return `
 RELATÓRIO DE EQUIPAMENTOS
 
@@ -107,22 +133,17 @@ RESUMO EXECUTIVO:
 Este relatório apresenta a situação atual dos equipamentos da empresa, incluindo status de utilização, manutenções pendentes e análise de performance.
 
 DADOS GERAIS:
-• Total de Equipamentos: 120 unidades
-• Equipamentos Disponíveis: 85 (70.8%)
-• Equipamentos em Uso: 25 (20.8%)
-• Equipamentos em Manutenção: 8 (6.7%)
-• Equipamentos Indisponíveis: 2 (1.7%)
+• Total de Equipamentos: ${total} unidades
+• Equipamentos Disponíveis: ${available} (${total > 0 ? ((available / total) * 100).toFixed(1) : 0}%)
+• Equipamentos em Uso: ${inUse} (${total > 0 ? ((inUse / total) * 100).toFixed(1) : 0}%)
+• Equipamentos em Manutenção: ${maintenance} (${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%)
+• Equipamentos Indisponíveis: ${unavailable} (${total > 0 ? ((unavailable / total) * 100).toFixed(1) : 0}%)
 
 CATEGORIAS:
-• Ferramentas Manuais: 45 unidades
-• Ferramentas Elétricas: 35 unidades
-• Máquinas: 25 unidades
-• EPI: 15 unidades
+${categoryText || '• Nenhuma categoria encontrada'}
 
-MANUTENÇÕES PENDENTES:
-• Manutenção Preventiva: 12 equipamentos
-• Manutenção Corretiva: 3 equipamentos
-• Calibração: 5 equipamentos
+EQUIPAMENTOS RECENTES:
+${equipment.slice(0, 5).map(e => `• ${e.name} - ${e.status} - ${e.category}`).join('\n') || '• Nenhum equipamento cadastrado'}
 
 RECOMENDAÇÕES:
 1. Realizar manutenção preventiva nos equipamentos em atraso
@@ -135,7 +156,26 @@ Este relatório foi gerado automaticamente pelo sistema e reflete a situação a
   `
 }
 
-function generateMaintenanceReportData(): string {
+function generateMaintenanceReportData(maintenances: any[]): string {
+  const total = maintenances.length
+  const preventive = maintenances.filter(m => m.type === 'Preventiva').length
+  const corrective = maintenances.filter(m => m.type === 'Corretiva').length
+  const predictive = maintenances.filter(m => m.type === 'Preditiva').length
+
+  const totalCost = maintenances.reduce((sum, m) => sum + (m.cost || 0), 0)
+  const avgCost = total > 0 ? totalCost / total : 0
+
+  // Agrupar por tipo de veículo
+  const vehicleTypes = maintenances.reduce((acc, item) => {
+    const vehicleType = item.vehicleType || 'Não informado'
+    acc[vehicleType] = (acc[vehicleType] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const vehicleTypeText = Object.entries(vehicleTypes)
+    .map(([type, count]) => `• ${type}: ${count} manutenções`)
+    .join('\n')
+
   return `
 RELATÓRIO DE MANUTENÇÕES
 
@@ -143,28 +183,23 @@ RESUMO EXECUTIVO:
 Este relatório apresenta o histórico de manutenções realizadas, custos envolvidos e programação de manutenções futuras.
 
 DADOS GERAIS:
-• Total de Manutenções no Período: 45
-• Manutenções Preventivas: 30 (66.7%)
-• Manutenções Corretivas: 15 (33.3%)
-• Custo Total: R$ 25.450,00
-• Tempo Médio de Reparo: 2.5 dias
+• Total de Manutenções no Período: ${total}
+• Manutenções Preventivas: ${preventive} (${total > 0 ? ((preventive / total) * 100).toFixed(1) : 0}%)
+• Manutenções Corretivas: ${corrective} (${total > 0 ? ((corrective / total) * 100).toFixed(1) : 0}%)
+• Manutenções Preditivas: ${predictive} (${total > 0 ? ((predictive / total) * 100).toFixed(1) : 0}%)
+• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Custo Médio por Manutenção: R$ ${avgCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
 
-MANUTENÇÕES POR VEÍCULO:
-• Caminhões: 20 manutenções
-• Carros: 15 manutenções
-• Motos: 8 manutenções
-• Máquinas: 2 manutenções
+MANUTENÇÕES POR TIPO DE VEÍCULO:
+${vehicleTypeText || '• Nenhuma manutenção encontrada'}
 
-MANUTENÇÕES PENDENTES:
-• Troca de Óleo: 8 veículos
-• Revisão Geral: 5 veículos
-• Troca de Pneus: 3 veículos
-• Reparo de Freios: 2 veículos
+MANUTENÇÕES RECENTES:
+${maintenances.slice(0, 5).map(m => `• ${m.description || 'Sem descrição'} - ${m.type} - R$ ${(m.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`).join('\n') || '• Nenhuma manutenção cadastrada'}
 
 ANÁLISE DE CUSTOS:
-• Custo Médio por Manutenção: R$ 565,56
-• Custo por Quilômetro: R$ 0,15
-• Economia com Manutenção Preventiva: R$ 8.200,00
+• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Custo Médio por Manutenção: R$ ${avgCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Manutenções com Custo: ${maintenances.filter(m => m.cost && m.cost > 0).length}
 
 RECOMENDAÇÕES:
 1. Aumentar frequência de manutenção preventiva
@@ -177,56 +212,35 @@ Este relatório foi gerado automaticamente pelo sistema e reflete o histórico d
   `
 }
 
-function generateFinancialReportData(): string {
-  return `
-RELATÓRIO FINANCEIRO
 
-RESUMO EXECUTIVO:
-Este relatório apresenta a análise financeira dos custos operacionais, incluindo equipamentos, manutenções e combustível.
+function generateEmployeeReportData(employees: any[]): string {
+  const total = employees.length
+  const active = employees.filter(e => e.status === 'Ativo').length
+  const inactive = employees.filter(e => e.status === 'Inativo').length
+  const onVacation = employees.filter(e => e.status === 'Férias').length
 
-DADOS GERAIS:
-• Período: Últimos 6 meses
-• Custo Total: R$ 156.800,00
-• Custo Médio Mensal: R$ 26.133,33
-• Economia Realizada: R$ 12.400,00
+  // Agrupar por departamento
+  const departments = employees.reduce((acc, item) => {
+    const dept = item.department || 'Não informado'
+    acc[dept] = (acc[dept] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
-DISTRIBUIÇÃO DE CUSTOS:
-• Equipamentos: R$ 78.400,00 (50%)
-• Manutenções: R$ 39.200,00 (25%)
-• Combustível: R$ 31.360,00 (20%)
-• Outros: R$ 7.840,00 (5%)
+  const departmentText = Object.entries(departments)
+    .map(([dept, count]) => `• ${dept}: ${count} colaboradores (${total > 0 ? ((count / total) * 100).toFixed(1) : 0}%)`)
+    .join('\n')
 
-ANÁLISE POR CATEGORIA:
-EQUIPAMENTOS:
-• Aquisições: R$ 45.000,00
-• Reparos: R$ 20.000,00
-• Acessórios: R$ 13.400,00
+  // Agrupar por cargo
+  const positions = employees.reduce((acc, item) => {
+    const position = item.position || 'Não informado'
+    acc[position] = (acc[position] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
-MANUTENÇÕES:
-• Preventivas: R$ 25.000,00
-• Corretivas: R$ 14.200,00
+  const positionText = Object.entries(positions)
+    .map(([position, count]) => `• ${position}: ${count} colaboradores`)
+    .join('\n')
 
-COMBUSTÍVEL:
-• Gasolina: R$ 18.000,00
-• Diesel: R$ 13.360,00
-
-PROJEÇÕES:
-• Custo Estimado Próximo Mês: R$ 28.500,00
-• Economia Projetada: R$ 2.200,00
-• ROI Esperado: 8.5%
-
-RECOMENDAÇÕES:
-1. Otimizar uso de combustível
-2. Negociar melhores preços com fornecedores
-3. Implementar controle de custos mais rigoroso
-4. Avaliar terceirização de algumas atividades
-
-OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema e reflete os dados financeiros cadastrados.
-  `
-}
-
-function generateEmployeeReportData(): string {
   return `
 RELATÓRIO DE COLABORADORES
 
@@ -234,38 +248,25 @@ RESUMO EXECUTIVO:
 Este relatório apresenta a análise de produtividade e utilização de equipamentos por colaborador.
 
 DADOS GERAIS:
-• Total de Colaboradores: 45
-• Colaboradores Ativos: 42 (93.3%)
-• Colaboradores em Férias: 2 (4.4%)
-• Colaboradores Inativos: 1 (2.2%)
+• Total de Colaboradores: ${total}
+• Colaboradores Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
+• Colaboradores Inativos: ${inactive} (${total > 0 ? ((inactive / total) * 100).toFixed(1) : 0}%)
+• Colaboradores em Férias: ${onVacation} (${total > 0 ? ((onVacation / total) * 100).toFixed(1) : 0}%)
 
 DISTRIBUIÇÃO POR DEPARTAMENTO:
-• Operacional: 28 colaboradores (62.2%)
-• Administrativo: 12 colaboradores (26.7%)
-• Manutenção: 5 colaboradores (11.1%)
+${departmentText || '• Nenhum departamento encontrado'}
 
 DISTRIBUIÇÃO POR CARGO:
-• Operadores: 20 colaboradores
-• Técnicos: 15 colaboradores
-• Supervisores: 7 colaboradores
-• Gerentes: 3 colaboradores
+${positionText || '• Nenhum cargo encontrado'}
 
-PRODUTIVIDADE:
-• Média de Equipamentos por Colaborador: 2.7
-• Colaboradores com Alta Produtividade: 35 (77.8%)
-• Colaboradores com Produtividade Média: 8 (17.8%)
-• Colaboradores com Baixa Produtividade: 2 (4.4%)
+COLABORADORES RECENTES:
+${employees.slice(0, 5).map(e => `• ${e.name} - ${e.position || 'Sem cargo'} - ${e.department || 'Sem departamento'}`).join('\n') || '• Nenhum colaborador cadastrado'}
 
-EQUIPAMENTOS MAIS UTILIZADOS:
-• Furadeira Elétrica: 25 colaboradores
-• Martelo: 20 colaboradores
-• Chave de Fenda: 18 colaboradores
-• Alicate: 15 colaboradores
-
-TREINAMENTOS:
-• Colaboradores Treinados: 40 (88.9%)
-• Treinamentos Pendentes: 5 (11.1%)
-• Certificações Válidas: 38 (84.4%)
+ANÁLISE DE STATUS:
+• Colaboradores Ativos: ${active}
+• Colaboradores Inativos: ${inactive}
+• Colaboradores em Férias: ${onVacation}
+• Taxa de Atividade: ${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%
 
 RECOMENDAÇÕES:
 1. Realizar treinamentos para colaboradores pendentes
@@ -275,5 +276,129 @@ RECOMENDAÇÕES:
 
 OBSERVAÇÕES:
 Este relatório foi gerado automaticamente pelo sistema e reflete os dados dos colaboradores cadastrados.
+  `
+}
+
+function generateVehicleReportData(vehicles: any[]): string {
+  const total = vehicles.length
+  const active = vehicles.filter(v => v.status === 'Ativo').length
+  const inactive = vehicles.filter(v => v.status === 'Inativo').length
+  const maintenance = vehicles.filter(v => v.status === 'Manutenção').length
+
+  // Agrupar por tipo
+  const types = vehicles.reduce((acc, item) => {
+    const type = item.type || 'Não informado'
+    acc[type] = (acc[type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const typeText = Object.entries(types)
+    .map(([type, count]) => `• ${type}: ${count} veículos`)
+    .join('\n')
+
+  // Calcular quilometragem média
+  const vehiclesWithKm = vehicles.filter(v => v.currentKm && v.currentKm > 0)
+  const avgKm = vehiclesWithKm.length > 0 
+    ? vehiclesWithKm.reduce((sum, v) => sum + v.currentKm, 0) / vehiclesWithKm.length 
+    : 0
+
+  // Calcular valor total da frota
+  const totalValue = vehicles.reduce((sum, v) => sum + (v.purchaseValue || 0), 0)
+
+  return `
+RELATÓRIO DE VEÍCULOS
+
+RESUMO EXECUTIVO:
+Este relatório apresenta a situação atual da frota de veículos, incluindo status, quilometragem e informações gerais.
+
+DADOS GERAIS:
+• Total de Veículos: ${total}
+• Veículos Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
+• Veículos Inativos: ${inactive} (${total > 0 ? ((inactive / total) * 100).toFixed(1) : 0}%)
+• Veículos em Manutenção: ${maintenance} (${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%)
+
+DISTRIBUIÇÃO POR TIPO:
+${typeText || '• Nenhum tipo encontrado'}
+
+ANÁLISE DE QUILOMETRAGEM:
+• Veículos com KM Registrado: ${vehiclesWithKm.length}
+• Quilometragem Média: ${avgKm.toLocaleString('pt-BR')} km
+• Quilometragem Total: ${vehiclesWithKm.reduce((sum, v) => sum + v.currentKm, 0).toLocaleString('pt-BR')} km
+
+ANÁLISE FINANCEIRA:
+• Valor Total da Frota: R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Valor Médio por Veículo: R$ ${total > 0 ? (totalValue / total).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+
+VEÍCULOS RECENTES:
+${vehicles.slice(0, 5).map(v => `• ${v.plate} - ${v.model} - ${v.type} - ${v.status}`).join('\n') || '• Nenhum veículo cadastrado'}
+
+RECOMENDAÇÕES:
+1. Realizar manutenção preventiva nos veículos com alta quilometragem
+2. Avaliar necessidade de renovação da frota
+3. Implementar sistema de controle de combustível
+4. Treinar motoristas em direção econômica
+
+OBSERVAÇÕES:
+Este relatório foi gerado automaticamente pelo sistema e reflete a situação atual dos veículos cadastrados.
+  `
+}
+
+function generateFuelReportData(fuels: any[]): string {
+  const total = fuels.length
+  const totalLiters = fuels.reduce((sum, f) => sum + (f.liters || 0), 0)
+  const totalCost = fuels.reduce((sum, f) => sum + (f.cost || 0), 0)
+  const avgPricePerLiter = totalLiters > 0 ? totalCost / totalLiters : 0
+
+  // Agrupar por tipo de combustível
+  const fuelTypes = fuels.reduce((acc, item) => {
+    const type = item.fuelType || 'Não informado'
+    acc[type] = (acc[type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const fuelTypeText = Object.entries(fuelTypes)
+    .map(([type, count]) => `• ${type}: ${count} abastecimentos`)
+    .join('\n')
+
+  // Calcular consumo médio
+  const avgLitersPerFill = total > 0 ? totalLiters / total : 0
+  const avgCostPerFill = total > 0 ? totalCost / total : 0
+
+  return `
+RELATÓRIO DE ABASTECIMENTOS
+
+RESUMO EXECUTIVO:
+Este relatório apresenta o histórico de abastecimentos, custos de combustível e análise de consumo.
+
+DADOS GERAIS:
+• Total de Abastecimentos: ${total}
+• Total de Litros: ${totalLiters.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} L
+• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Preço Médio por Litro: R$ ${avgPricePerLiter.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
+
+DISTRIBUIÇÃO POR TIPO DE COMBUSTÍVEL:
+${fuelTypeText || '• Nenhum tipo de combustível encontrado'}
+
+ANÁLISE DE CONSUMO:
+• Média de Litros por Abastecimento: ${avgLitersPerFill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} L
+• Custo Médio por Abastecimento: R$ ${avgCostPerFill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Abastecimentos com Custo: ${fuels.filter(f => f.cost && f.cost > 0).length}
+
+ABASTECIMENTOS RECENTES:
+${fuels.slice(0, 5).map(f => `• ${f.liters || 0}L - ${f.fuelType || 'Não informado'} - R$ ${(f.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`).join('\n') || '• Nenhum abastecimento cadastrado'}
+
+ANÁLISE DE CUSTOS:
+• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Custo Médio por Litro: R$ ${avgPricePerLiter.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
+• Economia Potencial: R$ ${(totalCost * 0.1).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (10% de economia)
+
+RECOMENDAÇÕES:
+1. Implementar controle de consumo por veículo
+2. Negociar preços com postos parceiros
+3. Treinar motoristas em direção econômica
+4. Implementar sistema de alertas de abastecimento
+
+OBSERVAÇÕES:
+Este relatório foi gerado automaticamente pelo sistema e reflete o histórico de abastecimentos cadastrados.
   `
 }

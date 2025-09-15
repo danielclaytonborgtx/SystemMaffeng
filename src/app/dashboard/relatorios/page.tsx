@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download, Calendar, FileText, TrendingUp, BarChart3 } from "lucide-react"
+import { Download, Calendar, FileText } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { AlertsPanel } from "@/components/reports/alerts-panel"
 import { ReportsCharts } from "@/components/reports/reports-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
-import { useEmployees, useEquipment, useVehicles } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels } from "@/hooks"
 import { toast } from "sonner"
 
 export default function RelatoriosPage() {
@@ -15,12 +15,21 @@ export default function RelatoriosPage() {
   const { data: employees, loading: employeesLoading } = useEmployees()
   const { data: equipment, loading: equipmentLoading } = useEquipment()
   const { data: vehicles, loading: vehiclesLoading } = useVehicles()
+  const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
+  const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
 
   const handleGeneratePDF = async (category: string, title: string) => {
     const result = await generatePDF({
       filename: `relatorio-${category}`,
       title: title,
-      includeCharts: true
+      includeCharts: true,
+      data: {
+        employees,
+        equipment,
+        vehicles,
+        maintenances,
+        fuels
+      }
     })
 
     if (result.success) {
@@ -39,18 +48,25 @@ export default function RelatoriosPage() {
       loading: equipmentLoading,
     },
     {
-      title: "Relatório de Manutenções",
-      description: `Histórico, custos e próximas manutenções de ${vehicles.length} veículos`,
+      title: "Relatório de Veículos",
+      description: `Status, quilometragem e informações dos ${vehicles.length} veículos`,
       icon: FileText,
-      category: "manutencoes",
+      category: "veiculos",
       loading: vehiclesLoading,
     },
     {
-      title: "Relatório Financeiro",
-      description: "Custos, valores e análise de ROI por período",
-      icon: TrendingUp,
-      category: "financeiro",
-      loading: false,
+      title: "Relatório de Manutenções",
+      description: `Histórico, custos e próximas manutenções de ${maintenances.length} registros`,
+      icon: FileText,
+      category: "manutencoes",
+      loading: maintenancesLoading,
+    },
+    {
+      title: "Relatório de Abastecimentos",
+      description: `Histórico de combustível e custos de ${fuels.length} abastecimentos`,
+      icon: FileText,
+      category: "abastecimentos",
+      loading: fuelsLoading,
     },
     {
       title: "Relatório de Colaboradores",
@@ -101,10 +117,6 @@ export default function RelatoriosPage() {
                   >
                     <Download className="mr-2 h-4 w-4" />
                     {isGenerating ? "Gerando..." : report.loading ? "Carregando..." : "Gerar PDF"}
-                  </Button>
-                  <Button variant="outline" size="sm" className="cursor-pointer flex-1 sm:flex-none py-3 sm:py-2">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Visualizar
                   </Button>
                 </div>
               </CardContent>

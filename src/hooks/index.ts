@@ -1,1 +1,1 @@
-export { useEmployees, useEquipment, useVehicles, useFirestoreOperation, useEmployeeOperations, useEquipmentOperations, useVehicleOperations, useEquipmentMovements, useEquipmentMovementOperations } from './use-firestore'
+export { useEmployees, useEquipment, useVehicles, useFirestoreOperation, useEmployeeOperations, useEquipmentOperations, useVehicleOperations, useEquipmentMovements, useEquipmentMovementOperations, useVehicleMaintenances, useVehicleMaintenanceOperations, useVehicleFuels, useVehicleFuelOperations } from './use-firestore'

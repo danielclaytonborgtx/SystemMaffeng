@@ -41,6 +41,15 @@ export function ReportFiltersDialog({ children, category }: ReportFiltersDialogP
             { id: "projeto", label: "Projeto", options: ["Todos", "Obra Centro", "Obra Norte", "Obra Sul"] },
           ],
         }
+      case "veiculos":
+        return {
+          title: "Filtros - Relatório de Veículos",
+          filters: [
+            { id: "tipo", label: "Tipo de Veículo", options: ["Todos", "Carro", "Caminhão", "Moto", "Máquina"] },
+            { id: "status", label: "Status", options: ["Todos", "Ativo", "Inativo", "Manutenção"] },
+            { id: "combustivel", label: "Tipo de Combustível", options: ["Todos", "Gasolina", "Diesel", "Etanol", "GNV"] },
+          ],
+        }
       case "manutencoes":
         return {
           title: "Filtros - Relatório de Manutenções",
@@ -48,6 +57,15 @@ export function ReportFiltersDialog({ children, category }: ReportFiltersDialogP
             { id: "tipo", label: "Tipo de Manutenção", options: ["Todas", "Preventiva", "Corretiva", "Preditiva"] },
             { id: "veiculo", label: "Veículo", options: ["Todos", "Caminhões", "Carros", "Motos", "Máquinas"] },
             { id: "status", label: "Status", options: ["Todas", "Concluída", "Pendente", "Em Andamento"] },
+          ],
+        }
+      case "abastecimentos":
+        return {
+          title: "Filtros - Relatório de Abastecimentos",
+          filters: [
+            { id: "combustivel", label: "Tipo de Combustível", options: ["Todos", "Gasolina", "Diesel", "Etanol", "GNV"] },
+            { id: "veiculo", label: "Veículo", options: ["Todos", "Caminhões", "Carros", "Motos", "Máquinas"] },
+            { id: "posto", label: "Posto", options: ["Todos", "Posto A", "Posto B", "Posto C"] },
           ],
         }
       case "financeiro":
