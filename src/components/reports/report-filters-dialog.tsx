@@ -106,58 +106,117 @@ export function ReportFiltersDialog({ children, category }: ReportFiltersDialogP
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>{filterOptions.title}</DialogTitle>
-          <DialogDescription>Configure os filtros para personalizar seu relatório</DialogDescription>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-6">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            {filterOptions.title}
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Configure os filtros para personalizar seu relatório
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label>Período</Label>
-            <DatePickerWithRange />
+        
+        <div className="space-y-6">
+          {/* Seção de Período */}
+          <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-100">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Período do Relatório
+              </Label>
+              <DatePickerWithRange />
+            </div>
           </div>
 
-          {filterOptions.filters.map((filter) => (
-            <div key={filter.id} className="space-y-2">
-              <Label>{filter.label}</Label>
-              <Select defaultValue={filter.options[0]}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {filter.options.map((option) => (
-                    <SelectItem key={option} value={option.toLowerCase()}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Seção de Filtros */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <Label className="text-sm font-medium text-gray-700">Filtros Específicos</Label>
             </div>
-          ))}
+            
+            <div className="grid gap-4">
+              {filterOptions.filters.map((filter, index) => (
+                <div key={filter.id} className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    {filter.label}
+                  </Label>
+                  <Select defaultValue={filter.options[0]}>
+                    <SelectTrigger className="border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filter.options.map((option) => (
+                        <SelectItem key={option} value={option.toLowerCase()}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <div className="space-y-3">
-            <Label>Opções de Exportação</Label>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="incluir-graficos" defaultChecked />
-                <Label htmlFor="incluir-graficos">Incluir gráficos</Label>
+          {/* Seção de Opções de Exportação */}
+          <div className="bg-gray-50/50 rounded-lg p-4 border border-gray-100">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <Label className="text-sm font-medium text-gray-700">Opções de Exportação</Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="incluir-detalhes" defaultChecked />
-                <Label htmlFor="incluir-detalhes">Incluir detalhes completos</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="incluir-anexos" />
-                <Label htmlFor="incluir-anexos">Incluir anexos/fotos</Label>
+              
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-white/50 transition-colors">
+                  <Checkbox 
+                    id="incluir-graficos" 
+                    defaultChecked 
+                    className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  />
+                  <Label htmlFor="incluir-graficos" className="text-sm text-gray-700 cursor-pointer">
+                    Incluir gráficos e visualizações
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-white/50 transition-colors">
+                  <Checkbox 
+                    id="incluir-detalhes" 
+                    defaultChecked 
+                    className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  />
+                  <Label htmlFor="incluir-detalhes" className="text-sm text-gray-700 cursor-pointer">
+                    Incluir detalhes completos
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-white/50 transition-colors">
+                  <Checkbox 
+                    id="incluir-anexos" 
+                    className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  />
+                  <Label htmlFor="incluir-anexos" className="text-sm text-gray-700 cursor-pointer">
+                    Incluir anexos e fotos
+                  </Label>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
+        
+        <DialogFooter className="pt-6 border-t border-gray-100">
+          <Button 
+            variant="outline" 
+            onClick={() => setOpen(false)} 
+            className="cursor-pointer border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+          >
             Cancelar
           </Button>
-          <Button onClick={() => setOpen(false)} className="cursor-pointer">Gerar Relatório</Button>
+          <Button 
+            onClick={() => setOpen(false)} 
+            className="cursor-pointer bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all duration-200"
+          >
+            Gerar Relatório
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

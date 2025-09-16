@@ -86,29 +86,42 @@ export default function RelatoriosPage() {
       <ReportsCharts />
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Relatórios Disponíveis</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <h2 className="text-2xl font-bold text-foreground mb-6">Relatórios Disponíveis</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reportTypes.map((report, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <report.icon className="h-5 w-5" />
-                  {report.title}
-                </CardTitle>
-                <CardDescription>{report.description}</CardDescription>
+            <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-gray-50/50">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
+                      <report.icon className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                        {report.title}
+                      </CardTitle>
+                    </div>
+                  </div>
+                </div>
+                <CardDescription className="text-sm text-gray-600 mt-2 leading-relaxed">
+                  {report.description}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <CardContent className="pt-0">
+                <div className="flex flex-col gap-3">
                   <ReportFiltersDialog category={report.category}>
-                    <Button variant="outline" size="sm" className="cursor-pointer flex-1 sm:flex-none py-3 sm:py-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-center border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 cursor-pointer"
+                    >
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span className="hidden sm:inline">Configurar</span>
-                      <span className="sm:hidden">Filtros</span>
+                      Configurar Filtros
                     </Button>
                   </ReportFiltersDialog>
                   <Button 
                     size="sm" 
-                    className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700 flex-1 sm:flex-none py-3 sm:py-2"
+                    className="w-full justify-center bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
                     onClick={() => handleGeneratePDF(report.category, report.title)}
                     disabled={isGenerating || report.loading}
                   >

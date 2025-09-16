@@ -17,9 +17,21 @@ export const DashboardCharts = memo(function DashboardCharts() {
     const totalVehicles = vehicles.length
     
     return [
-      { name: "Colaboradores", total: totalEmployees, ativos: employees.filter(e => e.status === 'active').length },
-      { name: "Equipamentos", total: totalEquipment, disponiveis: equipment.filter(e => e.status === 'available').length },
-      { name: "Veículos", total: totalVehicles, ativos: vehicles.filter(v => v.status === 'active').length },
+      { 
+        name: "Colaboradores", 
+        total: totalEmployees, 
+        disponiveis: employees.filter(e => e.status === 'active').length 
+      },
+      { 
+        name: "Equipamentos", 
+        total: totalEquipment, 
+        disponiveis: equipment.filter(e => e.status === 'available').length 
+      },
+      { 
+        name: "Veículos", 
+        total: totalVehicles, 
+        disponiveis: vehicles.filter(v => v.status === 'active').length 
+      },
     ]
   }, [employees, equipment, vehicles])
 
@@ -50,11 +62,6 @@ export const DashboardCharts = memo(function DashboardCharts() {
               radius={[4, 4, 0, 0]}
             />
             <Bar 
-              dataKey="ativos" 
-              fill="url(#ativosGradient)" 
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar 
               dataKey="disponiveis" 
               fill="url(#disponiveisGradient)" 
               radius={[4, 4, 0, 0]}
@@ -64,13 +71,9 @@ export const DashboardCharts = memo(function DashboardCharts() {
                 <stop offset="0%" stopColor="#3b82f6" />
                 <stop offset="100%" stopColor="#1d4ed8" />
               </linearGradient>
-              <linearGradient id="ativosGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="disponiveisGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#10b981" />
                 <stop offset="100%" stopColor="#059669" />
-              </linearGradient>
-              <linearGradient id="disponiveisGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8b5cf6" />
-                <stop offset="100%" stopColor="#7c3aed" />
               </linearGradient>
             </defs>
           </BarChart>
