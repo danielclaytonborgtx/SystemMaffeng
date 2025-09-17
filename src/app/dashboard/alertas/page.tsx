@@ -10,6 +10,17 @@ import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
 import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { Vehicle } from "@/lib/firestore"
 
+interface Alert {
+  id: string
+  type: string
+  category: string
+  icon: any
+  title: string
+  description: string
+  time: string
+  vehicle?: Vehicle
+}
+
 export default function AlertasPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false)
@@ -31,8 +42,8 @@ export default function AlertasPage() {
     }
   }
 
-  const alerts = useMemo(() => {
-    const alertsList = []
+  const alerts = useMemo((): Alert[] => {
+    const alertsList: Alert[] = []
     const today = new Date()
     
     // Alertas de manutenção por quilometragem e data
@@ -205,7 +216,7 @@ export default function AlertasPage() {
     
     // Ordenar alertas por prioridade (urgent primeiro, depois warning, depois info)
     const sortedAlerts = alertsList.sort((a, b) => {
-      const priority = { urgent: 0, warning: 1, info: 2 }
+      const priority: { [key: string]: number } = { urgent: 0, warning: 1, info: 2 }
       return priority[a.type] - priority[b.type]
     })
     
@@ -261,16 +272,7 @@ export default function AlertasPage() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Alertas do Sistema</h1>
           <p className="text-muted-foreground">Monitore todos os alertas e notificações do sistema</p>
-        </div>
-        <Button 
-          variant="outline" 
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="cursor-pointer"
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Atualizando...' : 'Atualizar'}
-        </Button>
+        </div>        
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
