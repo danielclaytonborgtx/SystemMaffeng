@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Clock, Wrench, Shield, FileText, Users, RefreshCw, CheckCircle } from "lucide-react"
+import { AlertTriangle, Clock, Wrench, Shield, FileText, Users, RefreshCw, CheckCircle, Loader2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
@@ -15,9 +15,12 @@ export default function AlertasPage() {
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false)
   const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
-  const { data: employees, refetch: refetchEmployees } = useEmployees()
-  const { data: equipment, refetch: refetchEquipment } = useEquipment()
-  const { data: vehicles, refetch: refetchVehicles } = useVehicles()
+  const { data: employees, loading: employeesLoading, refetch: refetchEmployees } = useEmployees()
+  const { data: equipment, loading: equipmentLoading, refetch: refetchEquipment } = useEquipment()
+  const { data: vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useVehicles()
+
+  // Loading geral - qualquer hook carregando
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -278,7 +281,7 @@ export default function AlertasPage() {
               <span className="text-sm font-medium">Urgentes</span>
             </div>
             <p className="text-2xl font-bold text-red-500 mt-1">
-              {alerts.filter(a => a.type === 'urgent').length}
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : alerts.filter(a => a.type === 'urgent').length}
             </p>
           </CardContent>
         </Card>
@@ -289,7 +292,7 @@ export default function AlertasPage() {
               <span className="text-sm font-medium">Atenção</span>
             </div>
             <p className="text-2xl font-bold text-yellow-500 mt-1">
-              {alerts.filter(a => a.type === 'warning').length}
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : alerts.filter(a => a.type === 'warning').length}
             </p>
           </CardContent>
         </Card>
@@ -300,7 +303,7 @@ export default function AlertasPage() {
               <span className="text-sm font-medium">Informativos</span>
             </div>
             <p className="text-2xl font-bold text-blue-500 mt-1">
-              {alerts.filter(a => a.type === 'info').length}
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : alerts.filter(a => a.type === 'info').length}
             </p>
           </CardContent>
         </Card>
@@ -314,7 +317,28 @@ export default function AlertasPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {alerts.length === 0 ? (
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-lg border bg-muted/30">
+                  <div className="h-12 w-12 rounded-full bg-muted animate-pulse"></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-4 w-48 bg-muted animate-pulse rounded"></div>
+                      <div className="h-6 w-16 bg-muted animate-pulse rounded"></div>
+                      <div className="h-6 w-20 bg-muted animate-pulse rounded"></div>
+                    </div>
+                    <div className="h-3 w-64 bg-muted animate-pulse rounded mb-2"></div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-16 bg-muted animate-pulse rounded"></div>
+                      <div className="h-3 w-24 bg-muted animate-pulse rounded"></div>
+                    </div>
+                  </div>
+                  <div className="h-8 w-20 bg-muted animate-pulse rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : alerts.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-muted-foreground mb-4">
                 <AlertTriangle className="h-16 w-16 mx-auto mb-4 text-green-500" />

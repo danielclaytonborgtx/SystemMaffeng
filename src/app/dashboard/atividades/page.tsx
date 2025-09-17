@@ -8,10 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { collection, query, orderBy, getDocs, limit, startAfter, where } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-import { ArrowLeft, Search, Filter, Calendar } from "lucide-react"
+import { ArrowLeft, Search, Filter, Calendar, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useEmployees, useEquipment, useVehicles, useEquipmentMovements, useVehicleMaintenances, useVehicleFuels } from "@/hooks"
 
 interface Activity {
   id: string
@@ -25,7 +24,6 @@ interface Activity {
 
 export default function AtividadesPage() {
   const [activities, setActivities] = useState<Activity[]>([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
@@ -34,184 +32,116 @@ export default function AtividadesPage() {
   const [lastDoc, setLastDoc] = useState<any>(null)
   const router = useRouter()
 
-  const fetchActivities = async (loadMore = false) => {
-    try {
-      if (!loadMore) {
-        setLoading(true)
-        setError(null)
-      }
-      
-      // Buscar de todas as coleções da aplicação
-      const collections = [
-        { name: 'employees', type: 'Colaborador', action: 'foi criado/atualizado' },
-        { name: 'equipment', type: 'Equipamento', action: 'foi criado/atualizado' },
-        { name: 'vehicles', type: 'Veículo', action: 'foi criado/atualizado' },
-        { name: 'equipmentMovements', type: 'Movimentação', action: 'foi registrada' },
-        { name: 'vehicleMaintenances', type: 'Manutenção', action: 'foi registrada' },
-        { name: 'vehicleFuels', type: 'Abastecimento', action: 'foi registrado' }
-      ]
-      
-      const allActivities: Activity[] = []
-      
-      for (const col of collections) {
-        try {
-          // Para equipmentMovements, buscar por updatedAt também para capturar devoluções
-          if (col.name === 'equipmentMovements') {
-            // Buscar movimentações criadas recentemente
-            const qCreated = query(
-              collection(db, col.name),
-              orderBy('createdAt', 'desc'),
-              limit(loadMore ? 5 : 10)
-            )
-            const createdSnapshot = await getDocs(qCreated)
-            
-            createdSnapshot.docs.forEach(doc => {
-              const data = doc.data()
-              allActivities.push({
-                id: `${col.name}_created_${doc.id}`,
-                entityType: col.type,
-                entityId: doc.id,
-                entityName: data.equipmentName || `ID: ${doc.id}`,
-                action: 'foi registrada',
-                details: `${data.type === 'out' ? 'Retirada' : 'Devolução'} de ${data.equipmentName}`,
-                createdAt: data.createdAt
-              })
-            })
-            
-            // Buscar movimentações atualizadas recentemente (devoluções)
-            const qUpdated = query(
-              collection(db, col.name),
-              orderBy('updatedAt', 'desc'),
-              limit(loadMore ? 5 : 10)
-            )
-            const updatedSnapshot = await getDocs(qUpdated)
-            
-            updatedSnapshot.docs.forEach(doc => {
-              const data = doc.data()
-              // Só incluir se foi uma devolução (tem actualReturnDate e updatedAt > createdAt)
-              if (data.actualReturnDate && data.updatedAt && data.createdAt) {
-                const updatedTime = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
-                const createdTime = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
-                
-                if (updatedTime.getTime() > createdTime.getTime()) {
-                  allActivities.push({
-                    id: `${col.name}_updated_${doc.id}`,
-                    entityType: col.type,
-                    entityId: doc.id,
-                    entityName: data.equipmentName || `ID: ${doc.id}`,
-                    action: 'foi devolvido',
-                    details: `Devolução de ${data.equipmentName}`,
-                    createdAt: data.updatedAt
-                  })
-                }
-              }
-            })
-          } else {
-            // Para outras coleções, buscar tanto por createdAt quanto updatedAt
-            const limitPerQuery = loadMore ? 5 : 10
-            
-            // Buscar registros criados recentemente
-            const qCreated = query(
-              collection(db, col.name),
-              orderBy('createdAt', 'desc'),
-              limit(limitPerQuery)
-            )
-            const createdSnapshot = await getDocs(qCreated)
-            
-            createdSnapshot.docs.forEach(doc => {
-              const data = doc.data()
-              let entityName = data.name || data.equipmentName || data.plate || data.vehiclePlate || `ID: ${doc.id}`
-              let details = undefined
-              
-              // Personalizar detalhes baseado no tipo de coleção
-              if (col.name === 'vehicleMaintenances') {
-                details = `${data.type || 'Manutenção'} - ${data.description || 'Sem descrição'}`
-              } else if (col.name === 'vehicleFuels') {
-                details = `${data.liters}L - R$ ${data.cost?.toFixed(2) || '0,00'}`
-              }
-              
-              allActivities.push({
-                id: `${col.name}_created_${doc.id}`,
-                entityType: col.type,
-                entityId: doc.id,
-                entityName: entityName,
-                action: col.name === 'vehicleMaintenances' ? 'foi registrada' : 
-                        col.name === 'vehicleFuels' ? 'foi registrado' : 'foi criado',
-                details: details,
-                createdAt: data.createdAt
-              })
-            })
-            
-            // Buscar registros atualizados recentemente (para capturar edições)
-            const qUpdated = query(
-              collection(db, col.name),
-              orderBy('updatedAt', 'desc'),
-              limit(limitPerQuery)
-            )
-            const updatedSnapshot = await getDocs(qUpdated)
-            
-            updatedSnapshot.docs.forEach(doc => {
-              const data = doc.data()
-              // Só incluir se foi realmente atualizado (updatedAt > createdAt)
-              if (data.updatedAt && data.createdAt) {
-                const updatedTime = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
-                const createdTime = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
-                
-                // Só incluir se foi atualizado há mais de 1 minuto após criação (para evitar duplicatas)
-                if (updatedTime.getTime() > createdTime.getTime() + 60000) {
-                  let entityName = data.name || data.equipmentName || data.plate || data.vehiclePlate || `ID: ${doc.id}`
-                  let details = undefined
-                  
-                  if (col.name === 'vehicleMaintenances') {
-                    details = `${data.type || 'Manutenção'} - ${data.description || 'Sem descrição'}`
-                  } else if (col.name === 'vehicleFuels') {
-                    details = `${data.liters}L - R$ ${data.cost?.toFixed(2) || '0,00'}`
-                  }
-                  
-                  allActivities.push({
-                    id: `${col.name}_updated_${doc.id}`,
-                    entityType: col.type,
-                    entityId: doc.id,
-                    entityName: entityName,
-                    action: col.name === 'vehicleMaintenances' ? 'foi atualizada' : 
-                            col.name === 'vehicleFuels' ? 'foi atualizado' : 'foi atualizado',
-                    details: details,
-                    createdAt: data.updatedAt
-                  })
-                }
-              }
-            })
-          }
-        } catch (colError) {
-          console.warn(`Erro ao buscar ${col.name}:`, colError)
-        }
-      }
-      
-      // Ordenar por data
-      allActivities.sort((a, b) => {
-        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
-        return dateB.getTime() - dateA.getTime()
+  // Usar hooks padronizados
+  const { data: employees, loading: employeesLoading } = useEmployees()
+  const { data: equipment, loading: equipmentLoading } = useEquipment()
+  const { data: vehicles, loading: vehiclesLoading } = useVehicles()
+  const { data: movements, loading: movementsLoading } = useEquipmentMovements()
+  const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
+  const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
+
+  // Loading geral - qualquer hook carregando
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading || movementsLoading || maintenancesLoading || fuelsLoading
+
+  // Função para processar atividades dos dados dos hooks
+  const processActivities = () => {
+    const allActivities: Activity[] = []
+    
+    // Processar colaboradores
+    employees.forEach(emp => {
+      allActivities.push({
+        id: `employee_${emp.id}`,
+        entityType: 'Colaborador',
+        entityId: emp.id || '',
+        entityName: emp.name,
+        action: 'foi criado',
+        details: `${emp.position} - ${emp.department}`,
+        createdAt: emp.createdAt
       })
-      
-      if (loadMore) {
-        setActivities(prev => [...prev, ...allActivities])
-      } else {
-        setActivities(allActivities)
-      }
-      
-      setHasMore(allActivities.length > 0)
-    } catch (err) {
-      setError('Erro ao carregar atividades')
-      console.error('Erro ao buscar atividades:', err)
-    } finally {
-      setLoading(false)
-    }
+    })
+    
+    // Processar equipamentos
+    equipment.forEach(eq => {
+      allActivities.push({
+        id: `equipment_${eq.id}`,
+        entityType: 'Equipamento',
+        entityId: eq.id || '',
+        entityName: eq.name,
+        action: 'foi criado',
+        details: `${eq.category} - ${eq.status}`,
+        createdAt: eq.createdAt
+      })
+    })
+    
+    // Processar veículos
+    vehicles.forEach(veh => {
+      allActivities.push({
+        id: `vehicle_${veh.id}`,
+        entityType: 'Veículo',
+        entityId: veh.id || '',
+        entityName: `${veh.plate} - ${veh.model}`,
+        action: 'foi criado',
+        details: `${veh.brand} - ${veh.status}`,
+        createdAt: veh.createdAt
+      })
+    })
+    
+    // Processar movimentações
+    movements.forEach(mov => {
+      allActivities.push({
+        id: `movement_${mov.id}`,
+        entityType: 'Movimentação',
+        entityId: mov.id || '',
+        entityName: mov.equipmentName,
+        action: mov.type === 'out' ? 'foi retirado' : 'foi devolvido',
+        details: `${mov.employeeName} - ${mov.project}`,
+        createdAt: mov.createdAt
+      })
+    })
+    
+    // Processar manutenções
+    maintenances.forEach(maint => {
+      allActivities.push({
+        id: `maintenance_${maint.id}`,
+        entityType: 'Manutenção',
+        entityId: maint.id || '',
+        entityName: `${maint.vehiclePlate} - ${maint.vehicleModel}`,
+        action: 'foi registrada',
+        details: `${maint.type} - R$ ${maint.cost?.toFixed(2) || '0,00'}`,
+        createdAt: maint.createdAt
+      })
+    })
+    
+    // Processar abastecimentos
+    fuels.forEach(fuel => {
+      allActivities.push({
+        id: `fuel_${fuel.id}`,
+        entityType: 'Abastecimento',
+        entityId: fuel.id || '',
+        entityName: `${fuel.vehiclePlate} - ${fuel.vehicleModel}`,
+        action: 'foi registrado',
+        details: `${fuel.liters}L - R$ ${fuel.cost?.toFixed(2) || '0,00'}`,
+        createdAt: fuel.createdAt
+      })
+    })
+    
+    // Ordenar por data (mais recente primeiro)
+    allActivities.sort((a, b) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+      return dateB.getTime() - dateA.getTime()
+    })
+    
+    return allActivities
   }
 
+  // Processar atividades quando os dados dos hooks mudarem
   useEffect(() => {
-    fetchActivities()
-  }, [])
+    if (!loading) {
+      const processedActivities = processActivities()
+      setActivities(processedActivities)
+    }
+  }, [employees, equipment, vehicles, movements, maintenances, fuels, loading])
 
   const formatTimeAgo = (timestamp: any) => {
     if (!timestamp) return "Agora"
@@ -264,26 +194,62 @@ export default function AtividadesPage() {
     }
   }
 
-  if (loading && activities.length === 0) {
+  // Se ainda está carregando, mostrar skeleton
+  if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.back()} className="cursor-pointer">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Todas as Atividades</h1>
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-64" />
         </div>
-        
+
+        {/* Filtros */}
         <Card>
-          <CardContent className="p-6">
+          <CardHeader>
+            <Skeleton className="h-6 w-16" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lista de Atividades */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <div className="flex-1 space-y-1">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
+                <div key={i} className="flex items-start gap-4 p-4 border rounded-lg">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-64" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                      <div className="text-right space-y-1">
+                        <Skeleton className="h-3 w-16" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -317,7 +283,7 @@ export default function AtividadesPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Buscar</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-600 h-4 w-4" />
                 <Input
                   placeholder="Buscar por nome ou detalhes..."
                   value={searchTerm}
@@ -380,7 +346,7 @@ export default function AtividadesPage() {
           {error ? (
             <div className="text-center py-8">
               <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => fetchActivities()} className="cursor-pointer">
+              <Button onClick={() => window.location.reload()} className="cursor-pointer">
                 Tentar Novamente
               </Button>
             </div>
@@ -426,18 +392,6 @@ export default function AtividadesPage() {
                 </div>
               ))}
               
-              {hasMore && (
-                <div className="text-center pt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => fetchActivities(true)}
-                    disabled={loading}
-                    className="cursor-pointer"
-                  >
-                    {loading ? "Carregando..." : "Carregar Mais"}
-                  </Button>
-                </div>
-              )}
             </div>
           )}
         </CardContent>

@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download, Calendar, FileText } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Download, Calendar, FileText, Loader2 } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { ReportsCharts } from "@/components/reports/reports-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
@@ -16,6 +17,9 @@ export default function RelatoriosPage() {
   const { data: vehicles, loading: vehiclesLoading } = useVehicles()
   const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
   const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
+
+  // Loading geral - qualquer hook carregando
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading || maintenancesLoading || fuelsLoading
 
   const handleGeneratePDF = async (category: string, title: string) => {
     const result = await generatePDF({
@@ -83,7 +87,27 @@ export default function RelatoriosPage() {
         <p className="text-muted-foreground">Gere relatórios detalhados do sistema</p>
       </div>
 
-      <ReportsCharts />
+      {loading ? (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-64 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-64 w-full" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <ReportsCharts />
+      )}
 
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-6">Relatórios Disponíveis</h2>
@@ -104,7 +128,14 @@ export default function RelatoriosPage() {
                   </div>
                 </div>
                 <CardDescription className="text-sm text-gray-600 mt-2 leading-relaxed">
-                  {report.description}
+                  {loading ? (
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  ) : (
+                    report.description
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
