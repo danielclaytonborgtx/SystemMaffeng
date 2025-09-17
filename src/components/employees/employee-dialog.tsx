@@ -256,16 +256,16 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                   </div>
                 </div>
                 <Badge
-                  variant={employee.status === "Ativo" ? "secondary" : "outline"}
+                  variant={mapStatusFromDB(employee.status) === "Ativo" ? "secondary" : "outline"}
                   className={
-                    employee.status === "Ativo"
+                    mapStatusFromDB(employee.status) === "Ativo"
                       ? "bg-green-100 text-green-800"
-                      : employee.status === "Férias"
+                      : mapStatusFromDB(employee.status) === "Férias"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-yellow-100 text-yellow-800"
                   }
                 >
-                  {employee.status}
+                  {mapStatusFromDB(employee.status)}
                 </Badge>
               </CardTitle>
             </CardHeader>

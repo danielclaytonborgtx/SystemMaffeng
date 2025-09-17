@@ -8,7 +8,7 @@ import { memo, useState, useEffect } from "react"
 import { collection, query, orderBy, getDocs, limit } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, User, Wrench, Truck, Package, Fuel, Activity } from "lucide-react"
 
 interface Activity {
   id: string
@@ -214,6 +214,30 @@ export const RecentActivity = memo(function RecentActivity() {
     return `${diffInDays} dia${diffInDays > 1 ? 's' : ''} atrás`
   }
 
+  const getAvatarColor = (entityType: string) => {
+    const colors = {
+      'Colaborador': 'bg-blue-100 text-blue-600',
+      'Equipamento': 'bg-green-100 text-green-600',
+      'Veículo': 'bg-purple-100 text-purple-600',
+      'Movimentação': 'bg-orange-100 text-orange-600',
+      'Manutenção': 'bg-red-100 text-red-600',
+      'Abastecimento': 'bg-yellow-100 text-yellow-600'
+    }
+    return colors[entityType as keyof typeof colors] || 'bg-gray-100 text-gray-600'
+  }
+
+  const getActivityIcon = (entityType: string) => {
+    const icons = {
+      'Colaborador': User,
+      'Equipamento': Wrench,
+      'Veículo': Truck,
+      'Movimentação': Package,
+      'Manutenção': Activity,
+      'Abastecimento': Fuel
+    }
+    return icons[entityType as keyof typeof icons] || Activity
+  }
+
   if (loading) {
     return (
       <Card>
@@ -262,15 +286,18 @@ export const RecentActivity = memo(function RecentActivity() {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border shadow-lg bg-gradient-to-br from-white to-blue-50/30">
+      <CardHeader className="">
         <div className="flex items-center justify-between">
-          <CardTitle>Atividade Recente</CardTitle>
+          <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full"></span>
+            Atividade Recente
+          </CardTitle>
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => router.push('/dashboard/atividades')}
-            className="cursor-pointer"
+            className="cursor-pointer bg-white hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-700 transition-colors"
           >
             Ver Tudo
             <ArrowRight className="ml-2 h-4 w-4" />
@@ -278,29 +305,32 @@ export const RecentActivity = memo(function RecentActivity() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {activities.map((activity) => (
-          <div key={activity.id} className="flex items-center gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="text-xs">
-                {activity.entityType
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
+        {activities.map((activity) => {
+          const IconComponent = getActivityIcon(activity.entityType)
+          return (
+            <div key={activity.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
+              <Avatar className={`h-10 w-10 ${getAvatarColor(activity.entityType)}`}>
+                <AvatarFallback className="text-sm font-medium">
+                  <IconComponent className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
             <div className="flex-1 space-y-1">
               <p className="text-sm">
-                <span className="font-medium">{activity.entityType}</span>{" "}
-                <span className="font-medium">{activity.entityName}</span>{" "}
-                {activity.action}
+                <span className="font-medium text-foreground">{activity.entityType}</span>{" "}
+                <span className="font-semibold text-primary">{activity.entityName}</span>{" "}
+                <span className="text-muted-foreground">{activity.action}</span>
                 {activity.details && (
                   <span className="text-muted-foreground"> - {activity.details}</span>
                 )}
               </p>
-              <p className="text-xs text-muted-foreground">{formatTimeAgo(activity.createdAt)}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                {formatTimeAgo(activity.createdAt)}
+              </p>
             </div>
           </div>
-        ))}
+          )
+        })}
       </CardContent>
     </Card>
   )

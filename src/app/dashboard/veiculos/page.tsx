@@ -79,18 +79,33 @@ export default function VeiculosPage() {
   }
 
   const isMaintenanceDue = (vehicle: any) => {
+    const today = new Date()
+    
     // Verificar por quilometragem
     if (vehicle.currentKm && vehicle.maintenanceKm) {
       const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
       if (kmUntilMaintenance <= 1000) return true
     }
     
-    // Verificar por data
+    // Verificar por data de manutenção
     if (vehicle.nextMaintenance) {
       const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
-      const today = new Date()
       const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       if (daysUntilMaintenance <= 7) return true
+    }
+    
+    // Verificar seguro vencido
+    if (vehicle.insuranceExpiry) {
+      const insuranceDate = new Date(vehicle.insuranceExpiry)
+      const daysUntilInsurance = Math.ceil((insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysUntilInsurance <= 30) return true // 30 dias antes ou vencido
+    }
+    
+    // Verificar licenciamento vencido
+    if (vehicle.licenseExpiry) {
+      const licenseDate = new Date(vehicle.licenseExpiry)
+      const daysUntilLicense = Math.ceil((licenseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysUntilLicense <= 30) return true // 30 dias antes ou vencido
     }
     
     return false

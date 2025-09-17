@@ -3,12 +3,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Clock, Wrench, Shield, FileText, Users, RefreshCw } from "lucide-react"
+import { AlertTriangle, Clock, Wrench, Shield, FileText, Users, RefreshCw, CheckCircle } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useEmployees, useEquipment, useVehicles } from "@/hooks"
+import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
+import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
+import { Vehicle } from "@/lib/firestore"
 
 export default function AlertasPage() {
   const [refreshing, setRefreshing] = useState(false)
+  const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false)
+  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const { data: employees, refetch: refetchEmployees } = useEmployees()
   const { data: equipment, refetch: refetchEquipment } = useEquipment()
   const { data: vehicles, refetch: refetchVehicles } = useVehicles()
@@ -230,6 +236,22 @@ export default function AlertasPage() {
     )
   }
 
+  const handleResolveAlert = (alert: any) => {
+    if (alert.vehicle) {
+      setSelectedVehicle(alert.vehicle)
+      
+      // Determinar qual dialog abrir baseado no tipo de alerta
+      if (alert.category === "manutenção") {
+        setIsMaintenanceDialogOpen(true)
+      } else if (alert.category === "documentação") {
+        setIsVehicleDialogOpen(true)
+      } else {
+        // Para outros tipos, abrir o dialog do veículo
+        setIsVehicleDialogOpen(true)
+      }
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -342,6 +364,18 @@ export default function AlertasPage() {
                         )}
                       </div>
                     </div>
+                    {alert.vehicle && (
+                      <div className="flex-shrink-0">
+                        <Button
+                          size="sm"
+                          onClick={() => handleResolveAlert(alert)}
+                          className="cursor-pointer bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Resolver
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -349,6 +383,33 @@ export default function AlertasPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <VehicleDialog
+        open={isVehicleDialogOpen}
+        onOpenChange={setIsVehicleDialogOpen}
+        vehicle={selectedVehicle}
+        onClose={() => {
+          setSelectedVehicle(null)
+          setIsVehicleDialogOpen(false)
+        }}
+        onSuccess={() => {
+          refetchVehicles() // Recarregar a lista de veículos
+        }}
+      />
+
+      <MaintenanceDialog
+        open={isMaintenanceDialogOpen}
+        onOpenChange={setIsMaintenanceDialogOpen}
+        vehicle={selectedVehicle}
+        onClose={() => {
+          setSelectedVehicle(null)
+          setIsMaintenanceDialogOpen(false)
+        }}
+        onSuccess={() => {
+          refetchVehicles() // Recarregar a lista de veículos
+        }}
+      />
     </div>
   )
 }
