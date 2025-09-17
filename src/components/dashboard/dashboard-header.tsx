@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Bell, Settings, User, LogOut, Menu, LayoutDashboard, Package, Users, Truck, FileText } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { NotificationsDropdown } from "@/components/dashboard/notifications-dropdown"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -100,9 +101,7 @@ export function DashboardHeader() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
-            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
-              <Bell className="h-5 w-5" />
-            </Button>
+            <NotificationsDropdown />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -185,7 +185,7 @@ export const RecentActivity = memo(function RecentActivity() {
           return dateB.getTime() - dateA.getTime()
         })
         
-        setActivities(allActivities.slice(0, 5))
+        setActivities(allActivities.slice(0, 6))
       } catch (err) {
         setError('Erro ao carregar atividades')
         console.error('Erro ao buscar atividades:', err)

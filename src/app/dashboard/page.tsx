@@ -1,7 +1,6 @@
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
-import { AlertsPanel } from "@/components/dashboard/alerts-panel"
 
 export default function DashboardPage() {
   return (
@@ -16,7 +15,6 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardCharts />
         <div className="space-y-6">
-          <AlertsPanel />
           <RecentActivity />
         </div>
       </div>

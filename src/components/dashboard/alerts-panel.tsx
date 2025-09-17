@@ -19,27 +19,53 @@ export const AlertsPanel = memo(function AlertsPanel() {
     const alertsList = []
     const today = new Date()
     
-    // Alertas de manutenção vencida
+    // Alertas de manutenção por quilometragem e data
     vehicles.forEach(vehicle => {
-      if (vehicle.nextMaintenance && vehicle.currentKm && vehicle.maintenanceKm) {
+      if (vehicle.currentKm && vehicle.maintenanceKm) {
+        const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
+        
+        // Alerta por quilometragem (1000km antes da manutenção)
+        if (kmUntilMaintenance <= 1000 && kmUntilMaintenance > 0) {
+          alertsList.push({
+            id: `maintenance-km-${vehicle.id}`,
+            type: "warning",
+            icon: Clock,
+            title: "Manutenção Próxima por KM",
+            description: `${vehicle.plate} - ${vehicle.model} - Faltam ${kmUntilMaintenance} km para manutenção`,
+            time: "Atenção",
+          })
+        } else if (kmUntilMaintenance <= 0) {
+          alertsList.push({
+            id: `maintenance-overdue-km-${vehicle.id}`,
+            type: "urgent",
+            icon: AlertTriangle,
+            title: "Manutenção Vencida por KM",
+            description: `${vehicle.plate} - ${vehicle.model} - Manutenção vencida há ${Math.abs(kmUntilMaintenance)} km`,
+            time: "Urgente",
+          })
+        }
+      }
+      
+      // Alerta por data (se existir nextMaintenance)
+      if (vehicle.nextMaintenance) {
         const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
         const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilMaintenance < 0) {
           alertsList.push({
-            id: `maintenance-overdue-${vehicle.id}`,
+            id: `maintenance-overdue-date-${vehicle.id}`,
             type: "urgent",
             icon: AlertTriangle,
-            title: "Manutenção Vencida",
+            title: "Manutenção Vencida por Data",
             description: `${vehicle.plate} - ${vehicle.model} - Manutenção vencida há ${Math.abs(daysUntilMaintenance)} dias`,
             time: "Urgente",
           })
         } else if (daysUntilMaintenance <= 7) {
           alertsList.push({
-            id: `maintenance-due-${vehicle.id}`,
+            id: `maintenance-due-date-${vehicle.id}`,
             type: "warning",
             icon: Clock,
-            title: "Manutenção Próxima",
+            title: "Manutenção Próxima por Data",
             description: `${vehicle.plate} - ${vehicle.model} - Revisão em ${daysUntilMaintenance} dias`,
             time: "Atenção",
           })

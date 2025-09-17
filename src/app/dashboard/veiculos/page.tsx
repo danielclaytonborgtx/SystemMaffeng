@@ -79,10 +79,21 @@ export default function VeiculosPage() {
   }
 
   const isMaintenanceDue = (vehicle: any) => {
-    const nextMaintenanceDate = new Date(vehicle.nextMaintenance)
-    const today = new Date()
-    const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-    return daysUntilMaintenance <= 7 || vehicle.currentKm >= vehicle.maintenanceKm
+    // Verificar por quilometragem
+    if (vehicle.currentKm && vehicle.maintenanceKm) {
+      const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
+      if (kmUntilMaintenance <= 1000) return true
+    }
+    
+    // Verificar por data
+    if (vehicle.nextMaintenance) {
+      const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+      const today = new Date()
+      const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysUntilMaintenance <= 7) return true
+    }
+    
+    return false
   }
 
   if (error) {
