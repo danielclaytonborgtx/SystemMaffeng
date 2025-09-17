@@ -16,7 +16,7 @@ export function NotificationsDropdown() {
   const router = useRouter()
 
   const notifications = useMemo(() => {
-    const notificationsList = []
+    const notificationsList: any[] = []
     const today = new Date()
     
     // Notificações de manutenção por quilometragem e data
@@ -138,8 +138,8 @@ export function NotificationsDropdown() {
     })
     
     // Ordenar notificações por prioridade (urgent primeiro, depois warning)
-    const sortedNotifications = notificationsList.sort((a, b) => {
-      const priority = { urgent: 0, warning: 1 }
+    const sortedNotifications = notificationsList.sort((a: any, b: any) => {
+      const priority: { [key: string]: number } = { urgent: 0, warning: 1 }
       return priority[a.type] - priority[b.type]
     })
     
@@ -163,9 +163,9 @@ export function NotificationsDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 p-0">
+      <DropdownMenuContent align="end" className="w-96 p-0" sideOffset={12}>
         <Card className="border-0 shadow-none">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 px-4">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notificações
@@ -188,7 +188,7 @@ export function NotificationsDropdown() {
                   {notifications.map((notification) => (
                     <div 
                       key={notification.id} 
-                      className="flex items-start gap-3 p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0"
+                      className="flex items-start gap-3 p-4 hover:bg-muted/50 cursor-pointer border-b last:border-b-0"
                       onClick={() => {
                         router.push('/dashboard/veiculos')
                         setIsOpen(false)
@@ -207,11 +207,11 @@ export function NotificationsDropdown() {
                           }`}
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm truncate">{notification.title}</p>
+                      <div className="flex-1 min-w-0 max-w-[calc(100%-3rem)]">
+                        <div className="flex items-start gap-2 mb-1">
+                          <p className="font-medium text-sm break-words leading-tight">{notification.title}</p>
                           <Badge
-                            className={`${
+                            className={`flex-shrink-0 ${
                               notification.type === "urgent" 
                                 ? "bg-red-500 text-white" 
                                 : "bg-yellow-500 text-white"
@@ -220,8 +220,8 @@ export function NotificationsDropdown() {
                             {notification.type === "urgent" ? "Urgente" : "Atenção"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">{notification.description}</p>
-                        <p className="text-xs text-muted-foreground">{notification.detail}</p>
+                        <p className="text-sm text-muted-foreground break-words leading-tight mb-1">{notification.description}</p>
+                        <p className="text-xs text-muted-foreground break-words leading-tight">{notification.detail}</p>
                       </div>
                     </div>
                   ))}
@@ -229,7 +229,7 @@ export function NotificationsDropdown() {
               )}
             </ScrollArea>
             {notifications.length > 0 && (
-              <div className="p-3 border-t">
+              <div className="p-4 border-t">
                 <Button 
                   variant="outline" 
                   size="sm" 
