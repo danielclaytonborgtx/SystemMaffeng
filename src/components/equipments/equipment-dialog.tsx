@@ -11,9 +11,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useEquipmentOperations, useEquipmentMovements } from "@/hooks"
+import { useEquipmentOperations, useEquipmentMovements, useBarcodeReader } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
-import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench } from "lucide-react"
+import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, Camera, CameraOff } from "lucide-react"
 
 interface EquipmentDialogProps {
   open: boolean
@@ -102,6 +102,32 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
     supplier: "",
     invoiceNumber: "",
     location: "",
+  })
+
+  // Hook para leitura óptica
+  const {
+    isActive: isScanningActive,
+    isSupported: isBarcodeSupported,
+    error: barcodeError,
+    videoRef,
+    startScanning,
+    stopScanning
+  } = useBarcodeReader({
+    onCodeRead: (code) => {
+      setFormData({ ...formData, code })
+      toast({
+        title: "Código lido com sucesso!",
+        description: `Código: ${code}`,
+      })
+      stopScanning()
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro na leitura óptica",
+        description: error,
+        variant: "destructive"
+      })
+    }
   })
 
   useEffect(() => {
@@ -249,13 +275,34 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                     <Hash className="h-4 w-4 text-green-600" />
                     Código
                   </Label>
-                  <Input
-                    id="code"
-                    value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    placeholder="Ex: EQ001"
-                    required
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="code"
+                      value={formData.code}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                      placeholder="Ex: EQ001"
+                      required
+                      className="flex-1"
+                    />
+                    {isBarcodeSupported && (
+                      <Button
+                        type="button"
+                        variant={isScanningActive ? "destructive" : "outline"}
+                        size="icon"
+                        onClick={isScanningActive ? stopScanning : startScanning}
+                        title={isScanningActive ? "Parar leitura" : "Ler código óptico"}
+                      >
+                        {isScanningActive ? (
+                          <CameraOff className="h-4 w-4" />
+                        ) : (
+                          <Camera className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  {barcodeError && (
+                    <p className="text-sm text-red-600">{barcodeError}</p>
+                  )}
                 </div>
               </div>
 
@@ -455,6 +502,39 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
             </div>
           </div>
         </form>
+
+        {/* Vídeo da câmera para leitura óptica */}
+        {isScanningActive && (
+          <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm font-medium">Posicione o código na câmera</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={stopScanning}
+              >
+                <CameraOff className="h-4 w-4 mr-2" />
+                Fechar
+              </Button>
+            </div>
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-64 object-cover rounded border"
+              />
+              <div className="absolute inset-0 border-2 border-red-500 rounded pointer-events-none">
+                <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-red-500"></div>
+                <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-red-500"></div>
+                <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-red-500"></div>
+                <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-red-500"></div>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

@@ -1,1 +1,2 @@
 export { useEmployees, useEquipment, useVehicles, useFirestoreOperation, useEmployeeOperations, useEquipmentOperations, useVehicleOperations, useEquipmentMovements, useEquipmentMovementOperations, useVehicleMaintenances, useVehicleMaintenanceOperations, useVehicleFuels, useVehicleFuelOperations } from './use-firestore'
+export { useBarcodeReader } from './use-barcode-reader'
