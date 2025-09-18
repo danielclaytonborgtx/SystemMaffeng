@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { EmployeeAutocomplete } from "@/components/ui/employee-autocomplete"
 import { useEquipmentMovementOperations, useEmployees, useEquipmentOperations, useEquipmentMovements } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 import { User, Hash, Calendar, MapPin, FileText, CheckSquare } from "lucide-react"
@@ -34,9 +35,8 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
   // Debug: log das movimentações quando mudam
   console.log("Movimentações carregadas para equipamento:", equipment?.id, movements)
   const [movementType, setMovementType] = useState<"saida" | "devolucao">("saida")
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
   const [formData, setFormData] = useState({
-    employeeId: "",
-    employeeName: "",
     project: "",
     expectedReturn: "",
     observations: "",
@@ -58,21 +58,20 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
     try {
       console.log("Iniciando movimentação:", { isReturn, equipment: equipment.id, formData })
       
-      let selectedEmployee: any = null
+      let responsibleEmployee: any = null
       let lastOutMovement: any = null
       
       // Para saídas, validar colaborador
       if (!isReturn) {
-        selectedEmployee = employees?.find(emp => emp.code === formData.employeeId)
-        
         if (!selectedEmployee) {
           toast({
             title: "Erro",
-            description: "Colaborador não encontrado. Verifique o código.",
+            description: "Selecione um colaborador para registrar a saída.",
             variant: "destructive",
           })
           return
         }
+        responsibleEmployee = selectedEmployee
       } else {
         // Para devoluções, buscar o colaborador que está usando o equipamento
         console.log("Equipamento para devolução:", equipment)
@@ -85,20 +84,20 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         console.log("Movimentação ativa encontrada:", lastOutMovement)
         
         if (lastOutMovement) {
-          selectedEmployee = {
+          responsibleEmployee = {
             id: lastOutMovement.employeeId,
             name: lastOutMovement.employeeName,
             code: lastOutMovement.employeeCode
           }
-          console.log("Colaborador encontrado na movimentação:", selectedEmployee)
+          console.log("Colaborador encontrado na movimentação:", responsibleEmployee)
         } else {
           // Fallback: usar dados do assignedTo do equipamento
-          selectedEmployee = {
+          responsibleEmployee = {
             id: equipment.assignedTo || "unknown",
             name: equipment.assignedTo || "Colaborador",
             code: "DEV001"
           }
-          console.log("Usando fallback para colaborador:", selectedEmployee)
+          console.log("Usando fallback para colaborador:", responsibleEmployee)
         }
       }
 
@@ -106,9 +105,9 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         equipmentId: equipment.id,
         equipmentName: equipment.name,
         equipmentCode: equipment.code,
-        employeeId: selectedEmployee.id!,
-        employeeName: selectedEmployee.name,
-        employeeCode: selectedEmployee.code,
+        employeeId: responsibleEmployee.id!,
+        employeeName: responsibleEmployee.name,
+        employeeCode: responsibleEmployee.code,
         type: isReturn ? 'return' as const : 'out' as const,
         project: formData.project,
       }
@@ -193,7 +192,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
       
       // Para saídas, adicionar assignedTo e atualizar localização
       if (!isReturn) {
-        updateData.assignedTo = selectedEmployee.name
+        updateData.assignedTo = responsibleEmployee.name
         // Mapear projeto para localização
         const projectLocationMap: { [key: string]: string } = {
           'obra-central': 'Obra Central',
@@ -203,8 +202,9 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         }
         updateData.location = projectLocationMap[formData.project] || "Obra"
       } else {
-        // Para devoluções, voltar para almoxarifado
+        // Para devoluções, voltar para almoxarifado e limpar responsável
         updateData.location = "Almoxarifado"
+        updateData.assignedTo = null // Limpar o responsável
       }
       
       await updateEquipment(equipment.id, updateData)
@@ -274,33 +274,15 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
                 <CardTitle>Registrar Saída</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="employeeId" className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-green-600" />
-                      ID do Colaborador
-                    </Label>
-                    <Input
-                      id="employeeId"
-                      value={formData.employeeId}
-                      onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                      placeholder="Ex: COL001"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="employeeName" className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-blue-600" />
-                      Nome do Colaborador
-                    </Label>
-                    <Input
-                      id="employeeName"
-                      value={formData.employeeName}
-                      onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
-                      placeholder="Nome completo"
-                      required
-                    />
-                  </div>
+                <div className="space-y-4">
+                  <EmployeeAutocomplete
+                    label="Colaborador Responsável"
+                    placeholder="Digite o nome ou código do colaborador..."
+                    value={selectedEmployee?.id || ""}
+                    onChange={setSelectedEmployee}
+                    employees={employees || []}
+                    required
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -261,6 +261,35 @@ export const equipmentService = {
   async delete(id: string): Promise<void> {
     const docRef = doc(db, 'equipment', id)
     await deleteDoc(docRef)
+  },
+
+  async fixInconsistentData(): Promise<{ fixed: number; total: number }> {
+    // Buscar todos os equipamentos disponíveis que ainda têm responsável
+    const q = query(
+      collection(db, 'equipment'), 
+      where('status', '==', 'available'),
+      where('assignedTo', '!=', null)
+    )
+    
+    const querySnapshot = await getDocs(q)
+    let fixedCount = 0
+    
+    // Atualizar cada equipamento inconsistente
+    const updatePromises = querySnapshot.docs.map(async (docSnapshot) => {
+      const equipmentRef = doc(db, 'equipment', docSnapshot.id)
+      await updateDoc(equipmentRef, {
+        assignedTo: null,
+        updatedAt: Timestamp.now()
+      })
+      fixedCount++
+    })
+    
+    await Promise.all(updatePromises)
+    
+    return {
+      fixed: fixedCount,
+      total: querySnapshot.docs.length
+    }
   }
 }
 

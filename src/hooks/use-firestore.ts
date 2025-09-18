@@ -226,7 +226,22 @@ export function useEquipmentOperations() {
     }
   }
 
-  return { loading, error, createEquipment, updateEquipment, deleteEquipment }
+  const fixInconsistentData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const result = await equipmentService.fixInconsistentData()
+      return result
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao corrigir dados inconsistentes')
+      console.error('Erro ao corrigir dados inconsistentes:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { loading, error, createEquipment, updateEquipment, deleteEquipment, fixInconsistentData }
 }
 
 // Hook específico para operações de veículos

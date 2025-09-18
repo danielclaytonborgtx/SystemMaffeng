@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, ArrowUpDown, Loader2, Package, Hash, Wrench, MapPin } from "lucide-react"
+import { Plus, Search, Eye, ArrowUpDown, Loader2, Package, Hash, Wrench, MapPin, Settings } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EquipmentDialog } from "@/components/equipments/equipment-dialog"
 import { MovementDialog } from "@/components/equipments/movement-dialog"
 import { useEquipment } from "@/hooks"
+import { useEquipmentOperations } from "@/hooks"
+import { useToast } from "@/hooks/use-toast"
 import { Equipment } from "@/lib/firestore"
 
 export default function EquipamentosPage() {
@@ -22,6 +24,8 @@ export default function EquipamentosPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
 
   const { data: equipments, loading, error, refetch } = useEquipment()
+  const { fixInconsistentData, loading: fixingData } = useEquipmentOperations()
+  const { toast } = useToast()
 
   const filteredEquipments = useMemo(() => {
     if (!equipments) return []
@@ -73,6 +77,23 @@ export default function EquipamentosPage() {
         return <Badge variant="outline">{status}</Badge>
     }
     }, [])
+
+  const handleFixInconsistentData = async () => {
+    try {
+      const result = await fixInconsistentData()
+      toast({
+        title: "Dados corrigidos!",
+        description: `${result.fixed} equipamento(s) corrigido(s) com sucesso.`,
+      })
+      refetch() // Atualizar a lista
+    } catch (error) {
+      toast({
+        title: "Erro ao corrigir dados",
+        description: "Não foi possível corrigir os dados inconsistentes.",
+        variant: "destructive"
+      })
+    }
+  }
 
   if (error) {
     return (

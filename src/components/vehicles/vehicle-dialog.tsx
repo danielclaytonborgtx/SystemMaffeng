@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useVehicleOperations } from "@/hooks"
+import { EmployeeAutocomplete } from "@/components/ui/employee-autocomplete"
+import { useVehicleOperations, useEmployees } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 import { Car, Hash, Calendar, MapPin, FileText, DollarSign, Wrench, Fuel, User, AlertTriangle } from "lucide-react"
 
@@ -51,7 +52,9 @@ const mapStatusFromDB = (status: string): string => {
 
 export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: VehicleDialogProps) {
   const { createVehicle, updateVehicle, deleteVehicle, loading } = useVehicleOperations()
+  const { data: employees } = useEmployees()
   const { toast } = useToast()
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
   const [formData, setFormData] = useState({
     plate: "",
     model: "",
@@ -93,6 +96,14 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
         licenseExpiry: vehicle.licenseExpiry || "",
         observations: vehicle.observations || "",
       })
+      
+      // Configurar colaborador selecionado se houver um assignedTo
+      if (vehicle.assignedTo && employees) {
+        const employee = employees.find(emp => emp.name === vehicle.assignedTo)
+        if (employee) {
+          setSelectedEmployee(employee)
+        }
+      }
     } else {
       // Resetar formulário para novo veículo
       setFormData({
@@ -114,8 +125,9 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
         licenseExpiry: "",
         observations: "",
       })
+      setSelectedEmployee(null) // Limpar colaborador selecionado
     }
-  }, [vehicle, open]) // Adicionar 'open' como dependência para resetar quando o dialog abre
+  }, [vehicle, open, employees]) // Adicionar 'employees' para configurar colaborador quando carregar
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,8 +161,8 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
       if (formData.engineCapacity) {
         vehicleData.engineCapacity = formData.engineCapacity
       }
-      if (formData.assignedTo) {
-        vehicleData.assignedTo = formData.assignedTo
+      if (selectedEmployee) {
+        vehicleData.assignedTo = selectedEmployee.name
       }
       if (formData.purchaseDate) {
         vehicleData.purchaseDate = formData.purchaseDate
@@ -494,12 +506,12 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="assignedTo">Responsável</Label>
-                  <Input
-                    id="assignedTo"
-                    value={formData.assignedTo}
-                    onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                    placeholder="Nome do responsável"
+                  <EmployeeAutocomplete
+                    label="Responsável"
+                    placeholder="Digite o nome ou código do colaborador..."
+                    value={selectedEmployee?.id || ""}
+                    onChange={setSelectedEmployee}
+                    employees={employees || []}
                   />
                 </div>
                 <div className="space-y-2">
