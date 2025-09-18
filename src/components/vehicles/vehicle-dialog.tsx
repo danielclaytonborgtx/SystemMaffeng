@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { EmployeeAutocomplete } from "@/components/ui/employee-autocomplete"
 import { useVehicleOperations, useEmployees } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
-import { Car, Hash, Calendar, MapPin, FileText, DollarSign, Wrench, Fuel, User, AlertTriangle } from "lucide-react"
+import { Car, Hash, Calendar, MapPin, FileText, DollarSign, Wrench, Fuel, User, AlertTriangle, Shield, AlertCircle } from "lucide-react"
 
 interface VehicleDialogProps {
   open: boolean
@@ -128,6 +128,24 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
       setSelectedEmployee(null) // Limpar colaborador selecionado
     }
   }, [vehicle, open, employees]) // Adicionar 'employees' para configurar colaborador quando carregar
+
+  // Função para verificar se uma data está vencida
+  const isDateExpired = (dateString: string): boolean => {
+    if (!dateString) return false
+    const date = new Date(dateString)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Zerar horas para comparar apenas a data
+    return date < today
+  }
+
+  // Função para calcular dias até o vencimento
+  const getDaysUntilExpiry = (dateString: string): number => {
+    if (!dateString) return 0
+    const date = new Date(dateString)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -451,22 +469,54 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="insuranceExpiry">Vencimento do Seguro</Label>
+                    <Label htmlFor="insuranceExpiry" className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Vencimento do Seguro
+                      {isDateExpired(formData.insuranceExpiry) && (
+                        <Badge variant="destructive" className="ml-2">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Vencido
+                        </Badge>
+                      )}
+                    </Label>
                     <Input
                       id="insuranceExpiry"
                       type="date"
                       value={formData.insuranceExpiry}
                       onChange={(e) => setFormData({ ...formData, insuranceExpiry: e.target.value })}
+                      className={isDateExpired(formData.insuranceExpiry) ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {isDateExpired(formData.insuranceExpiry) && (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        <AlertTriangle className="h-4 w-4" />
+                        Seguro vencido há {Math.abs(getDaysUntilExpiry(formData.insuranceExpiry))} dias
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="licenseExpiry">Vencimento do Licenciamento</Label>
+                    <Label htmlFor="licenseExpiry" className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Vencimento do Licenciamento
+                      {isDateExpired(formData.licenseExpiry) && (
+                        <Badge variant="destructive" className="ml-2">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Vencido
+                        </Badge>
+                      )}
+                    </Label>
                     <Input
                       id="licenseExpiry"
                       type="date"
                       value={formData.licenseExpiry}
                       onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
+                      className={isDateExpired(formData.licenseExpiry) ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {isDateExpired(formData.licenseExpiry) && (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        <AlertTriangle className="h-4 w-4" />
+                        Licenciamento vencido há {Math.abs(getDaysUntilExpiry(formData.licenseExpiry))} dias
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>
