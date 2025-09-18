@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle, Clock, Wrench, Shield, FileText, Bell } from "lucide-react"
+import { AlertTriangle, Clock, Wrench, Shield, FileText, Bell, ArrowRight } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useVehicles } from "@/hooks"
@@ -188,11 +188,7 @@ export function NotificationsDropdown() {
                   {notifications.map((notification) => (
                     <div 
                       key={notification.id} 
-                      className="flex items-start gap-3 p-4 hover:bg-muted/50 cursor-pointer border-b last:border-b-0"
-                      onClick={() => {
-                        router.push('/dashboard/veiculos')
-                        setIsOpen(false)
-                      }}
+                      className="flex items-start gap-3 p-4 border-b last:border-b-0"
                     >
                       <div className={`p-2 rounded-full ${
                         notification.type === "urgent"
@@ -229,17 +225,19 @@ export function NotificationsDropdown() {
               )}
             </ScrollArea>
             {notifications.length > 0 && (
-              <div className="p-4 border-t">
+              <div className="px-2 pt-2 border-t bg-gradient-to-r from-blue-50 to-indigo-50">
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   size="sm" 
                   onClick={() => {
                     router.push('/dashboard/alertas')
                     setIsOpen(false)
                   }}
-                  className="w-full cursor-pointer"
+                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 mb-0"
                 >
+                  <AlertTriangle className="h-4 w-4" />
                   Ver Todos os Alertas
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             )}
