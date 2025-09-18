@@ -127,6 +127,7 @@ export interface VehicleFuel {
   liters: number
   cost: number
   pricePerLiter: number
+  consumption?: number // Consumo em km/l
   station: string
   observations?: string
   performedBy?: string

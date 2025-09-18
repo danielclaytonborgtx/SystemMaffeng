@@ -60,6 +60,16 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
     }
 
     try {
+      // Calcular consumo baseado no último abastecimento
+      let consumption = 0
+      if (fuelHistory.length > 0) {
+        const lastFuelRecord = fuelHistory[0] // O primeiro é o mais recente
+        const kmTraveled = Number(formData.currentKm) - lastFuelRecord.currentKm
+        if (kmTraveled > 0) {
+          consumption = kmTraveled / Number(formData.liters)
+        }
+      }
+
       const fuelData: any = {
         vehicleId: vehicle.id,
         vehiclePlate: vehicle.plate,
@@ -68,6 +78,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
         liters: Number(formData.liters),
         cost: Number(formData.cost),
         pricePerLiter: Number(calculatePricePerLiter()),
+        consumption: consumption > 0 ? consumption : undefined,
         station: formData.station,
       }
 
@@ -349,11 +360,13 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
                   </TableHeader>
                   <TableBody>
                     {fuelHistory.map((record, index) => {
-                      // Calcular consumo baseado no próximo registro
-                      let consumption = 0
-                      if (index < fuelHistory.length - 1) {
-                        const nextRecord = fuelHistory[index + 1]
-                        const kmTraveled = record.currentKm - nextRecord.currentKm
+                      // Usar consumo salvo no banco ou calcular se não existir
+                      let consumption = record.consumption || 0
+                      
+                      // Se não tem consumo salvo e não é o primeiro registro, calcular
+                      if (!record.consumption && index > 0) {
+                        const previousRecord = fuelHistory[index - 1]
+                        const kmTraveled = record.currentKm - previousRecord.currentKm
                         consumption = kmTraveled > 0 ? kmTraveled / record.liters : 0
                       }
                       
