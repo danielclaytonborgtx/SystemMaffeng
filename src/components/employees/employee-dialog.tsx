@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { X, User, Mail, Phone, MapPin, Calendar, Building, Briefcase, FileText } from "lucide-react"
+import { X, User, Mail, Phone, MapPin, Calendar, Building, Briefcase, FileText, Plus, Check, Trash2 } from "lucide-react"
 import { useEmployeeOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
@@ -447,68 +447,92 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Contratos</CardTitle>
+          <Card className="border-l-4 border-l-blue-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Contratos do Colaborador
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Gerencie os contratos em que este colaborador está envolvido
+              </p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Label htmlFor="contracts">Contratos em que o colaborador trabalha</Label>
-                
-                {/* Input para adicionar novo contrato */}
+            <CardContent className="space-y-6">
+              {/* Seção de Adicionar Contrato */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <Label htmlFor="contracts" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Adicionar Novo Contrato
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     id="contracts"
                     value={newContract}
                     onChange={(e) => setNewContract(e.target.value)}
                     onKeyPress={handleContractKeyPress}
-                    placeholder="Digite o nome do contrato e pressione Enter"
+                    placeholder="Digite o nome do contrato..."
                     className="flex-1"
                   />
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="default"
                     onClick={addContract}
                     disabled={!newContract.trim() || formData.contracts.includes(newContract.trim())}
-                    className="px-4"
+                    className="px-4 bg-blue-600 hover:bg-blue-700"
                   >
+                    <Plus className="h-4 w-4 mr-2" />
                     Adicionar
                   </Button>
                 </div>
+                {newContract.trim() && formData.contracts.includes(newContract.trim()) && (
+                  <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                    <X className="h-4 w-4" />
+                    Este contrato já foi adicionado
+                  </p>
+                )}
+              </div>
 
-                {/* Lista de contratos adicionados */}
-                {formData.contracts.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Contratos adicionados:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.contracts.map((contract) => (
-                        <Badge 
-                          key={contract} 
-                          variant="secondary" 
-                          className="text-xs flex items-center gap-1 pr-1"
-                        >
-                          {contract}
+              {/* Lista de Contratos */}
+              {formData.contracts.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-600" />
+                      Contratos Ativos ({formData.contracts.length})
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {formData.contracts.map((contract, index) => (
+                      <div
+                        key={contract}
+                        className="group relative bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-sm font-medium text-gray-900 truncate">
+                              {contract}
+                            </h5>
+                          </div>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-4 w-4 p-0 hover:bg-transparent"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600 cursor-pointer"
                             onClick={() => removeContract(contract)}
                           >
-                            <X className="h-3 w-3" />
+                            <Trash2 className="h-3 w-3" />
                           </Button>
-                        </Badge>
-                      ))}
-                    </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-
-                {formData.contracts.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum contrato adicionado. Digite o nome do contrato acima para adicionar.
-                  </p>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 mb-1">Nenhum contrato adicionado</p>
+                  <p className="text-xs text-gray-400">Adicione contratos usando o campo acima</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
