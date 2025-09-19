@@ -99,7 +99,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
       
       // Configurar colaborador selecionado se houver um assigned_to
       if (vehicle.assigned_to && employees) {
-        const employee = employees.find(emp => emp.id === vehicle.assigned_to)
+        const employee = employees.find(emp => emp.name === vehicle.assigned_to)
         if (employee) {
           setSelectedEmployee(employee)
         }

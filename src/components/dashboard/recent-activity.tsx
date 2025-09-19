@@ -180,8 +180,8 @@ export const RecentActivity = memo(function RecentActivity() {
         // Ordenar todas as atividades por data (mais recente primeiro)
         allActivities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         
-        // Pegar apenas as 8 mais recentes
-        setActivities(allActivities.slice(0, 8))
+        // Pegar apenas as 6 mais recentes
+        setActivities(allActivities.slice(0, 6))
         
       } catch (err) {
         console.error('Erro ao buscar atividades recentes:', err)
@@ -260,7 +260,7 @@ export const RecentActivity = memo(function RecentActivity() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex items-start gap-3">
               <Skeleton className="h-8 w-8 rounded-full" />
               <div className="flex-1 space-y-2">
