@@ -85,7 +85,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
         department: employee.department || "",
         phone: employee.phone || "",
         email: employee.email || "",
-        hireDate: employee.hireDate || "",
+        hireDate: employee.hire_date || "",
         status: mapStatusFromDB(employee.status) || "Ativo",
         address: employee.address || "",
         cpf: employee.cpf || "",
@@ -132,7 +132,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
         employeeData.phone = formData.phone
       }
       if (formData.hireDate) {
-        employeeData.hireDate = formData.hireDate
+        employeeData.hire_date = formData.hireDate
       }
       if (formData.address) {
         employeeData.address = formData.address

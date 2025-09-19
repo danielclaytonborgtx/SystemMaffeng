@@ -16,8 +16,8 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Wrench, Hash, DollarSign, FileText, Calendar, CheckSquare, Loader2 } from "lucide-react"
-import { useVehicleMaintenances, useVehicleMaintenanceOperations, useVehicleOperations } from "@/hooks/use-firestore"
-import { Vehicle } from "@/lib/firestore"
+import { useVehicleMaintenances, useVehicleMaintenanceOperations, useVehicleOperations } from "@/hooks"
+import { Vehicle } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
 interface MaintenanceDialogProps {
@@ -53,7 +53,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
     maintenanceTypes.map((type) => ({
       ...type,
       enabled: false,
-      nextKm: vehicle ? (vehicle.currentKm || 0) + type.intervalKm : 0,
+      nextKm: vehicle ? (vehicle.current_km || 0) + type.intervalKm : 0,
     })),
   )
 
@@ -78,19 +78,19 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
       const itemsArray = formData.items ? formData.items.split('\n').filter(item => item.trim()) : []
       
       const maintenanceData: any = {
-        vehicleId: vehicle.id,
-        vehiclePlate: vehicle.plate,
-        vehicleModel: vehicle.model,
+        vehicle_id: vehicle.id,
+        vehicle_plate: vehicle.plate,
+        vehicle_model: vehicle.model,
         type: formData.type as 'preventiva' | 'corretiva' | 'preditiva',
         description: formData.description,
-        currentKm: Number(formData.currentKm),
+        current_km: Number(formData.currentKm),
         cost: Number(formData.cost),
         items: itemsArray,
       }
 
       // Só adicionar campos opcionais se tiverem valor
       if (formData.nextMaintenanceKm && formData.nextMaintenanceKm.trim()) {
-        maintenanceData.nextMaintenanceKm = Number(formData.nextMaintenanceKm)
+        maintenanceData.next_maintenance_km = Number(formData.nextMaintenanceKm)
       }
       
       if (formData.observations && formData.observations.trim()) {
@@ -101,13 +101,13 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
 
       // Atualizar o veículo com a nova quilometragem e última manutenção
       const updateData: any = {
-        currentKm: Number(formData.currentKm),
-        lastMaintenance: new Date(),
+        current_km: Number(formData.currentKm),
+        last_maintenance: new Date().toISOString(),
       }
 
       // Se foi especificada uma próxima manutenção, atualizar também
       if (formData.nextMaintenanceKm && formData.nextMaintenanceKm.trim()) {
-        updateData.maintenanceKm = Number(formData.nextMaintenanceKm)
+        updateData.maintenance_km = Number(formData.nextMaintenanceKm)
       }
 
       await updateVehicle(vehicle.id, updateData)
@@ -182,26 +182,26 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-medium">KM Atual:</span>
-                <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString('pt-BR')} km</div>
+                <div className="text-lg font-bold">{vehicle.current_km?.toLocaleString('pt-BR')} km</div>
               </div>
               <div>
                 <span className="font-medium">Próxima Manutenção:</span>
-                <div className="text-lg font-bold">{vehicle.maintenanceKm?.toLocaleString('pt-BR')} km</div>
+                <div className="text-lg font-bold">{vehicle.maintenance_km?.toLocaleString('pt-BR')} km</div>
               </div>
               <div>
                 <span className="font-medium">Última Manutenção:</span>
                 <div className="text-lg font-bold">
                   {maintenanceHistory.length > 0 
-                    ? maintenanceHistory[0].createdAt.toDate().toLocaleDateString("pt-BR")
-                    : vehicle.lastMaintenance 
-                      ? vehicle.lastMaintenance.toDate().toLocaleDateString("pt-BR")
+                    ? new Date(maintenanceHistory[0].created_at).toLocaleDateString("pt-BR")
+                    : vehicle.last_maintenance 
+                      ? new Date(vehicle.last_maintenance).toLocaleDateString("pt-BR")
                       : "N/A"
                   }
                 </div>
               </div>
               <div>
                 <span className="font-medium">Responsável:</span>
-                <div className="text-lg font-bold">{vehicle.assignedTo || "Não atribuído"}</div>
+                <div className="text-lg font-bold">{vehicle.assigned_to || "Não atribuído"}</div>
               </div>
             </div>
           </CardContent>
@@ -265,7 +265,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                       type="number"
                       value={formData.currentKm}
                       onChange={(e) => setFormData({ ...formData, currentKm: e.target.value })}
-                      placeholder={vehicle.currentKm?.toString()}
+                      placeholder={vehicle.current_km?.toString()}
                       required
                     />
                   </div>
@@ -397,7 +397,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                       <TableBody>
                         {maintenanceHistory.map((maintenance) => (
                           <TableRow key={maintenance.id}>
-                            <TableCell>{maintenance.createdAt.toDate().toLocaleDateString("pt-BR")}</TableCell>
+                            <TableCell>{new Date(maintenance.created_at).toLocaleDateString("pt-BR")}</TableCell>
                             <TableCell>
                               <Badge
                                 variant={maintenance.type === "preventiva" ? "secondary" : "outline"}
@@ -417,7 +417,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                                 {maintenance.description}
                               </div>
                             </TableCell>
-                            <TableCell>{maintenance.currentKm.toLocaleString('pt-BR')} km</TableCell>
+                            <TableCell>{maintenance.current_km.toLocaleString('pt-BR')} km</TableCell>
                             <TableCell>R$ {maintenance.cost.toFixed(2)}</TableCell>
                             <TableCell className="max-w-xs">
                               {maintenance.items && maintenance.items.length > 0 ? (
@@ -438,9 +438,9 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                               )}
                             </TableCell>
                             <TableCell>
-                              {maintenance.nextMaintenanceKm ? (
+                              {maintenance.next_maintenance_km ? (
                                 <span className="font-medium">
-                                  {maintenance.nextMaintenanceKm.toLocaleString('pt-BR')} km
+                                  {maintenance.next_maintenance_km.toLocaleString('pt-BR')} km
                                 </span>
                               ) : (
                                 <span className="text-muted-foreground">-</span>
@@ -468,7 +468,7 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                         <div className="space-y-3">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm">{maintenance.createdAt.toDate().toLocaleDateString("pt-BR")}</div>
+                              <div className="font-medium text-sm">{new Date(maintenance.created_at).toLocaleDateString("pt-BR")}</div>
                               <div className="text-xs text-muted-foreground mt-1 truncate">{maintenance.description}</div>
                             </div>
                             <div className="flex-shrink-0 ml-2">
@@ -490,16 +490,16 @@ export function MaintenanceDialog({ open, onOpenChange, vehicle, onClose, onSucc
                           <div className="grid grid-cols-2 gap-3 text-xs">
                             <div>
                               <span className="text-muted-foreground">KM:</span>
-                              <div className="font-medium">{maintenance.currentKm.toLocaleString('pt-BR')} km</div>
+                              <div className="font-medium">{maintenance.current_km.toLocaleString('pt-BR')} km</div>
                             </div>
                             <div>
                               <span className="text-muted-foreground">Custo:</span>
                               <div className="font-medium">R$ {maintenance.cost.toFixed(2)}</div>
                             </div>
-                            {maintenance.nextMaintenanceKm && (
+                            {maintenance.next_maintenance_km && (
                               <div>
                                 <span className="text-muted-foreground">Próxima KM:</span>
-                                <div className="font-medium">{maintenance.nextMaintenanceKm.toLocaleString('pt-BR')} km</div>
+                                <div className="font-medium">{maintenance.next_maintenance_km.toLocaleString('pt-BR')} km</div>
                               </div>
                             )}
                           </div>

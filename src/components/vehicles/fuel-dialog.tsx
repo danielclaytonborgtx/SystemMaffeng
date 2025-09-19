@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Fuel, Hash, DollarSign, MapPin, FileText, Calendar, Loader2 } from "lucide-react"
-import { useVehicleFuels, useVehicleFuelOperations } from "@/hooks/use-firestore"
-import { Vehicle } from "@/lib/firestore"
+import { useVehicleFuels, useVehicleFuelOperations } from "@/hooks"
+import { Vehicle } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
 interface FuelDialogProps {
@@ -64,20 +64,20 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
       let consumption = 0
       if (fuelHistory.length > 0) {
         const lastFuelRecord = fuelHistory[0] // O primeiro é o mais recente
-        const kmTraveled = Number(formData.currentKm) - lastFuelRecord.currentKm
+        const kmTraveled = Number(formData.currentKm) - lastFuelRecord.current_km
         if (kmTraveled > 0) {
           consumption = kmTraveled / Number(formData.liters)
         }
       }
 
       const fuelData: any = {
-        vehicleId: vehicle.id,
-        vehiclePlate: vehicle.plate,
-        vehicleModel: vehicle.model,
-        currentKm: Number(formData.currentKm),
+        vehicle_id: vehicle.id,
+        vehicle_plate: vehicle.plate,
+        vehicle_model: vehicle.model,
+        current_km: Number(formData.currentKm),
         liters: Number(formData.liters),
         cost: Number(formData.cost),
-        pricePerLiter: Number(calculatePricePerLiter()),
+        price_per_liter: Number(calculatePricePerLiter()),
         consumption: consumption > 0 ? consumption : undefined,
         station: formData.station,
       }
@@ -122,8 +122,8 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
   const calculateConsumption = () => {
     const currentKm = Number.parseFloat(formData.currentKm)
     const liters = Number.parseFloat(formData.liters)
-    if (currentKm && liters && vehicle?.currentKm) {
-      const kmTraveled = currentKm - vehicle.currentKm
+    if (currentKm && liters && vehicle?.current_km) {
+      const kmTraveled = currentKm - vehicle.current_km
       return kmTraveled > 0 ? (kmTraveled / liters).toFixed(2) : "0"
     }
     return "0"
@@ -134,7 +134,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
     ? (fuelHistory.slice(0, -1).reduce((sum, record, index) => {
         if (index < fuelHistory.length - 1) {
           const nextRecord = fuelHistory[index + 1]
-          const kmTraveled = record.currentKm - nextRecord.currentKm
+          const kmTraveled = record.current_km - nextRecord.current_km
           const consumption = kmTraveled > 0 ? kmTraveled / record.liters : 0
           return sum + consumption
         }
@@ -162,7 +162,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-medium">KM Atual:</span>
-                <div className="text-lg font-bold">{vehicle.currentKm?.toLocaleString('pt-BR')} km</div>
+                <div className="text-lg font-bold">{vehicle.current_km?.toLocaleString('pt-BR')} km</div>
               </div>
               <div>
                 <span className="font-medium">Consumo Médio:</span>
@@ -215,7 +215,7 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
                       type="number"
                       value={formData.currentKm}
                       onChange={(e) => setFormData({ ...formData, currentKm: e.target.value })}
-                      placeholder={vehicle.currentKm?.toString()}
+                      placeholder={vehicle.current_km?.toString()}
                       required
                     />
                   </div>
@@ -366,17 +366,17 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
                       // Se não tem consumo salvo e não é o primeiro registro, calcular
                       if (!record.consumption && index > 0) {
                         const previousRecord = fuelHistory[index - 1]
-                        const kmTraveled = record.currentKm - previousRecord.currentKm
+                        const kmTraveled = record.current_km - previousRecord.current_km
                         consumption = kmTraveled > 0 ? kmTraveled / record.liters : 0
                       }
                       
                       return (
                         <TableRow key={record.id}>
-                          <TableCell>{record.createdAt.toDate().toLocaleDateString("pt-BR")}</TableCell>
-                          <TableCell>{record.currentKm.toLocaleString('pt-BR')} km</TableCell>
+                          <TableCell>{new Date(record.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                          <TableCell>{record.current_km.toLocaleString('pt-BR')} km</TableCell>
                           <TableCell>{record.liters.toFixed(2)} L</TableCell>
                           <TableCell>R$ {record.cost.toFixed(2)}</TableCell>
-                          <TableCell>R$ {record.pricePerLiter.toFixed(3)}</TableCell>
+                          <TableCell>R$ {record.price_per_liter.toFixed(3)}</TableCell>
                           <TableCell>{consumption > 0 ? consumption.toFixed(2) : '-'} km/l</TableCell>
                           <TableCell>{record.station}</TableCell>
                         </TableRow>

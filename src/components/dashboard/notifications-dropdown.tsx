@@ -19,10 +19,12 @@ export function NotificationsDropdown() {
     const notificationsList: any[] = []
     const today = new Date()
     
+    console.log('NotificationsDropdown: Processando notificações para veículos:', vehicles.length)
+    
     // Notificações de manutenção por quilometragem e data
     vehicles.forEach(vehicle => {
-      if (vehicle.currentKm && vehicle.maintenanceKm) {
-        const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
+      if (vehicle.current_km && vehicle.maintenance_km) {
+        const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km
         
         // Notificação por quilometragem (1000km antes da manutenção)
         if (kmUntilMaintenance <= 1000 && kmUntilMaintenance > 0) {
@@ -48,9 +50,9 @@ export function NotificationsDropdown() {
         }
       }
       
-      // Notificação por data (se existir nextMaintenance)
-      if (vehicle.nextMaintenance) {
-        const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+      // Notificação por data (se existir next_maintenance)
+      if (vehicle.next_maintenance) {
+        const nextMaintenanceDate = new Date(vehicle.next_maintenance)
         const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilMaintenance < 0) {
@@ -79,8 +81,8 @@ export function NotificationsDropdown() {
 
     // Notificações de seguro vencido
     vehicles.forEach(vehicle => {
-      if (vehicle.insuranceExpiry) {
-        const insuranceDate = new Date(vehicle.insuranceExpiry)
+      if (vehicle.insurance_expiry) {
+        const insuranceDate = new Date(vehicle.insurance_expiry)
         const daysUntilInsurance = Math.ceil((insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilInsurance < 0) {
@@ -109,8 +111,8 @@ export function NotificationsDropdown() {
 
     // Notificações de licenciamento próximo
     vehicles.forEach(vehicle => {
-      if (vehicle.licenseExpiry) {
-        const licenseDate = new Date(vehicle.licenseExpiry)
+      if (vehicle.license_expiry) {
+        const licenseDate = new Date(vehicle.license_expiry)
         const daysUntilLicense = Math.ceil((licenseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilLicense < 0) {
@@ -142,6 +144,9 @@ export function NotificationsDropdown() {
       const priority: { [key: string]: number } = { urgent: 0, warning: 1 }
       return priority[a.type] - priority[b.type]
     })
+    
+    console.log('NotificationsDropdown: Total de notificações geradas:', sortedNotifications.length)
+    console.log('NotificationsDropdown: Notificações:', sortedNotifications)
     
     return sortedNotifications.slice(0, 5) // Limitar a 5 notificações
   }, [vehicles])

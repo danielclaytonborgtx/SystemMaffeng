@@ -53,10 +53,10 @@ export default function AtividadesPage() {
         id: `employee_${emp.id}`,
         entityType: 'Colaborador',
         entityId: emp.id || '',
-        entityName: emp.name,
+        entityName: emp.name || 'Nome não disponível',
         action: 'foi criado',
-        details: `${emp.position} - ${emp.department}`,
-        createdAt: emp.createdAt
+        details: `${emp.position || 'Cargo não informado'} - ${emp.department || 'Departamento não informado'}`,
+        createdAt: emp.created_at
       })
     })
     
@@ -66,10 +66,10 @@ export default function AtividadesPage() {
         id: `equipment_${eq.id}`,
         entityType: 'Equipamento',
         entityId: eq.id || '',
-        entityName: eq.name,
+        entityName: eq.name || 'Nome não disponível',
         action: 'foi criado',
-        details: `${eq.category} - ${eq.status}`,
-        createdAt: eq.createdAt
+        details: `${eq.category || 'Categoria não informada'} - ${eq.status || 'Status não informado'}`,
+        createdAt: eq.created_at
       })
     })
     
@@ -79,10 +79,10 @@ export default function AtividadesPage() {
         id: `vehicle_${veh.id}`,
         entityType: 'Veículo',
         entityId: veh.id || '',
-        entityName: `${veh.plate} - ${veh.model}`,
+        entityName: `${veh.plate || 'Placa não informada'} - ${veh.model || 'Modelo não informado'}`,
         action: 'foi criado',
-        details: `${veh.brand} - ${veh.status}`,
-        createdAt: veh.createdAt
+        details: `${veh.brand || 'Marca não informada'} - ${veh.status || 'Status não informado'}`,
+        createdAt: veh.created_at
       })
     })
     
@@ -92,10 +92,10 @@ export default function AtividadesPage() {
         id: `movement_${mov.id}`,
         entityType: 'Movimentação',
         entityId: mov.id || '',
-        entityName: mov.equipmentName,
+        entityName: mov.equipmentName || 'Equipamento não informado',
         action: mov.type === 'out' ? 'foi retirado' : 'foi devolvido',
-        details: `${mov.employeeName} - ${mov.project}`,
-        createdAt: mov.createdAt
+        details: `${mov.employeeName || 'Funcionário não informado'} - ${mov.project || 'Projeto não informado'}`,
+        createdAt: mov.created_at
       })
     })
     
@@ -105,10 +105,10 @@ export default function AtividadesPage() {
         id: `maintenance_${maint.id}`,
         entityType: 'Manutenção',
         entityId: maint.id || '',
-        entityName: `${maint.vehiclePlate} - ${maint.vehicleModel}`,
+        entityName: `${maint.vehiclePlate || 'Placa não informada'} - ${maint.vehicleModel || 'Modelo não informado'}`,
         action: 'foi registrada',
-        details: `${maint.type} - R$ ${maint.cost?.toFixed(2) || '0,00'}`,
-        createdAt: maint.createdAt
+        details: `${maint.type || 'Tipo não informado'} - R$ ${maint.cost?.toFixed(2) || '0,00'}`,
+        createdAt: maint.created_at
       })
     })
     
@@ -118,10 +118,10 @@ export default function AtividadesPage() {
         id: `fuel_${fuel.id}`,
         entityType: 'Abastecimento',
         entityId: fuel.id || '',
-        entityName: `${fuel.vehiclePlate} - ${fuel.vehicleModel}`,
+        entityName: `${fuel.vehiclePlate || 'Placa não informada'} - ${fuel.vehicleModel || 'Modelo não informado'}`,
         action: 'foi registrado',
-        details: `${fuel.liters}L - R$ ${fuel.cost?.toFixed(2) || '0,00'}`,
-        createdAt: fuel.createdAt
+        details: `${fuel.liters || 0}L - R$ ${fuel.cost?.toFixed(2) || '0,00'}`,
+        createdAt: fuel.created_at
       })
     })
     
@@ -138,7 +138,16 @@ export default function AtividadesPage() {
   // Processar atividades quando os dados dos hooks mudarem
   useEffect(() => {
     if (!loading) {
+      console.log('Processando atividades com dados:', {
+        employees: employees.length,
+        equipment: equipment.length,
+        vehicles: vehicles.length,
+        movements: movements.length,
+        maintenances: maintenances.length,
+        fuels: fuels.length
+      })
       const processedActivities = processActivities()
+      console.log('Atividades processadas:', processedActivities.length)
       setActivities(processedActivities)
     }
   }, [employees, equipment, vehicles, movements, maintenances, fuels, loading])
@@ -174,8 +183,8 @@ export default function AtividadesPage() {
   }
 
   const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.entityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.details?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = (activity.entityName?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+                         (activity.details?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
     const matchesType = typeFilter === "all" || activity.entityType === typeFilter
     const matchesAction = actionFilter === "all" || activity.action.includes(actionFilter)
     

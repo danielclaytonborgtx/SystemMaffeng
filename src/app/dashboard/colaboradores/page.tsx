@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EmployeeDialog } from "@/components/employees/employee-dialog"
 import { EmployeeHistoryDialog } from "@/components/employees/employee-history-dialog"
 import { useEmployees } from "@/hooks"
-import { Employee } from "@/lib/firestore"
+import { Employee } from "@/lib/supabase"
 
 export default function ColaboradoresPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -257,7 +257,7 @@ export default function ColaboradoresPage() {
                   <TableCell>{employee.position}</TableCell>
                   <TableCell>{employee.department}</TableCell>
                   <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                  <TableCell>{employee.createdAt.toDate().toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell>{new Date(employee.created_at).toLocaleDateString('pt-BR')}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button

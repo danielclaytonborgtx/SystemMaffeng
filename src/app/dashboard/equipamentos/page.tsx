@@ -10,10 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EquipmentDialog } from "@/components/equipments/equipment-dialog"
 import { MovementDialog } from "@/components/equipments/movement-dialog"
-import { useEquipment } from "@/hooks"
+import { useEquipment, useEmployees } from "@/hooks"
 import { useEquipmentOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
-import { Equipment } from "@/lib/firestore"
+import { Equipment } from "@/lib/supabase"
 
 export default function EquipamentosPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -24,8 +24,16 @@ export default function EquipamentosPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
 
   const { data: equipments, loading, error, refetch } = useEquipment()
+  const { data: employees } = useEmployees()
   const { fixInconsistentData, loading: fixingData } = useEquipmentOperations()
   const { toast } = useToast()
+
+  // Função para obter o nome do colaborador pelo ID
+  const getEmployeeName = (employeeId: string | null) => {
+    if (!employeeId || !employees) return '-'
+    const employee = employees.find(emp => emp.id === employeeId)
+    return employee ? employee.name : '-'
+  }
 
   const filteredEquipments = useMemo(() => {
     if (!equipments) return []
@@ -117,7 +125,7 @@ export default function EquipamentosPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Equipamentos</h1>
@@ -215,19 +223,20 @@ export default function EquipamentosPage() {
           <CardTitle>Lista de Equipamentos</CardTitle>
           <CardDescription>{filteredEquipments.length} equipamento(s) encontrado(s)</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {/* Desktop Table View */}
-          <div className="hidden lg:block overflow-x-auto">
-            <Table>
+          <div className="hidden lg:block">
+            <div className="overflow-x-auto">
+              <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Localização</TableHead>
-                <TableHead>Responsável</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="w-20">Código</TableHead>
+                <TableHead className="w-40">Nome</TableHead>
+                <TableHead className="w-28">Categoria</TableHead>
+                <TableHead className="w-20">Status</TableHead>
+                <TableHead className="w-28">Localização</TableHead>
+                <TableHead className="w-28">Responsável</TableHead>
+                <TableHead className="w-16">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -247,40 +256,35 @@ export default function EquipamentosPage() {
               ) : (
                 filteredEquipments.map((equipment) => (
                 <TableRow key={equipment.id}>
-                  <TableCell className="font-medium">{equipment.code}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{equipment.name}</div>
-                      <div className="text-sm text-muted-foreground">ID: {equipment.id}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{equipment.category}</TableCell>
-                  <TableCell>{getStatusBadge(equipment.status)}</TableCell>
-                  <TableCell>{equipment.location}</TableCell>
-                  <TableCell>{equipment.assignedTo || '-'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
+                  <TableCell className="font-medium text-xs px-2">{equipment.code}</TableCell>
+                  <TableCell className="font-medium text-sm truncate px-2">{equipment.name}</TableCell>
+                  <TableCell className="text-xs px-2">{equipment.category}</TableCell>
+                  <TableCell className="px-2">{getStatusBadge(equipment.status)}</TableCell>
+                  <TableCell className="text-xs px-2">{equipment.location}</TableCell>
+                  <TableCell className="text-xs px-2">{getEmployeeName(equipment.assigned_to)}</TableCell>
+                  <TableCell className="px-2">
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={() => {
                           setSelectedEquipment(equipment)
                           setIsEquipmentDialogOpen(true)
                         }}
-                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 h-6 w-6 p-0"
                       >
-                        <Eye className="h-4 w-4 text-blue-600" />
+                        <Eye className="h-3 w-3 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={() => {
                           setSelectedEquipment(equipment)
                           setIsMovementDialogOpen(true)
                         }}
-                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 h-6 w-6 p-0"
                       >
-                        <ArrowUpDown className="h-4 w-4 text-green-600" />
+                        <ArrowUpDown className="h-3 w-3 text-green-600" />
                       </Button>
                     </div>
                   </TableCell>
@@ -288,7 +292,8 @@ export default function EquipamentosPage() {
                 ))
               )}
             </TableBody>
-          </Table>
+              </Table>
+            </div>
           </div>
 
           {/* Mobile Card View */}
@@ -308,7 +313,7 @@ export default function EquipamentosPage() {
                       Status: {equipment.status}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Responsável: {equipment.assignedTo || 'Nenhum'}
+                      Responsável: {getEmployeeName(equipment.assigned_to)}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">

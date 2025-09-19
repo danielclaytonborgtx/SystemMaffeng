@@ -92,6 +92,11 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
   const { createEquipment, updateEquipment, deleteEquipment, loading } = useEquipmentOperations()
   const { data: movements, loading: movementsLoading } = useEquipmentMovements(equipment?.id)
   const { toast } = useToast()
+  
+  // Debug: log das movimentações
+  console.log('EquipmentDialog - Equipamento ID:', equipment?.id)
+  console.log('EquipmentDialog - Movimentações:', movements)
+  console.log('EquipmentDialog - Loading:', movementsLoading)
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -138,9 +143,9 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         code: equipment.code || "",
         value: equipment.value?.toString() || "",
         description: equipment.description || "",
-        purchaseDate: equipment.purchaseDate || "",
+        purchaseDate: equipment.purchase_date || "",
         supplier: equipment.supplier || "",
-        invoiceNumber: equipment.invoiceNumber || "",
+        invoiceNumber: equipment.invoice_number || "",
         location: equipment.location || "",
       })
     } else {
@@ -180,13 +185,13 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         equipmentData.description = formData.description
       }
       if (formData.purchaseDate) {
-        equipmentData.purchaseDate = formData.purchaseDate
+        equipmentData.purchase_date = formData.purchaseDate
       }
       if (formData.supplier) {
         equipmentData.supplier = formData.supplier
       }
       if (formData.invoiceNumber) {
-        equipmentData.invoiceNumber = formData.invoiceNumber
+        equipmentData.invoice_number = formData.invoiceNumber
       }
 
       if (equipment) {
@@ -229,7 +234,18 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
       onSuccess?.()
       onClose()
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erro ao excluir equipamento. Tente novamente."
+      console.error('Erro detalhado ao deletar equipamento:', error)
+      
+      let errorMessage = "Erro ao excluir equipamento. Tente novamente."
+      
+      if (error instanceof Error) {
+        if (error.message.includes('foreign key constraint')) {
+          errorMessage = "Não é possível excluir este equipamento pois ele possui movimentações registradas. As movimentações serão excluídas automaticamente."
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       toast({
         title: "Erro",
         description: errorMessage,
@@ -434,19 +450,19 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                 ) : movements && movements.length > 0 ? (
                   <div className="space-y-3">
                     {movements.slice(0, 5).map((movement: any) => {
-                      const created = formatDateTime(movement.createdAt)
-                      const returned = formatDateTime(movement.actualReturnDate)
+                      const created = new Date(movement.created_at)
+                      const returned = movement.actual_return_date ? new Date(movement.actual_return_date) : null
 
                       return (
                         <div key={movement.id} className="p-3 border rounded-lg">
                           {/* Cabeçalho: Badge + Funcionário + Projeto */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Badge variant={movement.actualReturnDate ? "outline" : "secondary"}>
-                                {movement.actualReturnDate ? "Devolvido" : "Saída"}
+                              <Badge variant={movement.actual_return_date ? "outline" : "secondary"}>
+                                {movement.actual_return_date ? "Devolvido" : "Saída"}
                               </Badge>
-                              <span className="text-sm font-medium">{movement.employeeName}</span>
-                              <span className="text-xs text-muted-foreground">({movement.employeeCode})</span>
+                              <span className="text-sm font-medium">{movement.employee_name}</span>
+                              <span className="text-xs text-muted-foreground">({movement.employee_code})</span>
                             </div>
                             <span className="text-xs text-muted-foreground">Projeto: {movement.project}</span>
                           </div>
@@ -455,13 +471,13 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                           <div className="grid grid-cols-2 gap-4 mt-2 text-xs text-muted-foreground">
                             <div>
                               <span className="font-medium">Saída:</span><br />
-                              {created.date} {created.time ? `às ${created.time}` : ""}
+                              {created.toLocaleDateString('pt-BR')} às {created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </div>
 
-                            {movement.actualReturnDate && (
+                            {returned && (
                               <div>
                                 <span className="font-medium">Devolução:</span><br />
-                                {returned.date}{returned.time ? ` às ${returned.time}` : ""}
+                                {returned.toLocaleDateString('pt-BR')} às {returned.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                               </div>
                             )}
                           </div>

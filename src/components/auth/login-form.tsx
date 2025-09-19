@@ -15,17 +15,17 @@ export function LoginForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const router = useRouter()
-  const { login, isLoading } = useAuth()
+  const { signIn, loading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    const success = await login(email, password)
-    
-    if (success) {
+    try {
+      await signIn(email, password)
+      // Se chegou aqui, o login foi bem-sucedido
       router.push("/dashboard")
-    } else {
+    } catch (error) {
       setError("Email ou senha incorretos. Verifique suas credenciais e tente novamente.")
     }
   }
@@ -65,9 +65,9 @@ export function LoginForm() {
       <Button 
         type="submit" 
         className="w-full cursor-pointer bg-slate-800 hover:bg-slate-900 text-white transition-colors duration-200" 
-        disabled={isLoading}
+        disabled={loading}
       >
-        {isLoading ? "Entrando..." : "Entrar"}
+        {loading ? "Entrando..." : "Entrar"}
       </Button>
     </form>
   )

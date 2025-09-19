@@ -8,7 +8,7 @@ import { useMemo, useState } from "react"
 import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
 import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
-import { Vehicle } from "@/lib/firestore"
+import { Vehicle } from "@/lib/supabase"
 
 interface Alert {
   id: string
@@ -46,10 +46,12 @@ export default function AlertasPage() {
     const alertsList: Alert[] = []
     const today = new Date()
     
+    console.log('Processando alertas para veículos:', vehicles.length)
+    
     // Alertas de manutenção por quilometragem e data
     vehicles.forEach(vehicle => {
-      if (vehicle.currentKm && vehicle.maintenanceKm) {
-        const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
+      if (vehicle.current_km && vehicle.maintenance_km) {
+        const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km
         
         // Alerta por quilometragem (1000km antes da manutenção)
         if (kmUntilMaintenance <= 1000 && kmUntilMaintenance > 0) {
@@ -77,9 +79,9 @@ export default function AlertasPage() {
         }
       }
       
-      // Alerta por data (se existir nextMaintenance)
-      if (vehicle.nextMaintenance) {
-        const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+      // Alerta por data (se existir next_maintenance)
+      if (vehicle.next_maintenance) {
+        const nextMaintenanceDate = new Date(vehicle.next_maintenance)
         const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilMaintenance < 0) {
@@ -110,9 +112,11 @@ export default function AlertasPage() {
 
     // Alertas de seguro vencido
     vehicles.forEach(vehicle => {
-      if (vehicle.insuranceExpiry) {
-        const insuranceDate = new Date(vehicle.insuranceExpiry)
+      if (vehicle.insurance_expiry) {
+        console.log(`Verificando seguro do veículo ${vehicle.plate}:`, vehicle.insurance_expiry)
+        const insuranceDate = new Date(vehicle.insurance_expiry)
         const daysUntilInsurance = Math.ceil((insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        console.log(`Dias até vencimento do seguro: ${daysUntilInsurance}`)
         
         if (daysUntilInsurance < 0) {
           alertsList.push({
@@ -142,9 +146,11 @@ export default function AlertasPage() {
 
     // Alertas de licenciamento próximo
     vehicles.forEach(vehicle => {
-      if (vehicle.licenseExpiry) {
-        const licenseDate = new Date(vehicle.licenseExpiry)
+      if (vehicle.license_expiry) {
+        console.log(`Verificando licenciamento do veículo ${vehicle.plate}:`, vehicle.license_expiry)
+        const licenseDate = new Date(vehicle.license_expiry)
         const daysUntilLicense = Math.ceil((licenseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        console.log(`Dias até vencimento do licenciamento: ${daysUntilLicense}`)
         
         if (daysUntilLicense < 0) {
           alertsList.push({
@@ -219,6 +225,9 @@ export default function AlertasPage() {
       const priority: { [key: string]: number } = { urgent: 0, warning: 1, info: 2 }
       return priority[a.type] - priority[b.type]
     })
+    
+    console.log('Total de alertas gerados:', sortedAlerts.length)
+    console.log('Alertas:', sortedAlerts)
     
     return sortedAlerts
   }, [employees, equipment, vehicles])

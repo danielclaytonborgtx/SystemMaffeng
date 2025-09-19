@@ -21,8 +21,8 @@ export const AlertsPanel = memo(function AlertsPanel() {
     
     // Alertas de manutenção por quilometragem e data
     vehicles.forEach(vehicle => {
-      if (vehicle.currentKm && vehicle.maintenanceKm) {
-        const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
+      if (vehicle.current_km && vehicle.maintenance_km) {
+        const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km
         
         // Alerta por quilometragem (1000km antes da manutenção)
         if (kmUntilMaintenance <= 1000 && kmUntilMaintenance > 0) {
@@ -47,8 +47,8 @@ export const AlertsPanel = memo(function AlertsPanel() {
       }
       
       // Alerta por data (se existir nextMaintenance)
-      if (vehicle.nextMaintenance) {
-        const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+      if (vehicle.next_maintenance) {
+        const nextMaintenanceDate = new Date(vehicle.next_maintenance)
         const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilMaintenance < 0) {
@@ -75,8 +75,8 @@ export const AlertsPanel = memo(function AlertsPanel() {
 
     // Alertas de seguro vencido
     vehicles.forEach(vehicle => {
-      if (vehicle.insuranceExpiry) {
-        const insuranceDate = new Date(vehicle.insuranceExpiry)
+      if (vehicle.insurance_expiry) {
+        const insuranceDate = new Date(vehicle.insurance_expiry)
         const daysUntilInsurance = Math.ceil((insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilInsurance < 0) {
@@ -103,8 +103,8 @@ export const AlertsPanel = memo(function AlertsPanel() {
 
     // Alertas de licenciamento próximo
     vehicles.forEach(vehicle => {
-      if (vehicle.licenseExpiry) {
-        const licenseDate = new Date(vehicle.licenseExpiry)
+      if (vehicle.license_expiry) {
+        const licenseDate = new Date(vehicle.license_expiry)
         const daysUntilLicense = Math.ceil((licenseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         if (daysUntilLicense < 0) {
@@ -145,7 +145,7 @@ export const AlertsPanel = memo(function AlertsPanel() {
     // Ordenar alertas por prioridade (urgent primeiro, depois warning, depois info)
     const sortedAlerts = alertsList.sort((a, b) => {
       const priority = { urgent: 0, warning: 1, info: 2 }
-      return priority[a.type] - priority[b.type]
+      return priority[a.type as keyof typeof priority] - priority[b.type as keyof typeof priority]
     })
     
     return sortedAlerts.slice(0, 3) // Limitar a 3 alertas

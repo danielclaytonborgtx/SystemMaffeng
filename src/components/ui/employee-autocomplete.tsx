@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { User, Check, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Employee } from "@/lib/firestore"
+import { Employee } from "@/lib/supabase"
 
 interface EmployeeAutocompleteProps {
   label?: string

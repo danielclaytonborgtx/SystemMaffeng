@@ -34,7 +34,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
   }
 
   const getStatusBadge = (movement: any) => {
-    if (movement.actualReturnDate) {
+    if (movement.actual_return_date) {
       return (
         <Badge variant="secondary" className="bg-green-100 text-green-800">
           Devolvido
@@ -138,7 +138,7 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                 <CalendarDays className="h-4 w-4 text-yellow-600" />
                 <div>
                   <div className="text-sm font-medium">Desde</div>
-                  <div className="text-lg font-semibold">{formatDate(employee.hireDate)}</div>
+                  <div className="text-lg font-semibold">{formatDate(employee.hire_date)}</div>
                 </div>
               </div>
             </div>
@@ -181,13 +181,13 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                   ) : movements && movements.length > 0 ? (
                     movements.map((movement) => (
                       <TableRow key={movement.id}>
-                        <TableCell className="font-medium">{movement.equipmentName}</TableCell>
-                        <TableCell>{movement.equipmentCode}</TableCell>
-                        <TableCell>{formatDate(movement.createdAt)}</TableCell>
-                        <TableCell>{movement.actualReturnDate ? formatDate(movement.actualReturnDate) : "-"}</TableCell>
+                        <TableCell className="font-medium">{movement.equipment_name}</TableCell>
+                        <TableCell>{movement.equipment_code}</TableCell>
+                        <TableCell>{formatDate(movement.created_at)}</TableCell>
+                        <TableCell>{movement.actual_return_date ? formatDate(movement.actual_return_date) : "-"}</TableCell>
                         <TableCell>
                           {movement.type === 'out' 
-                            ? calculateDaysUsed(movement.createdAt, movement.actualReturnDate) + " dias"
+                            ? calculateDaysUsed(movement.created_at, movement.actual_return_date) + " dias"
                             : "-"
                           }
                         </TableCell>
@@ -223,8 +223,8 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{movement.equipmentName}</div>
-                          <div className="text-xs text-muted-foreground">{movement.equipmentCode}</div>
+                          <div className="font-medium text-sm truncate">{movement.equipment_name}</div>
+                          <div className="text-xs text-muted-foreground">{movement.equipment_code}</div>
                         </div>
                         <div className="flex-shrink-0 ml-2">
                           {getStatusBadge(movement)}
@@ -234,17 +234,17 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
                         <div>
                           <span className="text-muted-foreground">Data Retirada:</span>
-                          <div className="font-medium">{formatDate(movement.createdAt)}</div>
+                          <div className="font-medium">{formatDate(movement.created_at)}</div>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Data Devolução:</span>
-                          <div className="font-medium">{movement.actualReturnDate ? formatDate(movement.actualReturnDate) : "-"}</div>
+                          <div className="font-medium">{movement.actual_return_date ? formatDate(movement.actual_return_date) : "-"}</div>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Dias de Uso:</span>
                           <div className="font-medium">
-                            {movement.actualReturnDate 
-                              ? calculateDaysUsed(movement.createdAt, movement.actualReturnDate) + " dias"
+                            {movement.actual_return_date 
+                              ? calculateDaysUsed(movement.created_at, movement.actual_return_date) + " dias"
                               : "-"
                             }
                           </div>

@@ -82,24 +82,24 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
         model: vehicle.model || "",
         type: vehicle.brand || "",
         year: vehicle.year?.toString() || "",
-        currentKm: vehicle.currentKm?.toString() || "",
-        chassisNumber: vehicle.chassisNumber || "",
+        currentKm: vehicle.current_km?.toString() || "",
+        chassisNumber: vehicle.chassis_number || "",
         renavam: vehicle.renavam || "",
         color: vehicle.color || "",
-        fuelType: vehicle.fuelType || "",
-        engineCapacity: vehicle.engineCapacity || "",
-        assignedTo: vehicle.assignedTo || "",
+        fuelType: vehicle.fuel_type || "",
+        engineCapacity: vehicle.engine_capacity || "",
+        assignedTo: vehicle.assigned_to || "",
         status: mapStatusFromDB(vehicle.status) || "Ativo",
-        purchaseDate: vehicle.purchaseDate || "",
-        purchaseValue: vehicle.purchaseValue?.toString() || "",
-        insuranceExpiry: vehicle.insuranceExpiry || "",
-        licenseExpiry: vehicle.licenseExpiry || "",
+        purchaseDate: vehicle.purchase_date || "",
+        purchaseValue: vehicle.purchase_value?.toString() || "",
+        insuranceExpiry: vehicle.insurance_expiry || "",
+        licenseExpiry: vehicle.license_expiry || "",
         observations: vehicle.observations || "",
       })
       
-      // Configurar colaborador selecionado se houver um assignedTo
-      if (vehicle.assignedTo && employees) {
-        const employee = employees.find(emp => emp.name === vehicle.assignedTo)
+      // Configurar colaborador selecionado se houver um assigned_to
+      if (vehicle.assigned_to && employees) {
+        const employee = employees.find(emp => emp.id === vehicle.assigned_to)
         if (employee) {
           setSelectedEmployee(employee)
         }
@@ -162,10 +162,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
       // Adicionar campos opcionais apenas se tiverem valor
       if (formData.currentKm) {
-        vehicleData.currentKm = parseInt(formData.currentKm)
+        vehicleData.current_km = parseInt(formData.currentKm)
       }
       if (formData.chassisNumber) {
-        vehicleData.chassisNumber = formData.chassisNumber
+        vehicleData.chassis_number = formData.chassisNumber
       }
       if (formData.renavam) {
         vehicleData.renavam = formData.renavam
@@ -174,25 +174,25 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
         vehicleData.color = formData.color
       }
       if (formData.fuelType) {
-        vehicleData.fuelType = formData.fuelType
+        vehicleData.fuel_type = formData.fuelType
       }
       if (formData.engineCapacity) {
-        vehicleData.engineCapacity = formData.engineCapacity
+        vehicleData.engine_capacity = formData.engineCapacity
       }
       if (selectedEmployee) {
-        vehicleData.assignedTo = selectedEmployee.name
+        vehicleData.assigned_to = selectedEmployee.id
       }
       if (formData.purchaseDate) {
-        vehicleData.purchaseDate = formData.purchaseDate
+        vehicleData.purchase_date = formData.purchaseDate
       }
       if (formData.purchaseValue) {
-        vehicleData.purchaseValue = parseFloat(formData.purchaseValue)
+        vehicleData.purchase_value = parseFloat(formData.purchaseValue)
       }
       if (formData.insuranceExpiry) {
-        vehicleData.insuranceExpiry = formData.insuranceExpiry
+        vehicleData.insurance_expiry = formData.insuranceExpiry
       }
       if (formData.licenseExpiry) {
-        vehicleData.licenseExpiry = formData.licenseExpiry
+        vehicleData.license_expiry = formData.licenseExpiry
       }
       if (formData.observations) {
         vehicleData.observations = formData.observations
@@ -292,7 +292,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   <div>
                     <span className="font-medium text-muted-foreground">KM Atual</span>
                     <div className="text-lg font-bold">
-                      {vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : 'Não informado'}
+                      {vehicle.current_km ? vehicle.current_km.toLocaleString('pt-BR') + ' km' : 'Não informado'}
                     </div>
                   </div>
                 </div>
@@ -303,11 +303,9 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   <div>
                     <span className="font-medium text-muted-foreground">Próxima Manutenção</span>
                     <div className="text-lg font-bold">
-                      {vehicle.nextMaintenance 
-                        ? vehicle.nextMaintenance.toDate().toLocaleDateString('pt-BR')
-                        : vehicle.maintenanceKm 
-                          ? vehicle.maintenanceKm.toLocaleString('pt-BR') + ' km'
-                          : 'Não agendada'
+                      {vehicle.maintenance_km 
+                        ? vehicle.maintenance_km.toLocaleString('pt-BR') + ' km'
+                        : 'Não agendada'
                       }
                     </div>
                   </div>
@@ -319,7 +317,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   <div>
                     <span className="font-medium text-muted-foreground">Combustível</span>
                     <div className="text-lg font-bold">
-                      {vehicle.fuelType || 'Não informado'}
+                      {vehicle.fuel_type || 'Não informado'}
                     </div>
                   </div>
                 </div>
@@ -330,7 +328,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   <div>
                     <span className="font-medium text-muted-foreground">Responsável</span>
                     <div className="text-lg font-bold">
-                      {vehicle.assignedTo || "Não atribuído"}
+                      {vehicle.assigned_to || "Não atribuído"}
                     </div>
                   </div>
                 </div>

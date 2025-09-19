@@ -78,23 +78,23 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         console.log("Movimentações do equipamento:", movements)
         
         // Buscar a movimentação de saída que ainda não foi devolvida
-        lastOutMovement = movements?.find(mov => mov.type === 'out' && !mov.actualReturnDate)
+        lastOutMovement = movements?.find(mov => mov.type === 'out' && !mov.actual_return_date)
         
         console.log("Movimentações encontradas:", movements?.length || 0)
         console.log("Movimentação ativa encontrada:", lastOutMovement)
         
         if (lastOutMovement) {
           responsibleEmployee = {
-            id: lastOutMovement.employeeId,
-            name: lastOutMovement.employeeName,
-            code: lastOutMovement.employeeCode
+            id: lastOutMovement.employee_id,
+            name: lastOutMovement.employee_name,
+            code: lastOutMovement.employee_code
           }
           console.log("Colaborador encontrado na movimentação:", responsibleEmployee)
         } else {
-          // Fallback: usar dados do assignedTo do equipamento
+          // Fallback: usar dados do assigned_to do equipamento
           responsibleEmployee = {
-            id: equipment.assignedTo || "unknown",
-            name: equipment.assignedTo || "Colaborador",
+            id: equipment.assigned_to || "unknown",
+            name: equipment.assigned_to || "Colaborador",
             code: "DEV001"
           }
           console.log("Usando fallback para colaborador:", responsibleEmployee)
@@ -102,23 +102,23 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
       }
 
       const movementData: any = {
-        equipmentId: equipment.id,
-        equipmentName: equipment.name,
-        equipmentCode: equipment.code,
-        employeeId: responsibleEmployee.id!,
-        employeeName: responsibleEmployee.name,
-        employeeCode: responsibleEmployee.code,
+        equipment_id: equipment.id,
+        equipment_name: equipment.name,
+        equipment_code: equipment.code,
+        employee_id: responsibleEmployee.id!,
+        employee_name: responsibleEmployee.name,
+        employee_code: responsibleEmployee.code,
         type: isReturn ? 'return' as const : 'out' as const,
         project: formData.project,
       }
 
       // Adicionar campos opcionais apenas se tiverem valor
       if (formData.expectedReturn) {
-        movementData.expectedReturnDate = formData.expectedReturn
+        movementData.expected_return_date = formData.expectedReturn
       }
       
       if (isReturn) {
-        movementData.actualReturnDate = new Date().toISOString().split('T')[0]
+        movementData.actual_return_date = new Date().toISOString().split('T')[0]
       }
       
       if (formData.observations) {
@@ -127,11 +127,11 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
       
       if (isReturn) {
         movementData.checklist = {
-          equipmentGoodCondition: checklistItems[0].checked,
-          accessoriesIncluded: checklistItems[1].checked,
-          manualPresent: checklistItems[2].checked,
-          equipmentClean: checklistItems[3].checked,
-          noVisibleDamage: checklistItems[4].checked,
+          equipment_good_condition: checklistItems[0].checked,
+          accessories_included: checklistItems[1].checked,
+          manual_present: checklistItems[2].checked,
+          equipment_clean: checklistItems[3].checked,
+          no_visible_damage: checklistItems[4].checked,
         }
       }
 
@@ -144,13 +144,13 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
           console.log("Movimentação antes da atualização:", lastOutMovement)
           
           const updateData: any = {
-            actualReturnDate: new Date().toISOString(),
+            actual_return_date: new Date().toISOString().split('T')[0],
             checklist: {
-              equipmentGoodCondition: checklistItems[0].checked,
-              accessoriesIncluded: checklistItems[1].checked,
-              manualPresent: checklistItems[2].checked,
-              equipmentClean: checklistItems[3].checked,
-              noVisibleDamage: checklistItems[4].checked,
+              equipment_good_condition: checklistItems[0].checked,
+              accessories_included: checklistItems[1].checked,
+              manual_present: checklistItems[2].checked,
+              equipment_clean: checklistItems[3].checked,
+              no_visible_damage: checklistItems[4].checked,
             }
           }
           
@@ -168,7 +168,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
           const returnMovementData = {
             ...movementData,
             type: 'return',
-            actualReturnDate: new Date().toISOString(),
+            actual_return_date: new Date().toISOString().split('T')[0],
           }
           await createMovement(returnMovementData)
           console.log("Movimentação de devolução criada com sucesso")
@@ -190,9 +190,9 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         status: newStatus
       }
       
-      // Para saídas, adicionar assignedTo e atualizar localização
+      // Para saídas, adicionar assigned_to e atualizar localização
       if (!isReturn) {
-        updateData.assignedTo = responsibleEmployee.name
+        updateData.assigned_to = responsibleEmployee.id
         // Mapear projeto para localização
         const projectLocationMap: { [key: string]: string } = {
           'obra-central': 'Obra Central',
@@ -204,7 +204,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
       } else {
         // Para devoluções, voltar para almoxarifado e limpar responsável
         updateData.location = "Almoxarifado"
-        updateData.assignedTo = null // Limpar o responsável
+        updateData.assigned_to = null // Limpar o responsável
       }
       
       await updateEquipment(equipment.id, updateData)
@@ -258,9 +258,9 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {equipment.assignedTo && (
+            {equipment.assigned_to && (
               <p className="text-sm text-muted-foreground">
-                Atualmente com: <span className="font-medium">{equipment.assignedTo}</span>
+                Atualmente com: <span className="font-medium">{equipment.assigned_to}</span>
               </p>
             )}
           </CardContent>

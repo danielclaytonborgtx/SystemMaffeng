@@ -13,10 +13,22 @@ import {
   Vehicle,
   EquipmentMovement,
   VehicleMaintenance,
-  VehicleFuel
-} from '@/lib/firestore'
+  VehicleFuel,
+  EmployeeInsert,
+  EquipmentInsert,
+  VehicleInsert,
+  EquipmentMovementInsert,
+  VehicleMaintenanceInsert,
+  VehicleFuelInsert,
+  EmployeeUpdate,
+  EquipmentUpdate,
+  VehicleUpdate,
+  EquipmentMovementUpdate,
+  VehicleMaintenanceUpdate,
+  VehicleFuelUpdate
+} from '@/lib/supabase-services'
 
-interface UseFirestoreState<T> {
+interface UseSupabaseState<T> {
   data: T[]
   loading: boolean
   error: string | null
@@ -24,7 +36,7 @@ interface UseFirestoreState<T> {
 }
 
 // Hook para Colaboradores
-export function useEmployees(): UseFirestoreState<Employee> {
+export function useEmployees(): UseSupabaseState<Employee> {
   const [data, setData] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -51,7 +63,7 @@ export function useEmployees(): UseFirestoreState<Employee> {
 }
 
 // Hook para Equipamentos
-export function useEquipment(): UseFirestoreState<Equipment> {
+export function useEquipment(): UseSupabaseState<Equipment> {
   const [data, setData] = useState<Equipment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -78,7 +90,7 @@ export function useEquipment(): UseFirestoreState<Equipment> {
 }
 
 // Hook para Veículos
-export function useVehicles(): UseFirestoreState<Vehicle> {
+export function useVehicles(): UseSupabaseState<Vehicle> {
   const [data, setData] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -105,7 +117,7 @@ export function useVehicles(): UseFirestoreState<Vehicle> {
 }
 
 // Hook genérico para operações CRUD
-export function useFirestoreOperation() {
+export function useSupabaseOperation() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -132,7 +144,7 @@ export function useEmployeeOperations() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createEmployee = async (employeeData: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createEmployee = async (employeeData: EmployeeInsert) => {
     try {
       setLoading(true)
       setError(null)
@@ -147,7 +159,7 @@ export function useEmployeeOperations() {
     }
   }
 
-  const updateEmployee = async (id: string, employeeData: Partial<Employee>) => {
+  const updateEmployee = async (id: string, employeeData: EmployeeUpdate) => {
     try {
       setLoading(true)
       setError(null)
@@ -183,7 +195,7 @@ export function useEquipmentOperations() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createEquipment = async (equipmentData: Omit<Equipment, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createEquipment = async (equipmentData: EquipmentInsert) => {
     try {
       setLoading(true)
       setError(null)
@@ -198,7 +210,7 @@ export function useEquipmentOperations() {
     }
   }
 
-  const updateEquipment = async (id: string, equipmentData: Partial<Equipment>) => {
+  const updateEquipment = async (id: string, equipmentData: EquipmentUpdate) => {
     try {
       setLoading(true)
       setError(null)
@@ -216,10 +228,13 @@ export function useEquipmentOperations() {
     try {
       setLoading(true)
       setError(null)
+      console.log('Tentando deletar equipamento com ID:', id)
       await equipmentService.delete(id)
+      console.log('Equipamento deletado com sucesso!')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao deletar equipamento')
       console.error('Erro ao deletar equipamento:', err)
+      console.error('Detalhes do erro:', JSON.stringify(err, null, 2))
       throw err
     } finally {
       setLoading(false)
@@ -249,7 +264,7 @@ export function useVehicleOperations() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createVehicle = async (vehicleData: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createVehicle = async (vehicleData: VehicleInsert) => {
     try {
       setLoading(true)
       setError(null)
@@ -264,7 +279,7 @@ export function useVehicleOperations() {
     }
   }
 
-  const updateVehicle = async (id: string, vehicleData: Partial<Vehicle>) => {
+  const updateVehicle = async (id: string, vehicleData: VehicleUpdate) => {
     try {
       setLoading(true)
       setError(null)
@@ -296,7 +311,7 @@ export function useVehicleOperations() {
 }
 
 // Hook para Movimentações de Equipamentos
-export function useEquipmentMovements(equipmentId?: string, employeeId?: string): UseFirestoreState<EquipmentMovement> {
+export function useEquipmentMovements(equipmentId?: string, employeeId?: string): UseSupabaseState<EquipmentMovement> {
   const [data, setData] = useState<EquipmentMovement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -336,7 +351,7 @@ export function useEquipmentMovementOperations() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createMovement = async (movementData: Omit<EquipmentMovement, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createMovement = async (movementData: EquipmentMovementInsert) => {
     try {
       setLoading(true)
       setError(null)
@@ -351,7 +366,7 @@ export function useEquipmentMovementOperations() {
     }
   }
 
-  const updateMovement = async (id: string, movementData: Partial<EquipmentMovement>) => {
+  const updateMovement = async (id: string, movementData: EquipmentMovementUpdate) => {
     try {
       setLoading(true)
       setError(null)
@@ -383,7 +398,7 @@ export function useEquipmentMovementOperations() {
 }
 
 // Hook para Manutenções de Veículos
-export function useVehicleMaintenances(vehicleId?: string): UseFirestoreState<VehicleMaintenance> {
+export function useVehicleMaintenances(vehicleId?: string): UseSupabaseState<VehicleMaintenance> {
   const [data, setData] = useState<VehicleMaintenance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -421,7 +436,7 @@ export function useVehicleMaintenanceOperations() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createMaintenance = async (maintenanceData: Omit<VehicleMaintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createMaintenance = async (maintenanceData: VehicleMaintenanceInsert) => {
     try {
       setLoading(true)
       setError(null)
@@ -436,7 +451,7 @@ export function useVehicleMaintenanceOperations() {
     }
   }
 
-  const updateMaintenance = async (id: string, maintenanceData: Partial<VehicleMaintenance>) => {
+  const updateMaintenance = async (id: string, maintenanceData: VehicleMaintenanceUpdate) => {
     try {
       setLoading(true)
       setError(null)
@@ -468,7 +483,7 @@ export function useVehicleMaintenanceOperations() {
 }
 
 // Hook para Abastecimentos de Combustível
-export function useVehicleFuels(vehicleId?: string): UseFirestoreState<VehicleFuel> {
+export function useVehicleFuels(vehicleId?: string): UseSupabaseState<VehicleFuel> {
   const [data, setData] = useState<VehicleFuel[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -506,7 +521,7 @@ export function useVehicleFuelOperations() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createFuel = async (fuelData: Omit<VehicleFuel, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createFuel = async (fuelData: VehicleFuelInsert) => {
     try {
       setLoading(true)
       setError(null)
@@ -515,9 +530,9 @@ export function useVehicleFuelOperations() {
       const id = await vehicleFuelService.create(fuelData)
       
       // Atualizar a quilometragem atual do veículo
-      if (fuelData.vehicleId && fuelData.currentKm) {
-        await vehicleService.update(fuelData.vehicleId, {
-          currentKm: fuelData.currentKm
+      if (fuelData.vehicle_id && fuelData.current_km) {
+        await vehicleService.update(fuelData.vehicle_id, {
+          current_km: fuelData.current_km
         })
       }
       
@@ -531,7 +546,7 @@ export function useVehicleFuelOperations() {
     }
   }
 
-  const updateFuel = async (id: string, fuelData: Partial<VehicleFuel>) => {
+  const updateFuel = async (id: string, fuelData: VehicleFuelUpdate) => {
     try {
       setLoading(true)
       setError(null)

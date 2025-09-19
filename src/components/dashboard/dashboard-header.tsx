@@ -48,7 +48,7 @@ export function DashboardHeader() {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, signOut } = useAuth()
 
   const handleSettingsClick = () => {
     router.push("/dashboard/configuracoes")
@@ -125,7 +125,7 @@ export function DashboardHeader() {
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                  onClick={logout}
+                  onClick={signOut}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair

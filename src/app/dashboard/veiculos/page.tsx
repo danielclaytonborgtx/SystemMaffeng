@@ -13,7 +13,7 @@ import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { FuelDialog } from "@/components/vehicles/fuel-dialog"
 import { VehicleHistoryDialog } from "@/components/vehicles/vehicle-history-dialog"
 import { useVehicles } from "@/hooks"
-import { Vehicle } from "@/lib/firestore"
+import { Vehicle } from "@/lib/supabase"
 
 export default function VeiculosPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -82,28 +82,28 @@ export default function VeiculosPage() {
     const today = new Date()
     
     // Verificar por quilometragem
-    if (vehicle.currentKm && vehicle.maintenanceKm) {
-      const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
+    if (vehicle.current_km && vehicle.maintenance_km) {
+      const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km
       if (kmUntilMaintenance <= 1000) return true
     }
     
     // Verificar por data de manutenção
     if (vehicle.nextMaintenance) {
-      const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+      const nextMaintenanceDate = new Date(vehicle.next_maintenance)
       const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       if (daysUntilMaintenance <= 7) return true
     }
     
     // Verificar seguro vencido
-    if (vehicle.insuranceExpiry) {
-      const insuranceDate = new Date(vehicle.insuranceExpiry)
+    if (vehicle.insurance_expiry) {
+      const insuranceDate = new Date(vehicle.insurance_expiry)
       const daysUntilInsurance = Math.ceil((insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       if (daysUntilInsurance <= 30) return true // 30 dias antes ou vencido
     }
     
     // Verificar licenciamento vencido
-    if (vehicle.licenseExpiry) {
-      const licenseDate = new Date(vehicle.licenseExpiry)
+    if (vehicle.license_expiry) {
+      const licenseDate = new Date(vehicle.license_expiry)
       const daysUntilLicense = Math.ceil((licenseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       if (daysUntilLicense <= 30) return true // 30 dias antes ou vencido
     }
@@ -265,9 +265,9 @@ export default function VeiculosPage() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
-                  <TableCell>{vehicle.maintenanceKm ? vehicle.maintenanceKm.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
-                  <TableCell>{vehicle.assignedTo || 'Não atribuído'}</TableCell>
+                  <TableCell>{vehicle.current_km ? vehicle.current_km.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
+                  <TableCell>{vehicle.maintenance_km ? vehicle.maintenance_km.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
+                  <TableCell>{vehicle.assigned_to || 'Não atribuído'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
@@ -374,15 +374,15 @@ export default function VeiculosPage() {
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <span className="text-muted-foreground">KM Atual:</span>
-                      <div className="font-medium">{vehicle.currentKm ? vehicle.currentKm.toLocaleString('pt-BR') + ' km' : '-'}</div>
+                      <div className="font-medium">{vehicle.current_km ? vehicle.current_km.toLocaleString('pt-BR') + ' km' : '-'}</div>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Próxima Manutenção:</span>
-                      <div className="font-medium">{vehicle.maintenanceKm ? vehicle.maintenanceKm.toLocaleString('pt-BR') + ' km' : '-'}</div>
+                      <div className="font-medium">{vehicle.maintenance_km ? vehicle.maintenance_km.toLocaleString('pt-BR') + ' km' : '-'}</div>
                     </div>
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Responsável:</span>
-                      <div className="font-medium">{vehicle.assignedTo || 'Não atribuído'}</div>
+                      <div className="font-medium">{vehicle.assigned_to || 'Não atribuído'}</div>
                     </div>
                   </div>
                 </div>

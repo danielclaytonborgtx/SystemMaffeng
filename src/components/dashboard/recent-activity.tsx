@@ -5,8 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { memo, useState, useEffect } from "react"
-import { collection, query, orderBy, getDocs, limit } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { ArrowRight, User, Wrench, Truck, Package, Fuel, Activity } from "lucide-react"
 
@@ -17,7 +16,7 @@ interface Activity {
   entityName: string
   action: string
   details?: string
-  createdAt: any
+  createdAt: Date
 }
 
 export const RecentActivity = memo(function RecentActivity() {
@@ -32,163 +31,161 @@ export const RecentActivity = memo(function RecentActivity() {
         setLoading(true)
         setError(null)
         
-        // Buscar de todas as coleções da aplicação
-        const collections = [
+        // Buscar de todas as tabelas da aplicação
+        const tables = [
           { name: 'employees', type: 'Colaborador', action: 'foi criado/atualizado' },
           { name: 'equipment', type: 'Equipamento', action: 'foi criado/atualizado' },
           { name: 'vehicles', type: 'Veículo', action: 'foi criado/atualizado' },
-          { name: 'equipmentMovements', type: 'Movimentação', action: 'foi registrada' },
-          { name: 'vehicleMaintenances', type: 'Manutenção', action: 'foi registrada' },
-          { name: 'vehicleFuels', type: 'Abastecimento', action: 'foi registrado' }
+          { name: 'equipment_movements', type: 'Movimentação', action: 'foi registrada' },
+          { name: 'vehicle_maintenances', type: 'Manutenção', action: 'foi registrada' },
+          { name: 'vehicle_fuels', type: 'Abastecimento', action: 'foi registrado' }
         ]
         
         const allActivities: Activity[] = []
         
-        for (const col of collections) {
+        for (const table of tables) {
           try {
-            // Para equipmentMovements, buscar por updatedAt também para capturar devoluções
-            if (col.name === 'equipmentMovements') {
+            // Para equipment_movements, buscar por updated_at também para capturar devoluções
+            if (table.name === 'equipment_movements') {
               // Buscar movimentações criadas recentemente
-              const qCreated = query(
-                collection(db, col.name),
-                orderBy('createdAt', 'desc'),
-                limit(2)
-              )
-              const createdSnapshot = await getDocs(qCreated)
+              const { data: movements, error } = await supabase
+                .from(table.name)
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(2)
               
-              createdSnapshot.docs.forEach(doc => {
-                const data = doc.data()
-                allActivities.push({
-                  id: `${col.name}_created_${doc.id}`,
-                  entityType: col.type,
-                  entityId: doc.id,
-                  entityName: data.equipmentName || `ID: ${doc.id}`,
-                  action: 'foi registrada',
-                  details: `${data.type === 'out' ? 'Retirada' : 'Devolução'} de ${data.equipmentName}`,
-                  createdAt: data.createdAt
+              if (!error && movements) {
+                movements.forEach(movement => {
+                  allActivities.push({
+                    id: `${table.name}_created_${movement.id}`,
+                    entityType: table.type,
+                    entityId: movement.id,
+                    entityName: movement.equipment_name || `ID: ${movement.id}`,
+                    action: 'foi registrada',
+                    details: `${movement.type === 'out' ? 'Retirada' : 'Devolução'} de ${movement.equipment_name}`,
+                    createdAt: new Date(movement.created_at)
+                  })
                 })
-              })
+              }
               
               // Buscar movimentações atualizadas recentemente (devoluções)
-              const qUpdated = query(
-                collection(db, col.name),
-                orderBy('updatedAt', 'desc'),
-                limit(2)
-              )
-              const updatedSnapshot = await getDocs(qUpdated)
+              const { data: updatedMovements, error: updateError } = await supabase
+                .from(table.name)
+                .select('*')
+                .order('updated_at', { ascending: false })
+                .limit(2)
               
-              updatedSnapshot.docs.forEach(doc => {
-                const data = doc.data()
-                // Só incluir se foi uma devolução (tem actualReturnDate e updatedAt > createdAt)
-                if (data.actualReturnDate && data.updatedAt && data.createdAt) {
-                  const updatedTime = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
-                  const createdTime = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
-                  
-                  if (updatedTime.getTime() > createdTime.getTime()) {
-                    allActivities.push({
-                      id: `${col.name}_updated_${doc.id}`,
-                      entityType: col.type,
-                      entityId: doc.id,
-                      entityName: data.equipmentName || `ID: ${doc.id}`,
-                      action: 'foi devolvido',
-                      details: `Devolução de ${data.equipmentName}`,
-                      createdAt: data.updatedAt
-                    })
+              if (!updateError && updatedMovements) {
+                updatedMovements.forEach(movement => {
+                  // Só incluir se foi uma devolução (tem actual_return_date e updated_at > created_at)
+                  if (movement.actual_return_date && movement.updated_at && movement.created_at) {
+                    const updatedTime = new Date(movement.updated_at)
+                    const createdTime = new Date(movement.created_at)
+                    
+                    if (updatedTime.getTime() > createdTime.getTime()) {
+                      allActivities.push({
+                        id: `${table.name}_updated_${movement.id}`,
+                        entityType: table.type,
+                        entityId: movement.id,
+                        entityName: movement.equipment_name || `ID: ${movement.id}`,
+                        action: 'foi devolvido',
+                        details: `Devolução de ${movement.equipment_name}`,
+                        createdAt: new Date(movement.updated_at)
+                      })
+                    }
                   }
-                }
-              })
+                })
+              }
             } else {
-              // Para outras coleções, buscar tanto por createdAt quanto updatedAt
-              const limitPerQuery = col.name === 'vehicleMaintenances' || col.name === 'vehicleFuels' ? 2 : 2
+              // Para outras tabelas, buscar tanto por created_at quanto updated_at
+              const limitPerQuery = table.name === 'vehicle_maintenances' || table.name === 'vehicle_fuels' ? 2 : 2
               
               // Buscar registros criados recentemente
-              const qCreated = query(
-                collection(db, col.name),
-                orderBy('createdAt', 'desc'),
-                limit(limitPerQuery)
-              )
-              const createdSnapshot = await getDocs(qCreated)
+              const { data: createdData, error: createdError } = await supabase
+                .from(table.name)
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(limitPerQuery)
               
-              createdSnapshot.docs.forEach(doc => {
-                const data = doc.data()
-                let entityName = data.name || data.equipmentName || data.plate || data.vehiclePlate || `ID: ${doc.id}`
-                let details = undefined
-                
-                // Personalizar detalhes baseado no tipo de coleção
-                if (col.name === 'vehicleMaintenances') {
-                  details = `${data.type || 'Manutenção'} - ${data.description || 'Sem descrição'}`
-                } else if (col.name === 'vehicleFuels') {
-                  details = `${data.liters}L - R$ ${data.cost?.toFixed(2) || '0,00'}`
-                }
-                
-                allActivities.push({
-                  id: `${col.name}_created_${doc.id}`,
-                  entityType: col.type,
-                  entityId: doc.id,
-                  entityName: entityName,
-                  action: col.name === 'vehicleMaintenances' ? 'foi registrada' : 
-                          col.name === 'vehicleFuels' ? 'foi registrado' : 'foi criado',
-                  details: details,
-                  createdAt: data.createdAt
+              if (!createdError && createdData) {
+                createdData.forEach(item => {
+                  let entityName = item.name || item.equipment_name || item.plate || item.vehicle_plate || `ID: ${item.id}`
+                  let details = undefined
+                  
+                  // Personalizar detalhes baseado no tipo de tabela
+                  if (table.name === 'vehicle_maintenances') {
+                    details = `${item.type || 'Manutenção'} - ${item.description || 'Sem descrição'}`
+                  } else if (table.name === 'vehicle_fuels') {
+                    details = `${item.liters}L - R$ ${item.cost?.toFixed(2) || '0,00'}`
+                  }
+                  
+                  allActivities.push({
+                    id: `${table.name}_created_${item.id}`,
+                    entityType: table.type,
+                    entityId: item.id,
+                    entityName: entityName,
+                    action: table.name === 'vehicle_maintenances' ? 'foi registrada' : 
+                            table.name === 'vehicle_fuels' ? 'foi registrado' : 'foi criado',
+                    details: details,
+                    createdAt: new Date(item.created_at)
+                  })
                 })
-              })
+              }
               
               // Buscar registros atualizados recentemente (para capturar edições)
-              const qUpdated = query(
-                collection(db, col.name),
-                orderBy('updatedAt', 'desc'),
-                limit(limitPerQuery)
-              )
-              const updatedSnapshot = await getDocs(qUpdated)
+              const { data: updatedData, error: updatedError } = await supabase
+                .from(table.name)
+                .select('*')
+                .order('updated_at', { ascending: false })
+                .limit(limitPerQuery)
               
-              updatedSnapshot.docs.forEach(doc => {
-                const data = doc.data()
-                // Só incluir se foi realmente atualizado (updatedAt > createdAt)
-                if (data.updatedAt && data.createdAt) {
-                  const updatedTime = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
-                  const createdTime = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
-                  
-                  // Só incluir se foi atualizado há mais de 1 minuto após criação (para evitar duplicatas)
-                  if (updatedTime.getTime() > createdTime.getTime() + 60000) {
-                    let entityName = data.name || data.equipmentName || data.plate || data.vehiclePlate || `ID: ${doc.id}`
-                    let details = undefined
+              if (!updatedError && updatedData) {
+                updatedData.forEach(item => {
+                  // Só incluir se foi realmente atualizado (updated_at > created_at)
+                  if (item.updated_at && item.created_at) {
+                    const updatedTime = new Date(item.updated_at)
+                    const createdTime = new Date(item.created_at)
                     
-                    if (col.name === 'vehicleMaintenances') {
-                      details = `${data.type || 'Manutenção'} - ${data.description || 'Sem descrição'}`
-                    } else if (col.name === 'vehicleFuels') {
-                      details = `${data.liters}L - R$ ${data.cost?.toFixed(2) || '0,00'}`
+                    // Só incluir se foi atualizado há mais de 1 minuto após criação (para evitar duplicatas)
+                    if (updatedTime.getTime() > createdTime.getTime() + 60000) {
+                      let entityName = item.name || item.equipment_name || item.plate || item.vehicle_plate || `ID: ${item.id}`
+                      let details = undefined
+                      
+                      if (table.name === 'vehicle_maintenances') {
+                        details = `${item.type || 'Manutenção'} - ${item.description || 'Sem descrição'}`
+                      } else if (table.name === 'vehicle_fuels') {
+                        details = `${item.liters}L - R$ ${item.cost?.toFixed(2) || '0,00'}`
+                      }
+                      
+                      allActivities.push({
+                        id: `${table.name}_updated_${item.id}`,
+                        entityType: table.type,
+                        entityId: item.id,
+                        entityName: entityName,
+                        action: table.name === 'vehicle_maintenances' ? 'foi atualizada' : 
+                                table.name === 'vehicle_fuels' ? 'foi atualizado' : 'foi atualizado',
+                        details: details,
+                        createdAt: new Date(item.updated_at)
+                      })
                     }
-                    
-                    allActivities.push({
-                      id: `${col.name}_updated_${doc.id}`,
-                      entityType: col.type,
-                      entityId: doc.id,
-                      entityName: entityName,
-                      action: col.name === 'vehicleMaintenances' ? 'foi atualizada' : 
-                              col.name === 'vehicleFuels' ? 'foi atualizado' : 'foi atualizado',
-                      details: details,
-                      createdAt: data.updatedAt
-                    })
                   }
-                }
-              })
+                })
+              }
             }
-          } catch (colError) {
-            console.warn(`Erro ao buscar ${col.name}:`, colError)
+          } catch (tableError) {
+            console.error(`Erro ao buscar atividades da tabela ${table.name}:`, tableError)
           }
         }
         
-        // Ordenar por data e pegar os 10 mais recentes
-        allActivities.sort((a, b) => {
-          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
-          return dateB.getTime() - dateA.getTime()
-        })
+        // Ordenar todas as atividades por data (mais recente primeiro)
+        allActivities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         
-        setActivities(allActivities.slice(0, 6))
+        // Pegar apenas as 8 mais recentes
+        setActivities(allActivities.slice(0, 8))
+        
       } catch (err) {
-        setError('Erro ao carregar atividades')
-        console.error('Erro ao buscar atividades:', err)
+        console.error('Erro ao buscar atividades recentes:', err)
+        setError('Erro ao carregar atividades recentes')
       } finally {
         setLoading(false)
       }
@@ -197,58 +194,76 @@ export const RecentActivity = memo(function RecentActivity() {
     fetchActivities()
   }, [])
 
-  const formatTimeAgo = (timestamp: any) => {
-    if (!timestamp) return "Agora"
-    
-    const now = new Date()
-    const activityDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    const diffInMinutes = Math.floor((now.getTime() - activityDate.getTime()) / (1000 * 60))
-    
-    if (diffInMinutes < 1) return "Agora"
-    if (diffInMinutes < 60) return `${diffInMinutes} min atrás`
-    
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours < 24) return `${diffInHours} hora${diffInHours > 1 ? 's' : ''} atrás`
-    
-    const diffInDays = Math.floor(diffInHours / 24)
-    return `${diffInDays} dia${diffInDays > 1 ? 's' : ''} atrás`
-  }
-
-  const getAvatarColor = (entityType: string) => {
-    const colors = {
-      'Colaborador': 'bg-blue-100 text-blue-600',
-      'Equipamento': 'bg-green-100 text-green-600',
-      'Veículo': 'bg-purple-100 text-purple-600',
-      'Movimentação': 'bg-orange-100 text-orange-600',
-      'Manutenção': 'bg-red-100 text-red-600',
-      'Abastecimento': 'bg-yellow-100 text-yellow-600'
-    }
-    return colors[entityType as keyof typeof colors] || 'bg-gray-100 text-gray-600'
-  }
-
   const getActivityIcon = (entityType: string) => {
-    const icons = {
-      'Colaborador': User,
-      'Equipamento': Wrench,
-      'Veículo': Truck,
-      'Movimentação': Package,
-      'Manutenção': Activity,
-      'Abastecimento': Fuel
+    switch (entityType) {
+      case 'Colaborador':
+        return <User className="h-4 w-4" />
+      case 'Equipamento':
+        return <Wrench className="h-4 w-4" />
+      case 'Veículo':
+        return <Truck className="h-4 w-4" />
+      case 'Movimentação':
+        return <Package className="h-4 w-4" />
+      case 'Manutenção':
+        return <Wrench className="h-4 w-4" />
+      case 'Abastecimento':
+        return <Fuel className="h-4 w-4" />
+      default:
+        return <Activity className="h-4 w-4" />
     }
-    return icons[entityType as keyof typeof icons] || Activity
+  }
+
+  const getActivityColor = (entityType: string) => {
+    switch (entityType) {
+      case 'Colaborador':
+        return 'bg-blue-500'
+      case 'Equipamento':
+        return 'bg-green-500'
+      case 'Veículo':
+        return 'bg-purple-500'
+      case 'Movimentação':
+        return 'bg-orange-500'
+      case 'Manutenção':
+        return 'bg-red-500'
+      case 'Abastecimento':
+        return 'bg-yellow-500'
+      default:
+        return 'bg-gray-500'
+    }
+  }
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) {
+      return 'agora mesmo'
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60)
+      return `há ${minutes} min`
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600)
+      return `há ${hours}h`
+    } else {
+      const days = Math.floor(diffInSeconds / 86400)
+      return `há ${days} dias`
+    }
   }
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border shadow-lg bg-card">
         <CardHeader>
-          <CardTitle>Atividade Recente</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Atividade Recente
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3">
+        <CardContent className="space-y-4 p-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-3">
               <Skeleton className="h-8 w-8 rounded-full" />
-              <div className="flex-1 space-y-1">
+              <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/2" />
               </div>
@@ -261,76 +276,69 @@ export const RecentActivity = memo(function RecentActivity() {
 
   if (error) {
     return (
-      <Card>
+      <Card className="border shadow-lg bg-card">
         <CardHeader>
-          <CardTitle>Atividade Recente</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Atividade Recente
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Erro ao carregar atividades</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (activities.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Atividade Recente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Nenhuma atividade recente</p>
+        <CardContent className="p-6">
+          <p className="text-sm text-muted-foreground text-center">{error}</p>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border shadow-lg bg-gradient-to-br from-white to-blue-50/30">
-      <CardHeader className="">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full"></span>
-            Atividade Recente
-          </CardTitle>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/dashboard/atividades')}
-            className="cursor-pointer bg-white hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-700 transition-colors"
-          >
-            Ver Tudo
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+    <Card className="border shadow-lg bg-card">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Activity className="h-5 w-5" />
+          Atividade Recente
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {activities.map((activity) => {
-          const IconComponent = getActivityIcon(activity.entityType)
-          return (
-            <div key={activity.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
-              <Avatar className={`h-10 w-10 ${getAvatarColor(activity.entityType)}`}>
-                <AvatarFallback className="text-sm font-medium">
-                  <IconComponent className="h-5 w-5" />
+      <CardContent className="space-y-4 p-6">
+        {activities.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center">
+            Nenhuma atividade recente encontrada
+          </p>
+        ) : (
+          activities.map((activity) => (
+            <div key={activity.id} className="flex items-start gap-3">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className={`${getActivityColor(activity.entityType)} text-white`}>
+                  {getActivityIcon(activity.entityType)}
                 </AvatarFallback>
               </Avatar>
-            <div className="flex-1 space-y-1">
-              <p className="text-sm">
-                <span className="font-medium text-foreground">{activity.entityType}</span>{" "}
-                <span className="font-semibold text-primary">{activity.entityName}</span>{" "}
-                <span className="text-muted-foreground">{activity.action}</span>
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium">
+                  <span className="font-semibold">{activity.entityName}</span> {activity.action}
+                </p>
                 {activity.details && (
-                  <span className="text-muted-foreground"> - {activity.details}</span>
+                  <p className="text-xs text-muted-foreground">{activity.details}</p>
                 )}
-              </p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                {formatTimeAgo(activity.createdAt)}
-              </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatTimeAgo(activity.createdAt)}
+                </p>
+              </div>
             </div>
+          ))
+        )}
+        
+        {activities.length > 0 && (
+          <div className="mt-4 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => router.push('/dashboard/atividades')}
+              className="w-full cursor-pointer"
+            >
+              Ver Todas as Atividades
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
-          )
-        })}
+        )}
       </CardContent>
     </Card>
   )
