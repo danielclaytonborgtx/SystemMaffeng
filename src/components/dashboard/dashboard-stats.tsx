@@ -18,14 +18,14 @@ export const DashboardStats = memo(function DashboardStats() {
     // Calcular alertas de manutenção (veículos próximos da manutenção)
     const maintenanceAlerts = vehicles.filter(vehicle => {
       // Verificar por quilometragem
-      if (vehicle.currentKm && vehicle.maintenanceKm) {
-        const kmUntilMaintenance = vehicle.maintenanceKm - vehicle.currentKm
+      if (vehicle.current_km && vehicle.maintenance_km) {
+        const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km
         if (kmUntilMaintenance <= 1000) return true
       }
       
       // Verificar por data
-      if (vehicle.nextMaintenance) {
-        const nextMaintenanceDate = vehicle.nextMaintenance.toDate()
+      if (vehicle.next_maintenance) {
+        const nextMaintenanceDate = new Date(vehicle.next_maintenance)
         const today = new Date()
         const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         if (daysUntilMaintenance <= 7) return true
