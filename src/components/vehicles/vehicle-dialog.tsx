@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { EmployeeAutocomplete } from "@/components/ui/employee-autocomplete"
-import { useVehicleOperations, useEmployees } from "@/hooks"
+import { useVehicleOperations, useEmployees, useVehicleMaintenanceInfo } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 import { Car, Hash, Calendar, MapPin, FileText, DollarSign, Wrench, Fuel, User, AlertTriangle, Shield, AlertCircle } from "lucide-react"
 
@@ -53,6 +53,7 @@ const mapStatusFromDB = (status: string): string => {
 export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: VehicleDialogProps) {
   const { createVehicle, updateVehicle, deleteVehicle, loading } = useVehicleOperations()
   const { data: employees } = useEmployees()
+  const maintenanceInfo = useVehicleMaintenanceInfo(vehicle)
   const { toast } = useToast()
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
   const [formData, setFormData] = useState({
@@ -303,11 +304,33 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   <div>
                     <span className="font-medium text-muted-foreground">Próxima Manutenção</span>
                     <div className="text-lg font-bold">
-                      {vehicle.maintenance_km 
-                        ? vehicle.maintenance_km.toLocaleString('pt-BR') + ' km'
-                        : 'Não agendada'
-                      }
+                      {maintenanceInfo.nextMaintenanceKm ? (
+                        <span className={maintenanceInfo.isOverdue ? "text-red-600" : ""}>
+                          {maintenanceInfo.nextMaintenanceKm.toLocaleString('pt-BR')} km
+                        </span>
+                      ) : (
+                        'Não agendada'
+                      )}
                     </div>
+                    {maintenanceInfo.nextMaintenanceType && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {maintenanceInfo.nextMaintenanceType}
+                      </div>
+                    )}
+                    {maintenanceInfo.kmRemaining !== null && (
+                      <div className={`text-xs mt-1 ${
+                        maintenanceInfo.isOverdue 
+                          ? "text-red-500 font-medium" 
+                          : maintenanceInfo.kmRemaining <= 1000 
+                            ? "text-yellow-600 font-medium" 
+                            : "text-gray-500"
+                      }`}>
+                        {maintenanceInfo.isOverdue 
+                          ? `Vencida há ${Math.abs(maintenanceInfo.kmRemaining).toLocaleString('pt-BR')} km`
+                          : `Faltam ${maintenanceInfo.kmRemaining.toLocaleString('pt-BR')} km`
+                        }
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

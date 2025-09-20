@@ -12,6 +12,7 @@ import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
 import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { FuelDialog } from "@/components/vehicles/fuel-dialog"
 import { VehicleHistoryDialog } from "@/components/vehicles/vehicle-history-dialog"
+import { MaintenanceInfoDisplay } from "@/components/vehicles/maintenance-info-display"
 import { useVehicles } from "@/hooks"
 import { Vehicle } from "@/lib/supabase"
 
@@ -266,7 +267,13 @@ export default function VeiculosPage() {
                     </div>
                   </TableCell>
                   <TableCell>{vehicle.current_km ? vehicle.current_km.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
-                  <TableCell>{vehicle.maintenance_km ? vehicle.maintenance_km.toLocaleString('pt-BR') + ' km' : '-'}</TableCell>
+                  <TableCell>
+                    <MaintenanceInfoDisplay 
+                      vehicle={vehicle} 
+                      showType={false} 
+                      showRemaining={false}
+                    />
+                  </TableCell>
                   <TableCell>{vehicle.assigned_to || 'Não atribuído'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -378,7 +385,12 @@ export default function VeiculosPage() {
                     </div>
                     <div>
                       <span className="text-muted-foreground">Próxima Manutenção:</span>
-                      <div className="font-medium">{vehicle.maintenance_km ? vehicle.maintenance_km.toLocaleString('pt-BR') + ' km' : '-'}</div>
+                      <MaintenanceInfoDisplay 
+                        vehicle={vehicle} 
+                        showType={false} 
+                        showRemaining={false}
+                        className="font-medium"
+                      />
                     </div>
                     <div className="col-span-2">
                       <span className="text-muted-foreground">Responsável:</span>

@@ -374,6 +374,41 @@ export interface Database {
           updated_at?: string
         }
       }
+      vehicle_scheduled_maintenances: {
+        Row: {
+          id: string
+          vehicle_id: string
+          maintenance_type: string
+          maintenance_name: string
+          interval_km: number
+          next_maintenance_km: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          vehicle_id: string
+          maintenance_type: string
+          maintenance_name: string
+          interval_km: number
+          next_maintenance_km: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          vehicle_id?: string
+          maintenance_type?: string
+          maintenance_name?: string
+          interval_km?: number
+          next_maintenance_km?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -385,6 +420,7 @@ export type Vehicle = Database['public']['Tables']['vehicles']['Row']
 export type EquipmentMovement = Database['public']['Tables']['equipment_movements']['Row']
 export type VehicleMaintenance = Database['public']['Tables']['vehicle_maintenances']['Row']
 export type VehicleFuel = Database['public']['Tables']['vehicle_fuels']['Row']
+export type VehicleScheduledMaintenance = Database['public']['Tables']['vehicle_scheduled_maintenances']['Row']
 
 export type EmployeeInsert = Database['public']['Tables']['employees']['Insert']
 export type EquipmentInsert = Database['public']['Tables']['equipment']['Insert']
@@ -392,6 +428,7 @@ export type VehicleInsert = Database['public']['Tables']['vehicles']['Insert']
 export type EquipmentMovementInsert = Database['public']['Tables']['equipment_movements']['Insert']
 export type VehicleMaintenanceInsert = Database['public']['Tables']['vehicle_maintenances']['Insert']
 export type VehicleFuelInsert = Database['public']['Tables']['vehicle_fuels']['Insert']
+export type VehicleScheduledMaintenanceInsert = Database['public']['Tables']['vehicle_scheduled_maintenances']['Insert']
 
 export type EmployeeUpdate = Database['public']['Tables']['employees']['Update']
 export type EquipmentUpdate = Database['public']['Tables']['equipment']['Update']
@@ -399,3 +436,4 @@ export type VehicleUpdate = Database['public']['Tables']['vehicles']['Update']
 export type EquipmentMovementUpdate = Database['public']['Tables']['equipment_movements']['Update']
 export type VehicleMaintenanceUpdate = Database['public']['Tables']['vehicle_maintenances']['Update']
 export type VehicleFuelUpdate = Database['public']['Tables']['vehicle_fuels']['Update']
+export type VehicleScheduledMaintenanceUpdate = Database['public']['Tables']['vehicle_scheduled_maintenances']['Update']

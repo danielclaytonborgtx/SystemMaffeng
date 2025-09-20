@@ -6,18 +6,21 @@ import type {
   EquipmentMovement, 
   VehicleMaintenance, 
   VehicleFuel,
+  VehicleScheduledMaintenance,
   EmployeeInsert,
   EquipmentInsert,
   VehicleInsert,
   EquipmentMovementInsert,
   VehicleMaintenanceInsert,
   VehicleFuelInsert,
+  VehicleScheduledMaintenanceInsert,
   EmployeeUpdate,
   EquipmentUpdate,
   VehicleUpdate,
   EquipmentMovementUpdate,
   VehicleMaintenanceUpdate,
-  VehicleFuelUpdate
+  VehicleFuelUpdate,
+  VehicleScheduledMaintenanceUpdate
 } from './supabase'
 
 // Funções para Colaboradores
@@ -490,5 +493,95 @@ export const vehicleFuelService = {
       .eq('id', id)
     
     if (error) throw error
+  }
+}
+
+// Funções para Manutenções Programadas
+export const vehicleScheduledMaintenanceService = {
+  async getAll(): Promise<VehicleScheduledMaintenance[]> {
+    const { data, error } = await supabase
+      .from('vehicle_scheduled_maintenances')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data || []
+  },
+
+  async getByVehicleId(vehicleId: string): Promise<VehicleScheduledMaintenance[]> {
+    const { data, error } = await supabase
+      .from('vehicle_scheduled_maintenances')
+      .select('*')
+      .eq('vehicle_id', vehicleId)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    return data || []
+  },
+
+  async getById(id: string): Promise<VehicleScheduledMaintenance | null> {
+    const { data, error } = await supabase
+      .from('vehicle_scheduled_maintenances')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null // No rows returned
+      throw error
+    }
+    return data
+  },
+
+  async create(scheduledMaintenance: VehicleScheduledMaintenanceInsert): Promise<string> {
+    const { data, error } = await supabase
+      .from('vehicle_scheduled_maintenances')
+      .insert(scheduledMaintenance)
+      .select('id')
+      .single()
+    
+    if (error) throw error
+    return data.id
+  },
+
+  async update(id: string, scheduledMaintenance: VehicleScheduledMaintenanceUpdate): Promise<void> {
+    const { error } = await supabase
+      .from('vehicle_scheduled_maintenances')
+      .update(scheduledMaintenance)
+      .eq('id', id)
+    
+    if (error) throw error
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('vehicle_scheduled_maintenances')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  },
+
+  async deleteByVehicleId(vehicleId: string): Promise<void> {
+    const { error } = await supabase
+      .from('vehicle_scheduled_maintenances')
+      .delete()
+      .eq('vehicle_id', vehicleId)
+    
+    if (error) throw error
+  },
+
+  async upsertScheduledMaintenances(vehicleId: string, scheduledMaintenances: VehicleScheduledMaintenanceInsert[]): Promise<void> {
+    // Primeiro, deletar todas as manutenções programadas existentes para este veículo
+    await this.deleteByVehicleId(vehicleId)
+    
+    // Depois, inserir as novas manutenções programadas
+    if (scheduledMaintenances.length > 0) {
+      const { error } = await supabase
+        .from('vehicle_scheduled_maintenances')
+        .insert(scheduledMaintenances)
+      
+      if (error) throw error
+    }
   }
 }

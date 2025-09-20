@@ -8,24 +8,28 @@ import {
   equipmentMovementService,
   vehicleMaintenanceService,
   vehicleFuelService,
+  vehicleScheduledMaintenanceService,
   Employee,
   Equipment,
   Vehicle,
   EquipmentMovement,
   VehicleMaintenance,
   VehicleFuel,
+  VehicleScheduledMaintenance,
   EmployeeInsert,
   EquipmentInsert,
   VehicleInsert,
   EquipmentMovementInsert,
   VehicleMaintenanceInsert,
   VehicleFuelInsert,
+  VehicleScheduledMaintenanceInsert,
   EmployeeUpdate,
   EquipmentUpdate,
   VehicleUpdate,
   EquipmentMovementUpdate,
   VehicleMaintenanceUpdate,
-  VehicleFuelUpdate
+  VehicleFuelUpdate,
+  VehicleScheduledMaintenanceUpdate
 } from '@/lib/supabase-services'
 
 interface UseSupabaseState<T> {
@@ -575,4 +579,110 @@ export function useVehicleFuelOperations() {
   }
 
   return { loading, error, createFuel, updateFuel, deleteFuel }
+}
+
+// Hook para Manutenções Programadas
+export function useVehicleScheduledMaintenances(vehicleId?: string): UseSupabaseState<VehicleScheduledMaintenance> {
+  const [data, setData] = useState<VehicleScheduledMaintenance[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      let scheduledMaintenances: VehicleScheduledMaintenance[]
+      
+      if (vehicleId) {
+        scheduledMaintenances = await vehicleScheduledMaintenanceService.getByVehicleId(vehicleId)
+      } else {
+        scheduledMaintenances = await vehicleScheduledMaintenanceService.getAll()
+      }
+      
+      setData(scheduledMaintenances)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar manutenções programadas')
+      console.error('Erro ao buscar manutenções programadas:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [vehicleId])
+
+  return { data, loading, error, refetch: fetchData }
+}
+
+// Hook específico para operações de manutenções programadas
+export function useVehicleScheduledMaintenanceOperations() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createScheduledMaintenance = async (scheduledMaintenanceData: VehicleScheduledMaintenanceInsert) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const id = await vehicleScheduledMaintenanceService.create(scheduledMaintenanceData)
+      return id
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar manutenção programada')
+      console.error('Erro ao criar manutenção programada:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateScheduledMaintenance = async (id: string, scheduledMaintenanceData: VehicleScheduledMaintenanceUpdate) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleScheduledMaintenanceService.update(id, scheduledMaintenanceData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar manutenção programada')
+      console.error('Erro ao atualizar manutenção programada:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteScheduledMaintenance = async (id: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleScheduledMaintenanceService.delete(id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar manutenção programada')
+      console.error('Erro ao deletar manutenção programada:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const upsertScheduledMaintenances = async (vehicleId: string, scheduledMaintenances: VehicleScheduledMaintenanceInsert[]) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleScheduledMaintenanceService.upsertScheduledMaintenances(vehicleId, scheduledMaintenances)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar manutenções programadas')
+      console.error('Erro ao salvar manutenções programadas:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { 
+    loading, 
+    error, 
+    createScheduledMaintenance, 
+    updateScheduledMaintenance, 
+    deleteScheduledMaintenance,
+    upsertScheduledMaintenances
+  }
 }
