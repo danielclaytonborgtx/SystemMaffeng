@@ -7,12 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertTriangle, Clock, Wrench, Shield, FileText, Bell, ArrowRight } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useVehicles } from "@/hooks"
+import { useVehicles, useVehicleScheduledMaintenances } from "@/hooks"
 import { useRouter } from "next/navigation"
 
 export function NotificationsDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const { data: vehicles } = useVehicles()
+  const { data: scheduledMaintenances } = useVehicleScheduledMaintenances()
   const router = useRouter()
 
   const notifications = useMemo(() => {
@@ -138,6 +139,41 @@ export function NotificationsDropdown() {
         }
       }
     })
+
+    // Notificações de manutenções programadas vencidas
+    vehicles.forEach(vehicle => {
+      const vehicleScheduledMaintenances = scheduledMaintenances.filter(sm => 
+        String(sm.vehicle_id) === String(vehicle.id) && sm.is_active
+      )
+      
+      vehicleScheduledMaintenances.forEach(scheduledMaintenance => {
+        const currentKm = vehicle.current_km || 0
+        const kmUntilMaintenance = scheduledMaintenance.next_maintenance_km - currentKm
+        
+        // Notificação por quilometragem das manutenções programadas
+        if (kmUntilMaintenance <= 1000 && kmUntilMaintenance > 0) {
+          notificationsList.push({
+            id: `scheduled-maintenance-km-${scheduledMaintenance.id}`,
+            type: "warning",
+            icon: Clock,
+            title: "Manutenção Programada Próxima",
+            description: `${vehicle.plate} - ${vehicle.model}`,
+            detail: `${scheduledMaintenance.maintenance_name} em ${kmUntilMaintenance} km`,
+            time: "Atenção",
+          })
+        } else if (kmUntilMaintenance <= 0) {
+          notificationsList.push({
+            id: `scheduled-maintenance-overdue-km-${scheduledMaintenance.id}`,
+            type: "urgent",
+            icon: AlertTriangle,
+            title: "Manutenção Programada Vencida",
+            description: `${vehicle.plate} - ${vehicle.model}`,
+            detail: `${scheduledMaintenance.maintenance_name} vencida há ${Math.abs(kmUntilMaintenance)} km`,
+            time: "Urgente",
+          })
+        }
+      })
+    })
     
     // Ordenar notificações por prioridade (urgent primeiro, depois warning)
     const sortedNotifications = notificationsList.sort((a: any, b: any) => {
@@ -149,7 +185,7 @@ export function NotificationsDropdown() {
     console.log('NotificationsDropdown: Notificações:', sortedNotifications)
     
     return sortedNotifications.slice(0, 5) // Limitar a 5 notificações
-  }, [vehicles])
+  }, [vehicles, scheduledMaintenances])
 
   const urgentCount = notifications.filter(n => n.type === "urgent").length
   const warningCount = notifications.filter(n => n.type === "warning").length

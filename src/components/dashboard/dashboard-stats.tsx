@@ -3,12 +3,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Package, Users, Truck, AlertTriangle, Loader2 } from "lucide-react"
 import { memo, useMemo } from "react"
-import { useEmployees, useEquipment, useVehicles } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useVehicleScheduledMaintenances } from "@/hooks"
 
 export const DashboardStats = memo(function DashboardStats() {
   const { data: employees, loading: employeesLoading } = useEmployees()
   const { data: equipment, loading: equipmentLoading } = useEquipment()
   const { data: vehicles, loading: vehiclesLoading } = useVehicles()
+  const { data: scheduledMaintenances, loading: scheduledMaintenancesLoading } = useVehicleScheduledMaintenances()
 
   const stats = useMemo(() => {
     const activeEmployees = employees.filter(emp => emp.status === 'active').length
@@ -16,11 +17,17 @@ export const DashboardStats = memo(function DashboardStats() {
     const activeVehicles = vehicles.filter(veh => veh.status === 'active').length
     
     // Calcular alertas de manutenção (veículos próximos da manutenção)
-    const maintenanceAlerts = vehicles.filter(vehicle => {
+    let maintenanceAlerts = 0
+    
+    // Contar alertas de manutenção manual dos veículos
+    vehicles.forEach(vehicle => {
       // Verificar por quilometragem
       if (vehicle.current_km && vehicle.maintenance_km) {
         const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km
-        if (kmUntilMaintenance <= 1000) return true
+        if (kmUntilMaintenance <= 1000) {
+          maintenanceAlerts++
+          return
+        }
       }
       
       // Verificar por data
@@ -28,11 +35,29 @@ export const DashboardStats = memo(function DashboardStats() {
         const nextMaintenanceDate = new Date(vehicle.next_maintenance)
         const today = new Date()
         const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-        if (daysUntilMaintenance <= 7) return true
+        if (daysUntilMaintenance <= 7) {
+          maintenanceAlerts++
+          return
+        }
       }
+    })
+    
+    // Contar alertas de manutenções programadas
+    vehicles.forEach(vehicle => {
+      const vehicleScheduledMaintenances = scheduledMaintenances.filter(sm => 
+        String(sm.vehicle_id) === String(vehicle.id) && sm.is_active
+      )
       
-      return false
-    }).length
+      vehicleScheduledMaintenances.forEach(scheduledMaintenance => {
+        const currentKm = vehicle.current_km || 0
+        const kmUntilMaintenance = scheduledMaintenance.next_maintenance_km - currentKm
+        
+        // Alerta por quilometragem das manutenções programadas
+        if (kmUntilMaintenance <= 1000) {
+          maintenanceAlerts++
+        }
+      })
+    })
 
     return [
       {
@@ -65,10 +90,10 @@ export const DashboardStats = memo(function DashboardStats() {
         icon: AlertTriangle,
         iconColor: "text-red-500",
         description: "Manutenções próximas do vencimento",
-        loading: vehiclesLoading,
+        loading: vehiclesLoading || scheduledMaintenancesLoading,
       },
     ]
-  }, [employees, equipment, vehicles, employeesLoading, equipmentLoading, vehiclesLoading])
+  }, [employees, equipment, vehicles, scheduledMaintenances, employeesLoading, equipmentLoading, vehiclesLoading, scheduledMaintenancesLoading])
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

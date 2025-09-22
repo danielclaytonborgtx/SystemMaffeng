@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Clock, Wrench, Shield, FileText, Users, RefreshCw, CheckCircle, Loader2, Package } from "lucide-react"
 import { useMemo, useState } from "react"
-import { useEmployees, useEquipment, useVehicles, useEquipmentMovements } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useEquipmentMovements, useVehicleScheduledMaintenances } from "@/hooks"
 import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
 import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { Vehicle } from "@/lib/supabase"
@@ -30,14 +30,15 @@ export default function AlertasPage() {
   const { data: equipment, loading: equipmentLoading, refetch: refetchEquipment } = useEquipment()
   const { data: vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useVehicles()
   const { data: movements, loading: movementsLoading, refetch: refetchMovements } = useEquipmentMovements()
+  const { data: scheduledMaintenances, loading: scheduledMaintenancesLoading, refetch: refetchScheduledMaintenances } = useVehicleScheduledMaintenances()
 
   // Loading geral - qualquer hook carregando
-  const loading = employeesLoading || equipmentLoading || vehiclesLoading || movementsLoading
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading || movementsLoading || scheduledMaintenancesLoading
 
   const handleRefresh = async () => {
     setRefreshing(true)
     try {
-      await Promise.all([refetchEmployees(), refetchEquipment(), refetchVehicles(), refetchMovements()])
+      await Promise.all([refetchEmployees(), refetchEquipment(), refetchVehicles(), refetchMovements(), refetchScheduledMaintenances()])
     } finally {
       setRefreshing(false)
     }
@@ -47,7 +48,10 @@ export default function AlertasPage() {
     const alertsList: Alert[] = []
     const today = new Date()
     
-    console.log('Processando alertas para veículos:', vehicles.length)
+    console.log('=== DEBUG ALERTAS ===')
+    console.log('Veículos carregados:', vehicles.length)
+    console.log('Manutenções programadas carregadas:', scheduledMaintenances.length)
+    console.log('Dados das manutenções programadas:', scheduledMaintenances)
     
     // Alertas de manutenção por quilometragem e data
     vehicles.forEach(vehicle => {
@@ -110,6 +114,54 @@ export default function AlertasPage() {
         }
       }
     })
+
+    // Alertas de manutenções programadas vencidas
+    console.log('Processando manutenções programadas:', scheduledMaintenances.length)
+    console.log('IDs dos veículos:', vehicles.map(v => ({ id: v.id, plate: v.plate })))
+    console.log('IDs das manutenções programadas:', scheduledMaintenances.map(sm => ({ id: sm.id, vehicle_id: sm.vehicle_id })))
+    
+    vehicles.forEach(vehicle => {
+      const vehicleScheduledMaintenances = scheduledMaintenances.filter(sm => {
+        const match = String(sm.vehicle_id) === String(vehicle.id) && sm.is_active
+        console.log(`Comparando: ${sm.vehicle_id} === ${vehicle.id} = ${match}`)
+        return match
+      })
+      console.log(`Veículo ${vehicle.plate} (${vehicle.id}) tem ${vehicleScheduledMaintenances.length} manutenções programadas ativas`)
+      
+      vehicleScheduledMaintenances.forEach(scheduledMaintenance => {
+        const currentKm = vehicle.current_km || 0
+        const kmUntilMaintenance = scheduledMaintenance.next_maintenance_km - currentKm
+        
+        console.log(`Manutenção ${scheduledMaintenance.maintenance_name}: KM atual ${currentKm}, próximo ${scheduledMaintenance.next_maintenance_km}, diferença ${kmUntilMaintenance}`)
+        
+        // Alerta por quilometragem das manutenções programadas
+        if (kmUntilMaintenance <= 1000 && kmUntilMaintenance > 0) {
+          alertsList.push({
+            id: `scheduled-maintenance-km-${scheduledMaintenance.id}`,
+            type: "warning",
+            category: "manutenção",
+            icon: Clock,
+            title: "Manutenção Programada Próxima",
+            description: `${vehicle.plate} - ${vehicle.model} - ${scheduledMaintenance.maintenance_name} em ${kmUntilMaintenance} km`,
+            time: "Atenção",
+            vehicle: vehicle,
+          })
+        } else if (kmUntilMaintenance <= 0) {
+          alertsList.push({
+            id: `scheduled-maintenance-overdue-km-${scheduledMaintenance.id}`,
+            type: "urgent",
+            category: "manutenção",
+            icon: AlertTriangle,
+            title: "Manutenção Programada Vencida",
+            description: `${vehicle.plate} - ${vehicle.model} - ${scheduledMaintenance.maintenance_name} vencida há ${Math.abs(kmUntilMaintenance)} km`,
+            time: "Urgente",
+            vehicle: vehicle,
+          })
+        }
+      })
+    })
+    
+    console.log(`Total de alertas de manutenções programadas adicionados: ${alertsList.filter(a => a.id.includes('scheduled-maintenance')).length}`)
 
     // Alertas de seguro vencido
     vehicles.forEach(vehicle => {
@@ -262,9 +314,10 @@ export default function AlertasPage() {
     
     console.log('Total de alertas gerados:', sortedAlerts.length)
     console.log('Alertas:', sortedAlerts)
+    console.log('=== FIM DEBUG ALERTAS ===')
     
     return sortedAlerts
-  }, [employees, equipment, vehicles, movements])
+  }, [employees, equipment, vehicles, movements, scheduledMaintenances])
 
   const getAlertBadge = (type: string) => {
     switch (type) {
