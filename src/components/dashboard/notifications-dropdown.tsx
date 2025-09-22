@@ -204,51 +204,51 @@ export function NotificationsDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 p-0" sideOffset={12}>
+      <DropdownMenuContent align="end" className="w-[95vw] max-w-96 p-0 mx-2 sm:mx-0" sideOffset={12}>
         <Card className="border-0 shadow-none">
-          <CardHeader className="pb-3 px-4">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Bell className="h-4 w-4" />
+          <CardHeader className="pb-3 px-3 sm:px-4">
+            <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-2">
+              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
               Notificações
               {(urgentCount > 0 || warningCount > 0) && (
-                <Badge variant="secondary" className="ml-auto">
+                <Badge variant="secondary" className="ml-auto text-xs">
                   {urgentCount + warningCount}
                 </Badge>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-80">
+            <ScrollArea className="h-64 sm:h-80">
               {notifications.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Nenhuma notificação</p>
+                <div className="p-3 sm:p-4 text-center text-muted-foreground">
+                  <Bell className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs sm:text-sm">Nenhuma notificação</p>
                 </div>
               ) : (
                 <div className="space-y-1">
                   {notifications.map((notification) => (
                     <div 
                       key={notification.id} 
-                      className="flex items-start gap-3 p-4 border-b last:border-b-0"
+                      className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 border-b last:border-b-0"
                     >
-                      <div className={`p-2 rounded-full ${
+                      <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
                         notification.type === "urgent"
                           ? "bg-red-500/20"
                           : "bg-yellow-500/20"
                       }`}>
                         <notification.icon
-                          className={`h-4 w-4 ${
+                          className={`h-3 w-3 sm:h-4 sm:w-4 ${
                             notification.type === "urgent"
                               ? "text-red-500"
                               : "text-yellow-500"
                           }`}
                         />
                       </div>
-                      <div className="flex-1 min-w-0 max-w-[calc(100%-3rem)]">
-                        <div className="flex items-start gap-2 mb-1">
-                          <p className="font-medium text-sm break-words leading-tight">{notification.title}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 mb-1">
+                          <p className="font-medium text-xs sm:text-sm break-words leading-tight">{notification.title}</p>
                           <Badge
-                            className={`flex-shrink-0 ${
+                            className={`flex-shrink-0 w-fit text-xs ${
                               notification.type === "urgent" 
                                 ? "bg-red-500 text-white" 
                                 : "bg-yellow-500 text-white"
@@ -257,7 +257,7 @@ export function NotificationsDropdown() {
                             {notification.type === "urgent" ? "Urgente" : "Atenção"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground break-words leading-tight mb-1">{notification.description}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground break-words leading-tight mb-1">{notification.description}</p>
                         <p className="text-xs text-muted-foreground break-words leading-tight">{notification.detail}</p>
                       </div>
                     </div>
@@ -266,7 +266,7 @@ export function NotificationsDropdown() {
               )}
             </ScrollArea>
             {notifications.length > 0 && (
-              <div className="px-2 pt-2 border-t bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="px-2 sm:px-3 pt-2 border-t bg-gradient-to-r from-blue-50 to-indigo-50">
                 <Button 
                   variant="default" 
                   size="sm" 
@@ -274,11 +274,12 @@ export function NotificationsDropdown() {
                     router.push('/dashboard/alertas')
                     setIsOpen(false)
                   }}
-                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 mb-0"
+                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 mb-0 text-xs sm:text-sm"
                 >
-                  <AlertTriangle className="h-4 w-4" />
-                  Ver Todos os Alertas
-                  <ArrowRight className="h-4 w-4" />
+                  <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Ver Todos os Alertas</span>
+                  <span className="sm:hidden">Ver Alertas</span>
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             )}
