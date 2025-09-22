@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Search, Filter, Calendar, Loader2 } from "lucide-react"
-import { useEmployees, useEquipment, useVehicles, useEquipmentMovements, useVehicleMaintenances, useVehicleFuels } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useEquipmentMovements, useVehicleMaintenances, useVehicleFuels, useVehicleScheduledMaintenances } from "@/hooks"
 
 interface Activity {
   id: string
@@ -37,9 +37,10 @@ export default function AtividadesPage() {
   const { data: movements, loading: movementsLoading } = useEquipmentMovements()
   const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
   const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
+  const { data: scheduledMaintenances, loading: scheduledMaintenancesLoading } = useVehicleScheduledMaintenances()
 
   // Loading geral - qualquer hook carregando
-  const loading = employeesLoading || equipmentLoading || vehiclesLoading || movementsLoading || maintenancesLoading || fuelsLoading
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading || movementsLoading || maintenancesLoading || fuelsLoading || scheduledMaintenancesLoading
 
   // Função para processar atividades dos dados dos hooks
   const processActivities = () => {
@@ -56,6 +57,25 @@ export default function AtividadesPage() {
         details: `${emp.position || 'Cargo não informado'} - ${emp.department || 'Departamento não informado'}`,
         createdAt: emp.created_at
       })
+
+      // Verificar se foi atualizado recentemente
+      if (emp.updated_at && emp.created_at) {
+        const updatedTime = new Date(emp.updated_at)
+        const createdTime = new Date(emp.created_at)
+        
+        // Só incluir se foi atualizado há mais de 1 minuto após criação
+        if (updatedTime.getTime() > createdTime.getTime() + 60000) {
+          allActivities.push({
+            id: `employee_updated_${emp.id}`,
+            entityType: 'Colaborador',
+            entityId: emp.id || '',
+            entityName: emp.name || 'Nome não disponível',
+            action: 'foi atualizado',
+            details: `${emp.position || 'Cargo não informado'} - ${emp.department || 'Departamento não informado'}`,
+            createdAt: emp.updated_at
+          })
+        }
+      }
     })
     
     // Processar equipamentos
@@ -69,6 +89,25 @@ export default function AtividadesPage() {
         details: `${eq.category || 'Categoria não informada'} - ${eq.status || 'Status não informado'}`,
         createdAt: eq.created_at
       })
+
+      // Verificar se foi atualizado recentemente
+      if (eq.updated_at && eq.created_at) {
+        const updatedTime = new Date(eq.updated_at)
+        const createdTime = new Date(eq.created_at)
+        
+        // Só incluir se foi atualizado há mais de 1 minuto após criação
+        if (updatedTime.getTime() > createdTime.getTime() + 60000) {
+          allActivities.push({
+            id: `equipment_updated_${eq.id}`,
+            entityType: 'Equipamento',
+            entityId: eq.id || '',
+            entityName: eq.name || 'Nome não disponível',
+            action: 'foi atualizado',
+            details: `${eq.category || 'Categoria não informada'} - ${eq.status || 'Status não informado'}`,
+            createdAt: eq.updated_at
+          })
+        }
+      }
     })
     
     // Processar veículos
@@ -82,6 +121,25 @@ export default function AtividadesPage() {
         details: `${veh.brand || 'Marca não informada'} - ${veh.status || 'Status não informado'}`,
         createdAt: veh.created_at
       })
+
+      // Verificar se foi atualizado recentemente
+      if (veh.updated_at && veh.created_at) {
+        const updatedTime = new Date(veh.updated_at)
+        const createdTime = new Date(veh.created_at)
+        
+        // Só incluir se foi atualizado há mais de 1 minuto após criação
+        if (updatedTime.getTime() > createdTime.getTime() + 60000) {
+          allActivities.push({
+            id: `vehicle_updated_${veh.id}`,
+            entityType: 'Veículo',
+            entityId: veh.id || '',
+            entityName: `${veh.plate || 'Placa não informada'} - ${veh.model || 'Modelo não informado'}`,
+            action: 'foi atualizado',
+            details: `${veh.brand || 'Marca não informada'} - ${veh.status || 'Status não informado'}`,
+            createdAt: veh.updated_at
+          })
+        }
+      }
     })
     
     // Processar movimentações
@@ -90,9 +148,9 @@ export default function AtividadesPage() {
         id: `movement_${mov.id}`,
         entityType: 'Movimentação',
         entityId: mov.id || '',
-        entityName: mov.equipmentName || 'Equipamento não informado',
+        entityName: mov.equipment_name || 'Equipamento não informado',
         action: mov.type === 'out' ? 'foi retirado' : 'foi devolvido',
-        details: `${mov.employeeName || 'Funcionário não informado'} - ${mov.project || 'Projeto não informado'}`,
+        details: `${mov.employee_name || 'Funcionário não informado'} - ${mov.project || 'Projeto não informado'}`,
         createdAt: mov.created_at
       })
     })
@@ -103,7 +161,7 @@ export default function AtividadesPage() {
         id: `maintenance_${maint.id}`,
         entityType: 'Manutenção',
         entityId: maint.id || '',
-        entityName: `${maint.vehiclePlate || 'Placa não informada'} - ${maint.vehicleModel || 'Modelo não informado'}`,
+        entityName: `${maint.vehicle_plate || 'Placa não informada'} - ${maint.vehicle_model || 'Modelo não informado'}`,
         action: 'foi registrada',
         details: `${maint.type || 'Tipo não informado'} - R$ ${maint.cost?.toFixed(2) || '0,00'}`,
         createdAt: maint.created_at
@@ -116,11 +174,62 @@ export default function AtividadesPage() {
         id: `fuel_${fuel.id}`,
         entityType: 'Abastecimento',
         entityId: fuel.id || '',
-        entityName: `${fuel.vehiclePlate || 'Placa não informada'} - ${fuel.vehicleModel || 'Modelo não informado'}`,
+        entityName: `${fuel.vehicle_plate || 'Placa não informada'} - ${fuel.vehicle_model || 'Modelo não informado'}`,
         action: 'foi registrado',
         details: `${fuel.liters || 0}L - R$ ${fuel.cost?.toFixed(2) || '0,00'}`,
         createdAt: fuel.created_at
       })
+
+      // Verificar se foi atualizado recentemente
+      if (fuel.updated_at && fuel.created_at) {
+        const updatedTime = new Date(fuel.updated_at)
+        const createdTime = new Date(fuel.created_at)
+        
+        // Só incluir se foi atualizado há mais de 1 minuto após criação
+        if (updatedTime.getTime() > createdTime.getTime() + 60000) {
+          allActivities.push({
+            id: `fuel_updated_${fuel.id}`,
+            entityType: 'Abastecimento',
+            entityId: fuel.id || '',
+            entityName: `${fuel.vehicle_plate || 'Placa não informada'} - ${fuel.vehicle_model || 'Modelo não informado'}`,
+            action: 'foi atualizado',
+            details: `${fuel.liters || 0}L - R$ ${fuel.cost?.toFixed(2) || '0,00'}`,
+            createdAt: fuel.updated_at
+          })
+        }
+      }
+    })
+
+    // Processar manutenções programadas
+    scheduledMaintenances.forEach(sched => {
+      allActivities.push({
+        id: `scheduled_maintenance_${sched.id}`,
+        entityType: 'Manutenção Programada',
+        entityId: sched.id || '',
+        entityName: sched.maintenance_name || 'Manutenção Programada',
+        action: 'foi configurada',
+        details: `${sched.maintenance_type || 'Tipo não informado'} - Próxima em ${sched.next_maintenance_km || 0} km`,
+        createdAt: sched.created_at
+      })
+
+      // Verificar se foi atualizado recentemente
+      if (sched.updated_at && sched.created_at) {
+        const updatedTime = new Date(sched.updated_at)
+        const createdTime = new Date(sched.created_at)
+        
+        // Só incluir se foi atualizado há mais de 1 minuto após criação
+        if (updatedTime.getTime() > createdTime.getTime() + 60000) {
+          allActivities.push({
+            id: `scheduled_maintenance_updated_${sched.id}`,
+            entityType: 'Manutenção Programada',
+            entityId: sched.id || '',
+            entityName: sched.maintenance_name || 'Manutenção Programada',
+            action: 'foi atualizada',
+            details: `${sched.maintenance_type || 'Tipo não informado'} - Próxima em ${sched.next_maintenance_km || 0} km`,
+            createdAt: sched.updated_at
+          })
+        }
+      }
     })
     
     // Ordenar por data (mais recente primeiro)
@@ -148,7 +257,7 @@ export default function AtividadesPage() {
       console.log('Atividades processadas:', processedActivities.length)
       setActivities(processedActivities)
     }
-  }, [employees, equipment, vehicles, movements, maintenances, fuels, loading])
+  }, [employees, equipment, vehicles, movements, maintenances, fuels, scheduledMaintenances, loading])
 
   const formatTimeAgo = (timestamp: any) => {
     if (!timestamp) return "Agora"
@@ -196,6 +305,7 @@ export default function AtividadesPage() {
       case 'Veículo': return 'bg-purple-100 text-purple-800'
       case 'Movimentação': return 'bg-orange-100 text-orange-800'
       case 'Manutenção': return 'bg-yellow-100 text-yellow-800'
+      case 'Manutenção Programada': return 'bg-indigo-100 text-indigo-800'
       case 'Abastecimento': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
@@ -309,6 +419,7 @@ export default function AtividadesPage() {
                   <SelectItem value="Veículo">Veículo</SelectItem>
                   <SelectItem value="Movimentação">Movimentação</SelectItem>
                   <SelectItem value="Manutenção">Manutenção</SelectItem>
+                  <SelectItem value="Manutenção Programada">Manutenção Programada</SelectItem>
                   <SelectItem value="Abastecimento">Abastecimento</SelectItem>
                 </SelectContent>
               </Select>
@@ -326,7 +437,10 @@ export default function AtividadesPage() {
                   <SelectItem value="atualizado">Atualizado</SelectItem>
                   <SelectItem value="registrada">Registrada</SelectItem>
                   <SelectItem value="registrado">Registrado</SelectItem>
+                  <SelectItem value="retirado">Retirado</SelectItem>
                   <SelectItem value="devolvido">Devolvido</SelectItem>
+                  <SelectItem value="configurada">Configurada</SelectItem>
+                  <SelectItem value="atualizada">Atualizada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
