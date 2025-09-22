@@ -13,7 +13,7 @@ import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { FuelDialog } from "@/components/vehicles/fuel-dialog"
 import { VehicleHistoryDialog } from "@/components/vehicles/vehicle-history-dialog"
 import { MaintenanceInfoDisplay } from "@/components/vehicles/maintenance-info-display"
-import { useVehicles } from "@/hooks"
+import { useVehicles, useVehicleScheduledMaintenances } from "@/hooks"
 import { Vehicle } from "@/lib/supabase"
 
 export default function VeiculosPage() {
@@ -27,6 +27,7 @@ export default function VeiculosPage() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
 
   const { data: vehicles, loading, error, refetch } = useVehicles()
+  const { data: scheduledMaintenances } = useVehicleScheduledMaintenances()
 
   const filteredVehicles = useMemo(() => {
     if (!vehicles) return []
@@ -93,6 +94,21 @@ export default function VeiculosPage() {
       const nextMaintenanceDate = new Date(vehicle.next_maintenance)
       const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       if (daysUntilMaintenance <= 7) return true
+    }
+    
+    // Verificar manutenções programadas vencidas ou próximas
+    if (scheduledMaintenances) {
+      const vehicleScheduledMaintenances = scheduledMaintenances.filter(
+        sm => String(sm.vehicle_id) === String(vehicle.id)
+      )
+      
+      for (const sm of vehicleScheduledMaintenances) {
+        // Verificar por quilometragem programada
+        if (sm.next_maintenance_km && vehicle.current_km) {
+          const kmUntilMaintenance = sm.next_maintenance_km - vehicle.current_km
+          if (kmUntilMaintenance <= 1000) return true
+        }
+      }
     }
     
     // Verificar seguro vencido
