@@ -93,10 +93,6 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
   const { data: movements, loading: movementsLoading } = useEquipmentMovements(equipment?.id)
   const { toast } = useToast()
   
-  // Debug: log das movimentações
-  console.log('EquipmentDialog - Equipamento ID:', equipment?.id)
-  console.log('EquipmentDialog - Movimentações:', movements)
-  console.log('EquipmentDialog - Loading:', movementsLoading)
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -451,7 +447,22 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   <div className="space-y-3">
                     {movements.slice(0, 5).map((movement: any) => {
                       const created = new Date(movement.created_at)
-                      const returned = movement.actual_return_date ? new Date(movement.actual_return_date) : null
+                      
+                      // Função para formatar data de devolução corretamente
+                      const formatReturnDate = (dateString: string) => {
+                        if (!dateString) return null
+                        
+                        // Se está no formato YYYY-MM-DD (dados antigos), usar horário padrão
+                        if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          const [year, month, day] = dateString.split('-')
+                          // Para dados antigos, usar um horário padrão simples (17:00)
+                          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 17, 0, 0)
+                        }
+                        // Se está no formato ISO completo (dados novos), usar diretamente
+                        return new Date(dateString)
+                      }
+                      
+                      const returned = formatReturnDate(movement.actual_return_date)
 
                       return (
                         <div key={movement.id} className="p-2 sm:p-3 border rounded-lg">

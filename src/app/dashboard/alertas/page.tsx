@@ -263,7 +263,15 @@ export default function AlertasPage() {
     movements.forEach(movement => {
       // Verificar apenas movimentações de saída que ainda não foram devolvidas
       if (movement.type === 'out' && !movement.actual_return_date && movement.expected_return_date) {
-        const expectedReturnDate = new Date(movement.expected_return_date)
+        // Parsear data esperada corretamente para evitar problemas de timezone
+        let expectedReturnDate: Date
+        if (movement.expected_return_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const [year, month, day] = movement.expected_return_date.split('-')
+          expectedReturnDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0)
+        } else {
+          expectedReturnDate = new Date(movement.expected_return_date)
+        }
+        
         const daysUntilReturn = Math.ceil((expectedReturnDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
         
         // Alerta 5 dias antes da data prevista

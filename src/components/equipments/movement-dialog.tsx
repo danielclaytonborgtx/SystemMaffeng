@@ -118,7 +118,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
       }
       
       if (isReturn) {
-        movementData.actual_return_date = new Date().toISOString().split('T')[0]
+        movementData.actual_return_date = new Date().toISOString()
       }
       
       if (formData.observations) {
@@ -144,7 +144,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
           console.log("Movimentação antes da atualização:", lastOutMovement)
           
           const updateData: any = {
-            actual_return_date: new Date().toISOString().split('T')[0],
+            actual_return_date: new Date().toISOString(),
             checklist: {
               equipment_good_condition: checklistItems[0].checked,
               accessories_included: checklistItems[1].checked,
@@ -159,16 +159,19 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
             updateData.observations = formData.observations
           }
           
-          console.log("Dados para atualização:", updateData)
           await updateMovement(lastOutMovement.id!, updateData)
-          console.log("Movimentação atualizada com sucesso")
+          
+          // Forçar refresh da página após 2 segundos para garantir que os dados sejam atualizados
+          setTimeout(() => {
+            window.location.reload()
+          }, 2000)
         } else {
           // Fallback: criar nova movimentação de devolução se não encontrar a original
           console.log("Não encontrou movimentação original, criando nova de devolução")
           const returnMovementData = {
             ...movementData,
             type: 'return',
-            actual_return_date: new Date().toISOString().split('T')[0],
+            actual_return_date: new Date().toISOString(),
           }
           await createMovement(returnMovementData)
           console.log("Movimentação de devolução criada com sucesso")
