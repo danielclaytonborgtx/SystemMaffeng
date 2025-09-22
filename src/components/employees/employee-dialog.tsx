@@ -232,7 +232,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden mx-auto p-4 sm:max-w-[95vw] sm:w-[95vw] sm:mx-0 sm:p-6">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[90vw] sm:w-[90vw] sm:max-h-[90vh] sm:mx-0 sm:p-6 md:max-w-[80vw] md:w-[80vw] lg:max-w-[70vw] lg:w-[70vw]">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Colaborador" : "Novo Colaborador"}</DialogTitle>
           <DialogDescription>
@@ -242,28 +242,28 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
 
         {isEditing && employee && (
           <Card className="mx-0">
-            <CardHeader className="px-4 sm:px-6 py-3">
-              <CardTitle className="flex items-center justify-between">
+            <CardHeader className="px-3 sm:px-6 py-3">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/placeholder.svg" />
                     <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
                   </Avatar>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{employee.name}</span>
-                    <span className="text-sm text-muted-foreground">•</span>
-                    <span className="text-sm text-muted-foreground">{employee.position}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0">
+                    <span className="font-semibold truncate">{employee.name}</span>
+                    <span className="hidden sm:inline text-sm text-muted-foreground">•</span>
+                    <span className="text-sm text-muted-foreground truncate">{employee.position}</span>
                   </div>
                 </div>
                 <Badge
                   variant={mapStatusFromDB(employee.status) === "Ativo" ? "secondary" : "outline"}
-                  className={
+                  className={`self-start sm:self-auto ${
                     mapStatusFromDB(employee.status) === "Ativo"
                       ? "bg-green-100 text-green-800"
                       : mapStatusFromDB(employee.status) === "Férias"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-yellow-100 text-yellow-800"
-                  }
+                  }`}
                 >
                   {mapStatusFromDB(employee.status)}
                 </Badge>
@@ -274,10 +274,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações Pessoais</CardTitle>
+            <CardHeader className="px-3 sm:px-6">
+              <CardTitle className="text-base sm:text-lg">Informações Pessoais</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-3 sm:px-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="flex items-center gap-2">
@@ -372,10 +372,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações Profissionais</CardTitle>
+            <CardHeader className="px-3 sm:px-6">
+              <CardTitle className="text-base sm:text-lg">Informações Profissionais</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-3 sm:px-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="position" className="flex items-center gap-2">
@@ -448,22 +448,22 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
           </Card>
 
           <Card className="border-l-4 border-l-blue-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 Contratos do Colaborador
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Gerencie os contratos em que este colaborador está envolvido
               </p>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
               {/* Seção de Adicionar Contrato */}
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <Label htmlFor="contracts" className="text-sm font-medium text-gray-700 mb-2 block">
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <Label htmlFor="contracts" className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">
                   Adicionar Novo Contrato
                 </Label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     id="contracts"
                     value={newContract}
@@ -477,10 +477,11 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                     variant="default"
                     onClick={addContract}
                     disabled={!newContract.trim() || formData.contracts.includes(newContract.trim())}
-                    className="px-4 bg-blue-600 hover:bg-blue-700"
+                    className="px-3 sm:px-4 bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar
+                    <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Adicionar</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 </div>
                 {newContract.trim() && formData.contracts.includes(newContract.trim()) && (
@@ -500,15 +501,15 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                       Contratos Ativos ({formData.contracts.length})
                     </h4>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                     {formData.contracts.map((contract, index) => (
                       <div
                         key={contract}
-                        className="group relative bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                        className="group relative bg-white border border-gray-200 rounded-lg p-2 sm:p-3 hover:border-blue-300 hover:shadow-md transition-all duration-200"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <h5 className="text-sm font-medium text-gray-900 truncate">
+                            <h5 className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                               {contract}
                             </h5>
                           </div>
@@ -516,7 +517,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                            className="h-5 w-5 sm:h-6 sm:w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600 cursor-pointer flex-shrink-0 ml-2"
                             onClick={() => removeContract(contract)}
                           >
                             <Trash2 className="h-3 w-3" />
@@ -536,23 +537,23 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
             </CardContent>
           </Card>
 
-          <div className="flex justify-between gap-2">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-2 px-3 sm:px-0">
             {isEditing && (
               <Button 
                 type="button" 
                 variant="destructive" 
                 onClick={handleDelete} 
-                className="cursor-pointer" 
+                className="cursor-pointer w-full sm:w-auto order-2 sm:order-1" 
                 disabled={loading}
               >
                 {loading ? "Excluindo..." : "Excluir Colaborador"}
               </Button>
             )}
-            <div className="flex gap-2 ml-auto">
-              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer w-full sm:w-auto" disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700 w-full sm:w-auto" disabled={loading}>
                 {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Colaborador")}
               </Button>
             </div>

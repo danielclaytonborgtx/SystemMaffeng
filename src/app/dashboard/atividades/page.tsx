@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Search, Filter, Calendar, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Search, Filter, Calendar, Loader2 } from "lucide-react"
 import { useEmployees, useEquipment, useVehicles, useEquipmentMovements, useVehicleMaintenances, useVehicleFuels } from "@/hooks"
 
 interface Activity {
@@ -30,7 +29,6 @@ export default function AtividadesPage() {
   const [actionFilter, setActionFilter] = useState("all")
   const [hasMore, setHasMore] = useState(true)
   const [lastDoc, setLastDoc] = useState<any>(null)
-  const router = useRouter()
 
   // Usar hooks padronizados
   const { data: employees, loading: employeesLoading } = useEmployees()
@@ -271,11 +269,7 @@ export default function AtividadesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={() => router.back()} className="cursor-pointer">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
+      <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Todas as Atividades</h1>
       </div>
 

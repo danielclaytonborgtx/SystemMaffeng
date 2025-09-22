@@ -218,6 +218,7 @@ export default function ColaboradoresPage() {
                 <TableRow>
                   <TableHead>Colaborador</TableHead>
                   <TableHead>Cargo</TableHead>
+                  <TableHead>Contratos Ativos</TableHead>
                   <TableHead>Departamento</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Data de Contratação</TableHead>
@@ -227,14 +228,14 @@ export default function ColaboradoresPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
                       <p className="text-muted-foreground">Carregando colaboradores...</p>
                     </TableCell>
                   </TableRow>
                 ) : filteredEmployees.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <p className="text-muted-foreground">Nenhum colaborador encontrado</p>
                     </TableCell>
                   </TableRow>
@@ -255,6 +256,19 @@ export default function ColaboradoresPage() {
                     </div>
                   </TableCell>
                   <TableCell>{employee.position}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      {employee.contracts && employee.contracts.length > 0 ? (
+                        employee.contracts.map((contract, index) => (
+                          <Badge key={index} variant="outline" className="text-xs w-fit">
+                            {contract}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Sem contratos</span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{employee.department}</TableCell>
                   <TableCell>{getStatusBadge(employee.status)}</TableCell>
                   <TableCell>{new Date(employee.created_at).toLocaleDateString('pt-BR')}</TableCell>
@@ -308,6 +322,17 @@ export default function ColaboradoresPage() {
                         {employee.code} • {employee.position}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">{employee.department}</div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {employee.contracts && employee.contracts.length > 0 ? (
+                          employee.contracts.map((contract, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {contract}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Sem contratos</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">

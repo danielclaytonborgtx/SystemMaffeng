@@ -251,7 +251,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto mx-2">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[90vw] sm:w-[90vw] sm:max-h-[90vh] sm:mx-0 sm:p-6 md:max-w-[80vw] md:w-[80vw] lg:max-w-[70vw] lg:w-[70vw]">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Veículo" : "Novo Veículo"}</DialogTitle>
           <DialogDescription>
@@ -261,31 +261,31 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
         {isEditing && vehicle && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+            <CardHeader className="px-3 sm:px-6">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <Car className="h-6 w-6 text-blue-600" />
-                  <div>
-                    <div className="text-xl font-bold">{vehicle.plate}</div>
-                    <div className="text-sm text-muted-foreground">{vehicle.model} - {vehicle.brand}</div>
+                  <Car className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                  <div className="min-w-0">
+                    <div className="text-lg sm:text-xl font-bold truncate">{vehicle.plate}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground truncate">{vehicle.model} - {vehicle.brand}</div>
                   </div>
                 </div>
                 <Badge
                   variant={vehicle.status === "active" ? "secondary" : "outline"}
-                  className={
+                  className={`self-start sm:self-auto ${
                     vehicle.status === "active"
                       ? "bg-green-100 text-green-800"
                       : vehicle.status === "maintenance"
                         ? "bg-yellow-100 text-yellow-800"
                         : "bg-red-100 text-red-800"
-                  }
+                  }`}
                 >
                   {mapStatusFromDB(vehicle.status)}
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+            <CardContent className="px-3 sm:px-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-sm">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Hash className="h-5 w-5 text-blue-600" />
@@ -363,10 +363,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Informações Básicas</CardTitle>
+              <CardHeader className="px-3 sm:px-6">
+                <CardTitle className="text-base sm:text-lg">Informações Básicas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 px-3 sm:px-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="plate" className="flex items-center gap-2">
@@ -464,10 +464,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Documentação</CardTitle>
+              <CardHeader className="px-3 sm:px-6">
+                <CardTitle className="text-base sm:text-lg">Documentação</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 px-3 sm:px-6">
                 <div className="space-y-2">
                   <Label htmlFor="chassisNumber">Número do Chassi</Label>
                   <Input
@@ -490,11 +490,13 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="insuranceExpiry" className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Vencimento do Seguro
+                    <Label htmlFor="insuranceExpiry" className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Vencimento do Seguro
+                      </div>
                       {isDateExpired(formData.insuranceExpiry) && (
-                        <Badge variant="destructive" className="ml-2">
+                        <Badge variant="destructive" className="w-fit">
                           <AlertCircle className="h-3 w-3 mr-1" />
                           Vencido
                         </Badge>
@@ -515,11 +517,13 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="licenseExpiry" className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Vencimento do Licenciamento
+                    <Label htmlFor="licenseExpiry" className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Vencimento do Licenciamento
+                      </div>
                       {isDateExpired(formData.licenseExpiry) && (
-                        <Badge variant="destructive" className="ml-2">
+                        <Badge variant="destructive" className="w-fit">
                           <AlertCircle className="h-3 w-3 mr-1" />
                           Vencido
                         </Badge>
@@ -545,11 +549,11 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações Técnicas e Operacionais</CardTitle>
+            <CardHeader className="px-3 sm:px-6">
+              <CardTitle className="text-base sm:text-lg">Informações Técnicas e Operacionais</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <CardContent className="space-y-4 px-3 sm:px-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fuelType">Tipo de Combustível</Label>
                   <Select
@@ -639,23 +643,23 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
             </CardContent>
           </Card>
 
-          <div className="flex justify-between gap-2">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-2 px-3 sm:px-0">
             {isEditing && (
               <Button 
                 type="button" 
                 variant="destructive" 
                 onClick={handleDelete} 
-                className="cursor-pointer" 
+                className="cursor-pointer w-full sm:w-auto order-2 sm:order-1" 
                 disabled={loading}
               >
                 {loading ? "Excluindo..." : "Excluir Veículo"}
               </Button>
             )}
-            <div className="flex gap-2 ml-auto">
-              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer w-full sm:w-auto" disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700 w-full sm:w-auto" disabled={loading}>
                 {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Veículo")}
               </Button>
             </div>

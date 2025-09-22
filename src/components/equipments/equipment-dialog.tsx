@@ -258,7 +258,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto mx-2">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[90vw] sm:w-[90vw] sm:max-h-[90vh] sm:mx-0 sm:p-6 md:max-w-[80vw] md:w-[80vw] lg:max-w-[70vw] lg:w-[70vw]">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Equipamento" : "Novo Equipamento"}</DialogTitle>
           <DialogDescription>
@@ -268,10 +268,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações Básicas</CardTitle>
+            <CardHeader className="px-3 sm:px-6">
+              <CardTitle className="text-base sm:text-lg">Informações Básicas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-3 sm:px-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="flex items-center gap-2">
@@ -375,10 +375,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações de Compra</CardTitle>
+            <CardHeader className="px-3 sm:px-6">
+              <CardTitle className="text-base sm:text-lg">Informações de Compra</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-3 sm:px-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="purchaseDate" className="flex items-center gap-2">
@@ -441,10 +441,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
 
           {isEditing && equipment && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Histórico de Movimentações</CardTitle>
+              <CardHeader className="px-3 sm:px-6">
+                <CardTitle className="text-base sm:text-lg">Histórico de Movimentações</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 sm:px-6">
                 {movementsLoading ? (
                   <p className="text-muted-foreground">Carregando histórico...</p>
                 ) : movements && movements.length > 0 ? (
@@ -454,21 +454,23 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                       const returned = movement.actual_return_date ? new Date(movement.actual_return_date) : null
 
                       return (
-                        <div key={movement.id} className="p-3 border rounded-lg">
+                        <div key={movement.id} className="p-2 sm:p-3 border rounded-lg">
                           {/* Cabeçalho: Badge + Funcionário + Projeto */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Badge variant={movement.actual_return_date ? "outline" : "secondary"}>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                              <Badge variant={movement.actual_return_date ? "outline" : "secondary"} className="w-fit">
                                 {movement.actual_return_date ? "Devolvido" : "Saída"}
                               </Badge>
-                              <span className="text-sm font-medium">{movement.employee_name}</span>
-                              <span className="text-xs text-muted-foreground">({movement.employee_code})</span>
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                <span className="text-xs sm:text-sm font-medium">{movement.employee_name}</span>
+                                <span className="text-xs text-muted-foreground">({movement.employee_code})</span>
+                              </div>
                             </div>
                             <span className="text-xs text-muted-foreground">Projeto: {movement.project}</span>
                           </div>
 
                           {/* Corpo: datas em colunas */}
-                          <div className="grid grid-cols-2 gap-4 mt-2 text-xs text-muted-foreground">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-2 text-xs text-muted-foreground">
                             <div>
                               <span className="font-medium">Saída:</span><br />
                               {created.toLocaleDateString('pt-BR')} às {created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -496,23 +498,23 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
             </Card>
           )}
 
-          <div className="flex justify-between gap-2">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-2 px-3 sm:px-0">
             {isEditing && (
               <Button 
                 type="button" 
                 variant="destructive" 
                 onClick={handleDelete} 
-                className="cursor-pointer" 
+                className="cursor-pointer w-full sm:w-auto order-2 sm:order-1" 
                 disabled={loading}
               >
                 {loading ? "Excluindo..." : "Excluir Equipamento"}
               </Button>
             )}
-            <div className="flex gap-2 ml-auto">
-              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer" disabled={loading}>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
+              <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer w-full sm:w-auto" disabled={loading}>
                 Cancelar
               </Button>
-              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700" disabled={loading}>
+              <Button type="submit" className="cursor-pointer bg-gray-800 text-white hover:bg-gray-700 w-full sm:w-auto" disabled={loading}>
                 {loading ? "Salvando..." : (isEditing ? "Salvar Alterações" : "Cadastrar Equipamento")}
               </Button>
             </div>
@@ -521,17 +523,19 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
 
         {/* Vídeo da câmera para leitura óptica */}
         {isScanningActive && (
-          <div className="mt-4 p-4 border rounded-lg bg-gray-50">
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm font-medium">Posicione o código na câmera</Label>
+          <div className="mt-4 p-3 sm:p-4 border rounded-lg bg-gray-50 mx-3 sm:mx-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+              <Label className="text-xs sm:text-sm font-medium">Posicione o código na câmera</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={stopScanning}
+                className="w-full sm:w-auto"
               >
-                <CameraOff className="h-4 w-4 mr-2" />
-                Fechar
+                <CameraOff className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Fechar</span>
+                <span className="sm:hidden">Fechar Câmera</span>
               </Button>
             </div>
             <div className="relative">
@@ -540,13 +544,13 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-64 object-cover rounded border"
+                className="w-full h-48 sm:h-64 object-cover rounded border"
               />
               <div className="absolute inset-0 border-2 border-red-500 rounded pointer-events-none">
-                <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-red-500"></div>
-                <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-red-500"></div>
-                <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-red-500"></div>
-                <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-red-500"></div>
+                <div className="absolute top-2 left-2 w-4 h-4 sm:w-6 sm:h-6 border-t-2 border-l-2 border-red-500"></div>
+                <div className="absolute top-2 right-2 w-4 h-4 sm:w-6 sm:h-6 border-t-2 border-r-2 border-red-500"></div>
+                <div className="absolute bottom-2 left-2 w-4 h-4 sm:w-6 sm:h-6 border-b-2 border-l-2 border-red-500"></div>
+                <div className="absolute bottom-2 right-2 w-4 h-4 sm:w-6 sm:h-6 border-b-2 border-r-2 border-red-500"></div>
               </div>
             </div>
           </div>

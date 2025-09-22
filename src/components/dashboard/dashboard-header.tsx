@@ -1,10 +1,11 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Bell, Settings, User, LogOut, Menu, LayoutDashboard, Package, Users, Truck, FileText } from "lucide-react"
+import { Bell, Settings, User, LogOut, Menu, LayoutDashboard, Package, Users, Truck, FileText, Activity, AlertTriangle } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { NotificationsDropdown } from "@/components/dashboard/notifications-dropdown"
+import { Logo } from "@/components/ui/logo"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -18,19 +19,29 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
-    name: "Equipamentos",
-    href: "/dashboard/equipamentos",
-    icon: Package,
-  },
-  {
     name: "Colaboradores",
     href: "/dashboard/colaboradores",
     icon: Users,
   },
   {
+    name: "Equipamentos",
+    href: "/dashboard/equipamentos",
+    icon: Package,
+  },
+  {
     name: "Veículos",
     href: "/dashboard/veiculos",
     icon: Truck,
+  },
+  {
+    name: "Atividades",
+    href: "/dashboard/atividades",
+    icon: Activity,
+  },
+  {
+    name: "Alertas",
+    href: "/dashboard/alertas",
+    icon: AlertTriangle,
   },
   {
     name: "Relatórios",
@@ -72,7 +83,10 @@ export function DashboardHeader() {
                 </SheetHeader>
                 <div className="flex h-full flex-col">
                   <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-                    <span className="text-sm font-medium text-sidebar-foreground">Engenharia e Manutenção</span>
+                    <div className="flex flex-col">
+                      <Logo className="[&>img]:h-8 [&>img]:w-8" />
+                      <span className="text-xs text-muted-foreground mt-1">Engenharia e Manutenção</span>
+                    </div>
                   </div>
                   <nav className="flex-1 space-y-1 p-2">
                     {navigation.map((item) => {
@@ -83,13 +97,16 @@ export function DashboardHeader() {
                           href={item.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg",
                             isActive
-                              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                              ? "bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 shadow-lg scale-105"
+                              : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:text-gray-700 hover:shadow-md",
                           )}
                         >
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <item.icon className={cn(
+                            "h-5 w-5 flex-shrink-0 transition-colors duration-300",
+                            isActive ? "text-gray-800" : "text-sidebar-foreground group-hover:text-gray-600"
+                          )} />
                           <span>{item.name}</span>
                         </Link>
                       )
