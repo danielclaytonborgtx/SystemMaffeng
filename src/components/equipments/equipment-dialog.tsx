@@ -258,7 +258,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[90vw] sm:w-[90vw] sm:max-h-[90vh] sm:mx-0 sm:p-6 md:max-w-[80vw] md:w-[80vw] lg:max-w-[70vw] lg:w-[70vw]">
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[95vw] sm:w-[95vw] sm:max-h-[95vh] sm:mx-0 sm:p-6">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Detalhes do Equipamento" : "Novo Equipamento"}</DialogTitle>
           <DialogDescription>

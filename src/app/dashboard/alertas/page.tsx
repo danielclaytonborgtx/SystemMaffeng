@@ -3,9 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Clock, Wrench, Shield, FileText, Users, RefreshCw, CheckCircle, Loader2 } from "lucide-react"
+import { AlertTriangle, Clock, Wrench, Shield, FileText, Users, RefreshCw, CheckCircle, Loader2, Package } from "lucide-react"
 import { useMemo, useState } from "react"
-import { useEmployees, useEquipment, useVehicles } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useEquipmentMovements } from "@/hooks"
 import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
 import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { Vehicle } from "@/lib/supabase"
@@ -29,14 +29,15 @@ export default function AlertasPage() {
   const { data: employees, loading: employeesLoading, refetch: refetchEmployees } = useEmployees()
   const { data: equipment, loading: equipmentLoading, refetch: refetchEquipment } = useEquipment()
   const { data: vehicles, loading: vehiclesLoading, refetch: refetchVehicles } = useVehicles()
+  const { data: movements, loading: movementsLoading, refetch: refetchMovements } = useEquipmentMovements()
 
   // Loading geral - qualquer hook carregando
-  const loading = employeesLoading || equipmentLoading || vehiclesLoading
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading || movementsLoading
 
   const handleRefresh = async () => {
     setRefreshing(true)
     try {
-      await Promise.all([refetchEmployees(), refetchEquipment(), refetchVehicles()])
+      await Promise.all([refetchEmployees(), refetchEquipment(), refetchVehicles(), refetchMovements()])
     } finally {
       setRefreshing(false)
     }
@@ -205,6 +206,39 @@ export default function AlertasPage() {
         time: "Atenção",
       })
     }
+
+    // Alertas de devolução de equipamentos
+    movements.forEach(movement => {
+      // Verificar apenas movimentações de saída que ainda não foram devolvidas
+      if (movement.type === 'out' && !movement.actual_return_date && movement.expected_return_date) {
+        const expectedReturnDate = new Date(movement.expected_return_date)
+        const daysUntilReturn = Math.ceil((expectedReturnDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+        
+        // Alerta 5 dias antes da data prevista
+        if (daysUntilReturn <= 5 && daysUntilReturn >= 0) {
+          alertsList.push({
+            id: `equipment-return-${movement.id}`,
+            type: "warning",
+            category: "equipamento",
+            icon: Package,
+            title: "Devolução de Equipamento Próxima",
+            description: `${movement.equipment_name} (${movement.equipment_code}) - Devolução prevista em ${daysUntilReturn} dias - Projeto: ${movement.project}`,
+            time: "Atenção",
+          })
+        } else if (daysUntilReturn < 0) {
+          // Alerta de devolução em atraso
+          alertsList.push({
+            id: `equipment-return-overdue-${movement.id}`,
+            type: "urgent",
+            category: "equipamento",
+            icon: AlertTriangle,
+            title: "Devolução de Equipamento em Atraso",
+            description: `${movement.equipment_name} (${movement.equipment_code}) - Devolução em atraso há ${Math.abs(daysUntilReturn)} dias - Projeto: ${movement.project}`,
+            time: "Urgente",
+          })
+        }
+      }
+    })
     
     // Alertas de colaboradores em férias
     const vacationEmployees = employees.filter(emp => emp.status === 'vacation')
@@ -230,7 +264,7 @@ export default function AlertasPage() {
     console.log('Alertas:', sortedAlerts)
     
     return sortedAlerts
-  }, [employees, equipment, vehicles])
+  }, [employees, equipment, vehicles, movements])
 
   const getAlertBadge = (type: string) => {
     switch (type) {

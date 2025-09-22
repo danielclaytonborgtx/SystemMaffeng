@@ -258,11 +258,17 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {equipment.assigned_to && (
-              <p className="text-sm text-muted-foreground">
-                Atualmente com: <span className="font-medium">{equipment.assigned_to}</span>
-              </p>
-            )}
+            {equipment.assigned_to && (() => {
+              const assignedEmployee = employees?.find(emp => emp.id === equipment.assigned_to)
+              return (
+                <p className="text-sm text-muted-foreground">
+                  Atualmente com: <span className="font-medium">{assignedEmployee?.name || equipment.assigned_to}</span>
+                  {assignedEmployee?.code && (
+                    <span className="text-xs ml-1">({assignedEmployee.code})</span>
+                  )}
+                </p>
+              )
+            })()}
           </CardContent>
         </Card>
 
