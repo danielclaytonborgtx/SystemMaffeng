@@ -275,7 +275,7 @@ export default function ColaboradoresPage() {
                   <TableCell>{getStatusBadge(employee.status)}</TableCell>
                   <TableCell>{new Date(employee.created_at).toLocaleDateString('pt-BR')}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -353,7 +353,7 @@ export default function ColaboradoresPage() {
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     {getStatusBadge(employee.status)}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"

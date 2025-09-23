@@ -253,9 +253,9 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[95vw] sm:w-[95vw] sm:max-h-[95vh] sm:mx-0 sm:p-6">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Detalhes do Veículo" : "Novo Veículo"}</DialogTitle>
+          <DialogTitle>{isEditing ? "Editar Veículo" : "Novo Veículo"}</DialogTitle>
           <DialogDescription>
-            {isEditing ? "Visualize e edite as informações do veículo" : "Cadastre um novo veículo na frota"}
+            {isEditing ? "Edite as informações do veículo" : "Cadastre um novo veículo na frota"}
           </DialogDescription>
         </DialogHeader>
 

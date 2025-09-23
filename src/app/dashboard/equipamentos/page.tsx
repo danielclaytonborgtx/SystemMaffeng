@@ -3,13 +3,14 @@
 import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, ArrowUpDown, Loader2, Package, Hash, Wrench, MapPin, Settings } from "lucide-react"
+import { Plus, Search, Eye, ArrowUpDown, Loader2, Package, Hash, Wrench, MapPin, Settings, Pencil } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EquipmentDialog } from "@/components/equipments/equipment-dialog"
 import { MovementDialog } from "@/components/equipments/movement-dialog"
+import { EquipmentViewDialog } from "@/components/equipments/equipment-view-dialog"
 import { useEquipment, useEmployees } from "@/hooks"
 import { useEquipmentOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
@@ -21,6 +22,7 @@ export default function EquipamentosPage() {
   const [typeFilter, setTypeFilter] = useState("all")
   const [isEquipmentDialogOpen, setIsEquipmentDialogOpen] = useState(false)
   const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
 
   const { data: equipments, loading, error, refetch } = useEquipment()
@@ -230,26 +232,25 @@ export default function EquipamentosPage() {
               <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-20">Código</TableHead>
-                <TableHead className="w-40">Nome</TableHead>
-                <TableHead className="w-28">Categoria</TableHead>
-                <TableHead className="w-20">Status</TableHead>
-                <TableHead className="w-28">Localização</TableHead>
-                <TableHead className="w-28">Responsável</TableHead>
-                <TableHead className="w-16">Ações</TableHead>
+                <TableHead className="w-24">Código</TableHead>
+                <TableHead className="w-48">Nome</TableHead>
+                <TableHead className="w-32">Categoria</TableHead>
+                <TableHead className="w-24">Status</TableHead>
+                <TableHead className="w-32">Responsável</TableHead>
+                <TableHead className="w-20">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
                     <p className="text-muted-foreground">Carregando equipamentos...</p>
                   </TableCell>
                 </TableRow>
               ) : filteredEquipments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <p className="text-muted-foreground">Nenhum equipamento encontrado</p>
                   </TableCell>
                 </TableRow>
@@ -260,10 +261,9 @@ export default function EquipamentosPage() {
                   <TableCell className="font-medium text-sm truncate px-2">{equipment.name}</TableCell>
                   <TableCell className="text-xs px-2">{equipment.category}</TableCell>
                   <TableCell className="px-2">{getStatusBadge(equipment.status)}</TableCell>
-                  <TableCell className="text-xs px-2">{equipment.location}</TableCell>
                   <TableCell className="text-xs px-2">{getEmployeeName(equipment.assigned_to)}</TableCell>
                   <TableCell className="px-2">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -272,8 +272,21 @@ export default function EquipamentosPage() {
                           setIsEquipmentDialogOpen(true)
                         }}
                         className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 h-6 w-6 p-0"
+                        title="Editar equipamento"
                       >
-                        <Eye className="h-3 w-3 text-blue-600" />
+                        <Pencil className="h-3 w-3 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedEquipment(equipment)
+                          setIsViewDialogOpen(true)
+                        }}
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 h-6 w-6 p-0"
+                        title="Visualizar equipamento"
+                      >
+                        <Eye className="h-3 w-3 text-purple-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -283,6 +296,7 @@ export default function EquipamentosPage() {
                           setIsMovementDialogOpen(true)
                         }}
                         className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 h-6 w-6 p-0"
+                        title="Histórico de movimentação"
                       >
                         <ArrowUpDown className="h-3 w-3 text-green-600" />
                       </Button>
@@ -327,8 +341,21 @@ export default function EquipamentosPage() {
                           setIsEquipmentDialogOpen(true)
                         }}
                         className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Editar equipamento"
                       >
-                        <Eye className="h-4 w-4 text-blue-600" />
+                        <Pencil className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEquipment(equipment)
+                          setIsViewDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Visualizar equipamento"
+                      >
+                        <Eye className="h-4 w-4 text-purple-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -338,6 +365,7 @@ export default function EquipamentosPage() {
                           setIsMovementDialogOpen(true)
                         }}
                         className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Histórico de movimentação"
                       >
                         <ArrowUpDown className="h-4 w-4 text-green-600" />
                       </Button>
@@ -379,6 +407,16 @@ export default function EquipamentosPage() {
         }}
         onSuccess={() => {
           refetch() // Recarregar a lista de equipamentos
+        }}
+      />
+
+      <EquipmentViewDialog
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        equipment={selectedEquipment}
+        onClose={() => {
+          setSelectedEquipment(null)
+          setIsViewDialogOpen(false)
         }}
       />
     </div>

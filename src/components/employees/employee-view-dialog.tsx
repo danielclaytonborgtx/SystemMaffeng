@@ -88,20 +88,20 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <Hash className="h-4 w-4" />
+                      <Hash className="h-4 w-4 text-blue-600" />
                       <span>Código: {employee.code}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4" />
+                      <Briefcase className="h-4 w-4 text-green-600" />
                       <span>{employee.position}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4" />
+                      <Building className="h-4 w-4 text-purple-600" />
                       <span>{employee.department}</span>
                     </div>
                     {employee.email && (
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
+                        <Mail className="h-4 w-4 text-orange-600" />
                         <span>{employee.email}</span>
                       </div>
                     )}
@@ -123,7 +123,7 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {employee.phone && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <Phone className="h-4 w-4 text-green-600" />
                     <div>
                       <p className="text-sm font-medium">Telefone</p>
                       <p className="text-sm text-muted-foreground">{employee.phone}</p>
@@ -132,7 +132,7 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
                 )}
                 {employee.cpf && (
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <FileText className="h-4 w-4 text-blue-600" />
                     <div>
                       <p className="text-sm font-medium">CPF</p>
                       <p className="text-sm text-muted-foreground">{employee.cpf}</p>
@@ -141,7 +141,7 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
                 )}
                 {employee.rg && (
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <FileText className="h-4 w-4 text-purple-600" />
                     <div>
                       <p className="text-sm font-medium">RG</p>
                       <p className="text-sm text-muted-foreground">{employee.rg}</p>
@@ -150,7 +150,7 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
                 )}
                 {employee.hire_date && (
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Calendar className="h-4 w-4 text-orange-600" />
                     <div>
                       <p className="text-sm font-medium">Data de Contratação</p>
                       <p className="text-sm text-muted-foreground">
@@ -162,7 +162,7 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
               </div>
               {employee.address && (
                 <div className="mt-4 flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <MapPin className="h-4 w-4 text-red-600 mt-1" />
                   <div>
                     <p className="text-sm font-medium">Endereço</p>
                     <p className="text-sm text-muted-foreground">{employee.address}</p>
@@ -176,10 +176,10 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
           {employee.contracts && employee.contracts.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Contratos Ativos
-                </CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Contratos Ativos
+              </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -197,7 +197,7 @@ export function EmployeeViewDialog({ open, onOpenChange, employee, onClose }: Em
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+                <Calendar className="h-5 w-5 text-green-600" />
                 Informações do Sistema
               </CardTitle>
             </CardHeader>

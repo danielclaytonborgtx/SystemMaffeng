@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, Wrench, Fuel, AlertTriangle, Loader2 } from "lucide-react"
+import { Plus, Search, Eye, Wrench, Fuel, AlertTriangle, Loader2, Pencil } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,6 +12,7 @@ import { VehicleDialog } from "@/components/vehicles/vehicle-dialog"
 import { MaintenanceDialog } from "@/components/vehicles/maintenance-dialog"
 import { FuelDialog } from "@/components/vehicles/fuel-dialog"
 import { VehicleHistoryDialog } from "@/components/vehicles/vehicle-history-dialog"
+import { VehicleViewDialog } from "@/components/vehicles/vehicle-view-dialog"
 import { MaintenanceInfoDisplay } from "@/components/vehicles/maintenance-info-display"
 import { useVehicles, useVehicleScheduledMaintenances } from "@/hooks"
 import { Vehicle } from "@/lib/supabase"
@@ -24,6 +25,7 @@ export default function VeiculosPage() {
   const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false)
   const [isFuelDialogOpen, setIsFuelDialogOpen] = useState(false)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
 
   const { data: vehicles, loading, error, refetch } = useVehicles()
@@ -301,8 +303,21 @@ export default function VeiculosPage() {
                           setIsVehicleDialogOpen(true)
                         }}
                         className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Editar veículo"
                       >
-                        <Eye className="h-4 w-4 text-blue-600" />
+                        <Pencil className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedVehicle(vehicle)
+                          setIsViewDialogOpen(true)
+                        }}
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Visualizar veículo"
+                      >
+                        <Eye className="h-4 w-4 text-purple-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -365,8 +380,21 @@ export default function VeiculosPage() {
                           setIsVehicleDialogOpen(true)
                         }}
                         className="cursor-pointer h-7 w-7 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Editar veículo"
                       >
-                        <Eye className="h-3 w-3 text-blue-600" />
+                        <Pencil className="h-3 w-3 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedVehicle(vehicle)
+                          setIsViewDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-7 w-7 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Visualizar veículo"
+                      >
+                        <Eye className="h-3 w-3 text-purple-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -466,6 +494,16 @@ export default function VeiculosPage() {
         onClose={() => {
           setSelectedVehicle(null)
           setIsHistoryDialogOpen(false)
+        }}
+      />
+
+      <VehicleViewDialog
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        vehicle={selectedVehicle}
+        onClose={() => {
+          setSelectedVehicle(null)
+          setIsViewDialogOpen(false)
         }}
       />
     </div>
