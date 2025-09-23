@@ -13,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useEquipmentOperations, useEquipmentMovements, useBarcodeReader } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
-import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, Camera, CameraOff } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, Camera, CameraOff, Upload, X } from "lucide-react"
 
 interface EquipmentDialogProps {
   open: boolean
@@ -103,6 +104,83 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
     supplier: "",
     invoiceNumber: "",
   })
+  
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null)
+
+  // Função para lidar com upload de arquivo
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Verificar se é uma imagem ou PDF
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
+      if (allowedTypes.includes(file.type)) {
+        setInvoiceFile(file)
+        toast({
+          title: "Arquivo selecionado",
+          description: `${file.name} foi selecionado com sucesso!`,
+        })
+      } else {
+        toast({
+          title: "Tipo de arquivo inválido",
+          description: "Por favor, selecione apenas imagens (JPG, PNG) ou PDF.",
+          variant: "destructive",
+        })
+      }
+    }
+  }
+
+  // Função para remover arquivo
+  const removeFile = () => {
+    setInvoiceFile(null)
+    // Resetar o input file
+    const fileInput = document.getElementById('invoiceFile') as HTMLInputElement
+    if (fileInput) fileInput.value = ''
+  }
+
+  // Função para baixar arquivo atual
+  const handleDownloadCurrentFile = async (filePath: string) => {
+    try {
+      console.log('Baixando arquivo atual:', filePath)
+      
+      // Baixar arquivo do Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('equipment-invoices')
+        .download(filePath)
+      
+      if (error) {
+        console.error('Erro ao baixar arquivo:', error)
+        toast({
+          title: "Erro no download",
+          description: "Não foi possível baixar o arquivo da nota fiscal.",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      // Criar URL para download
+      const url = URL.createObjectURL(data)
+      
+      // Criar link temporário para download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filePath.split('/').pop() || 'arquivo'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Limpar URL
+      URL.revokeObjectURL(url)
+      
+      console.log('Arquivo baixado com sucesso!')
+    } catch (error) {
+      console.error('Erro ao processar download:', error)
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar o arquivo.",
+        variant: "destructive",
+      })
+    }
+  }
 
   // Hook para leitura óptica
   const {
@@ -154,6 +232,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         supplier: "",
         invoiceNumber: "",
       })
+      setInvoiceFile(null) // Resetar arquivo também
     }
   }, [equipment, open]) // Adicionar 'open' como dependência para resetar quando o dialog abre
 
@@ -184,6 +263,48 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
       }
       if (formData.invoiceNumber) {
         equipmentData.invoice_number = formData.invoiceNumber
+      }
+      
+      // Adicionar arquivo da nota fiscal se existir
+      if (invoiceFile) {
+        try {
+          // Criar nome único para o arquivo
+          const fileExtension = invoiceFile.name.split('.').pop()
+          const uniqueFileName = `invoice_${equipment?.id || 'new'}_${Date.now()}.${fileExtension}`
+          
+          console.log('Iniciando upload do arquivo:', {
+            fileName: uniqueFileName,
+            originalName: invoiceFile.name,
+            size: invoiceFile.size,
+            type: invoiceFile.type
+          })
+          
+          // Upload do arquivo para Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('equipment-invoices')
+            .upload(uniqueFileName, invoiceFile)
+          
+          console.log('Resultado do upload:', { uploadData, uploadError })
+          
+          if (uploadError) {
+            console.error('Erro ao fazer upload do arquivo:', uploadError)
+            toast({
+              title: "Erro no upload",
+              description: "Não foi possível salvar o arquivo da nota fiscal.",
+              variant: "destructive",
+            })
+          } else {
+            console.log('Arquivo salvo com sucesso:', uploadData.path)
+            equipmentData.invoice_file = uploadData.path // Caminho do arquivo no storage
+          }
+        } catch (error) {
+          console.error('Erro ao processar arquivo:', error)
+          toast({
+            title: "Erro no arquivo",
+            description: "Não foi possível processar o arquivo da nota fiscal.",
+            variant: "destructive",
+          })
+        }
       }
 
       if (equipment) {
@@ -407,6 +528,86 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                     onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
                     placeholder="Ex: NF-123456"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invoiceFile">Anexar Nota Fiscal</Label>
+                  
+                  {/* Input de arquivo sempre presente */}
+                  <input
+                    id="invoiceFile"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  
+                  {/* Arquivo atual (se existir e não há novo arquivo) */}
+                  {equipment?.invoice_file && !invoiceFile && (
+                    <div className="p-3 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm text-gray-700 truncate">{equipment.invoice_file}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadCurrentFile(equipment.invoice_file)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            <FileText className="h-3 w-3 mr-1" />
+                            Baixar
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => document.getElementById('invoiceFile')?.click()}
+                            className="h-6 px-2 text-xs"
+                          >
+                            <Upload className="h-3 w-3 mr-1" />
+                            Trocar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Novo arquivo selecionado */}
+                  {invoiceFile && (
+                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-green-600" />
+                          <span className="text-sm text-green-700">{invoiceFile.name}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeFile}
+                          className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Botão para selecionar arquivo (se não há arquivo atual) */}
+                  {!equipment?.invoice_file && !invoiceFile && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('invoiceFile')?.click()}
+                      className="flex items-center gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Selecionar Arquivo
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
