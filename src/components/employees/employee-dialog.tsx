@@ -234,9 +234,9 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[95vw] sm:w-[95vw] sm:max-h-[95vh] sm:mx-0 sm:p-6">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Detalhes do Colaborador" : "Novo Colaborador"}</DialogTitle>
+          <DialogTitle>{isEditing ? "Editar Colaborador" : "Novo Colaborador"}</DialogTitle>
           <DialogDescription>
-            {isEditing ? "Visualize e edite as informações do colaborador" : "Cadastre um novo colaborador no sistema"}
+            {isEditing ? "Edite as informações do colaborador" : "Cadastre um novo colaborador no sistema"}
           </DialogDescription>
         </DialogHeader>
 

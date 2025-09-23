@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Eye, History, Loader2, User, Hash, Mail, Phone, MapPin, Calendar, Building, Briefcase } from "lucide-react"
+import { Plus, Search, Eye, History, Loader2, User, Hash, Mail, Phone, MapPin, Calendar, Building, Briefcase, Pencil } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EmployeeDialog } from "@/components/employees/employee-dialog"
 import { EmployeeHistoryDialog } from "@/components/employees/employee-history-dialog"
+import { EmployeeViewDialog } from "@/components/employees/employee-view-dialog"
 import { useEmployees } from "@/hooks"
 import { Employee } from "@/lib/supabase"
 
@@ -20,6 +21,7 @@ export default function ColaboradoresPage() {
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
 
   const { data: employees, loading, error, refetch } = useEmployees()
@@ -259,7 +261,7 @@ export default function ColaboradoresPage() {
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       {employee.contracts && employee.contracts.length > 0 ? (
-                        employee.contracts.map((contract, index) => (
+                        employee.contracts.map((contract: string, index: number) => (
                           <Badge key={index} variant="outline" className="text-xs w-fit">
                             {contract}
                           </Badge>
@@ -282,8 +284,21 @@ export default function ColaboradoresPage() {
                           setIsEmployeeDialogOpen(true)
                         }}
                         className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Editar colaborador"
                       >
-                        <Eye className="h-4 w-4 text-blue-600" />
+                        <Pencil className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEmployee(employee)
+                          setIsViewDialogOpen(true)
+                        }}
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Visualizar colaborador"
+                      >
+                        <Eye className="h-4 w-4 text-purple-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -293,6 +308,7 @@ export default function ColaboradoresPage() {
                           setIsHistoryDialogOpen(true)
                         }}
                         className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Histórico do colaborador"
                       >
                         <History className="h-4 w-4 text-green-600" />
                       </Button>
@@ -324,7 +340,7 @@ export default function ColaboradoresPage() {
                       <div className="text-xs text-muted-foreground truncate">{employee.department}</div>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {employee.contracts && employee.contracts.length > 0 ? (
-                          employee.contracts.map((contract, index) => (
+                          employee.contracts.map((contract: string, index: number) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {contract}
                             </Badge>
@@ -346,8 +362,21 @@ export default function ColaboradoresPage() {
                           setIsEmployeeDialogOpen(true)
                         }}
                         className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Editar colaborador"
                       >
-                        <Eye className="h-4 w-4 text-blue-600" />
+                        <Pencil className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEmployee(employee)
+                          setIsViewDialogOpen(true)
+                        }}
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Visualizar colaborador"
+                      >
+                        <Eye className="h-4 w-4 text-purple-600" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -357,6 +386,7 @@ export default function ColaboradoresPage() {
                           setIsHistoryDialogOpen(true)
                         }}
                         className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Histórico do colaborador"
                       >
                         <History className="h-4 w-4 text-green-600" />
                       </Button>
@@ -394,6 +424,16 @@ export default function ColaboradoresPage() {
         onClose={() => {
           setSelectedEmployee(null)
           setIsHistoryDialogOpen(false)
+        }}
+      />
+
+      <EmployeeViewDialog
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        employee={selectedEmployee}
+        onClose={() => {
+          setSelectedEmployee(null)
+          setIsViewDialogOpen(false)
         }}
       />
     </div>
