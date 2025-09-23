@@ -327,6 +327,7 @@ export default function VeiculosPage() {
                           setIsMaintenanceDialogOpen(true)
                         }}
                         className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Registrar manutenção"
                       >
                         <Wrench className="h-4 w-4 text-yellow-600" />
                       </Button>
@@ -338,6 +339,7 @@ export default function VeiculosPage() {
                           setIsFuelDialogOpen(true)
                         }}
                         className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        title="Registrar abastecimento"
                       >
                         <Fuel className="h-4 w-4 text-green-600" />
                       </Button>
