@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, User, Building } from "lucide-react"
+import { useEquipmentMovements } from "@/hooks/use-supabase"
 
 interface EquipmentViewDialogProps {
   open: boolean
@@ -57,6 +58,8 @@ const formatDate = (dateString: string | null) => {
 }
 
 export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: EquipmentViewDialogProps) {
+  const { data: movements, loading: movementsLoading } = useEquipmentMovements(equipment?.id)
+  
   if (!equipment) return null
 
   return (
@@ -92,10 +95,6 @@ export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: 
                     <div className="flex items-center gap-2">
                       <Wrench className="h-4 w-4 text-green-600" />
                       <span>Categoria: {equipment.category}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-purple-600" />
-                      <span>Localização: {equipment.location}</span>
                     </div>
                     {equipment.assigned_to && (
                       <div className="flex items-center gap-2">
@@ -233,6 +232,89 @@ export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: 
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Histórico de Movimentações */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg">Histórico de Movimentações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {movementsLoading ? (
+                <p className="text-muted-foreground">Carregando histórico...</p>
+              ) : movements && movements.length > 0 ? (
+                <div className="space-y-3">
+                  {movements.slice(0, 5).map((movement: any) => {
+                    const created = new Date(movement.created_at)
+                    
+                    // Função para formatar data de devolução corretamente
+                    const formatReturnDate = (dateString: string) => {
+                      if (!dateString) return null
+                      
+                      // Se está no formato YYYY-MM-DD (dados antigos), usar horário padrão
+                      if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const [year, month, day] = dateString.split('-')
+                        // Para dados antigos, usar um horário padrão simples (17:00)
+                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 17, 0, 0)
+                      }
+                      // Se está no formato ISO completo (dados novos), usar diretamente
+                      return new Date(dateString)
+                    }
+                    
+                    const returned = formatReturnDate(movement.actual_return_date)
+
+                    return (
+                      <div key={movement.id} className="p-2 sm:p-3 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                        {/* Cabeçalho: Badge + Funcionário */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <Badge 
+                              variant={movement.actual_return_date ? "outline" : "secondary"} 
+                              className={`w-fit ${
+                                movement.actual_return_date 
+                                  ? "bg-green-100 text-green-800 border-green-200" 
+                                  : "bg-blue-100 text-blue-800 border-blue-200"
+                              }`}
+                            >
+                              {movement.actual_return_date ? "Devolvido" : "Saída"}
+                            </Badge>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                              <span className="text-xs sm:text-sm font-medium text-gray-800">{movement.employee_name}</span>
+                              <span className="text-xs text-gray-500">({movement.employee_code})</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Corpo: datas em colunas */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-2 text-xs">
+                          <div className="bg-orange-50 p-2 rounded border-l-4 border-orange-400">
+                            <span className="font-medium text-orange-800">Saída:</span><br />
+                            <span className="text-orange-700">
+                              {created.toLocaleDateString('pt-BR')} às {created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+
+                          {returned && (
+                            <div className="bg-green-50 p-2 rounded border-l-4 border-green-400">
+                              <span className="font-medium text-green-800">Devolução:</span><br />
+                              <span className="text-green-700">
+                                {returned.toLocaleDateString('pt-BR')} às {returned.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {movements.length > 5 && (
+                    <p className="text-sm text-muted-foreground text-center">E mais {movements.length - 5} movimentações...</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Nenhuma movimentação registrada</p>
+              )}
             </CardContent>
           </Card>
         </div>

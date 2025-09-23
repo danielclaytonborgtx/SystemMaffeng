@@ -102,7 +102,6 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
     purchaseDate: "",
     supplier: "",
     invoiceNumber: "",
-    location: "",
   })
 
   // Hook para leitura óptica
@@ -142,7 +141,6 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         purchaseDate: equipment.purchase_date || "",
         supplier: equipment.supplier || "",
         invoiceNumber: equipment.invoice_number || "",
-        location: equipment.location || "",
       })
     } else {
       // Resetar formulário para novo equipamento
@@ -155,7 +153,6 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         purchaseDate: "",
         supplier: "",
         invoiceNumber: "",
-        location: "",
       })
     }
   }, [equipment, open]) // Adicionar 'open' como dependência para resetar quando o dialog abre
@@ -170,7 +167,6 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         code: formData.code,
         category: formData.type,
         status: 'available' as const,
-        location: formData.location,
       }
 
       // Adicionar campos opcionais apenas se tiverem valor
@@ -412,102 +408,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                     placeholder="Ex: NF-123456"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-yellow-600" />
-                    Localização Atual
-                  </Label>
-                  <Select
-                    value={formData.location}
-                    onValueChange={(value) => setFormData({ ...formData, location: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a localização" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Almoxarifado">Almoxarifado</SelectItem>      
-                      <SelectItem value="Obra">Obra</SelectItem>
-                      <SelectItem value="Oficina">Oficina</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             </CardContent>
           </Card>
 
-          {isEditing && equipment && (
-            <Card>
-              <CardHeader className="px-3 sm:px-6">
-                <CardTitle className="text-base sm:text-lg">Histórico de Movimentações</CardTitle>
-              </CardHeader>
-              <CardContent className="px-3 sm:px-6">
-                {movementsLoading ? (
-                  <p className="text-muted-foreground">Carregando histórico...</p>
-                ) : movements && movements.length > 0 ? (
-                  <div className="space-y-3">
-                    {movements.slice(0, 5).map((movement: any) => {
-                      const created = new Date(movement.created_at)
-                      
-                      // Função para formatar data de devolução corretamente
-                      const formatReturnDate = (dateString: string) => {
-                        if (!dateString) return null
-                        
-                        // Se está no formato YYYY-MM-DD (dados antigos), usar horário padrão
-                        if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                          const [year, month, day] = dateString.split('-')
-                          // Para dados antigos, usar um horário padrão simples (17:00)
-                          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 17, 0, 0)
-                        }
-                        // Se está no formato ISO completo (dados novos), usar diretamente
-                        return new Date(dateString)
-                      }
-                      
-                      const returned = formatReturnDate(movement.actual_return_date)
-
-                      return (
-                        <div key={movement.id} className="p-2 sm:p-3 border rounded-lg">
-                          {/* Cabeçalho: Badge + Funcionário + Projeto */}
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                              <Badge variant={movement.actual_return_date ? "outline" : "secondary"} className="w-fit">
-                                {movement.actual_return_date ? "Devolvido" : "Saída"}
-                              </Badge>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <span className="text-xs sm:text-sm font-medium">{movement.employee_name}</span>
-                                <span className="text-xs text-muted-foreground">({movement.employee_code})</span>
-                              </div>
-                            </div>
-                            <span className="text-xs text-muted-foreground">Projeto: {movement.project}</span>
-                          </div>
-
-                          {/* Corpo: datas em colunas */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-2 text-xs text-muted-foreground">
-                            <div>
-                              <span className="font-medium">Saída:</span><br />
-                              {created.toLocaleDateString('pt-BR')} às {created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-
-                            {returned && (
-                              <div>
-                                <span className="font-medium">Devolução:</span><br />
-                                {returned.toLocaleDateString('pt-BR')} às {returned.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-
-                    {movements.length > 5 && (
-                      <p className="text-sm text-muted-foreground text-center">E mais {movements.length - 5} movimentações...</p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Nenhuma movimentação registrada</p>
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-2 px-3 sm:px-0">
             {isEditing && (

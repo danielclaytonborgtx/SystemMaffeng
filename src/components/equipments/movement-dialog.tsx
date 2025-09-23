@@ -37,7 +37,6 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
   const [movementType, setMovementType] = useState<"saida" | "devolucao">("saida")
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
   const [formData, setFormData] = useState({
-    project: "",
     expectedReturn: "",
     observations: "",
   })
@@ -109,7 +108,6 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         employee_name: responsibleEmployee.name,
         employee_code: responsibleEmployee.code,
         type: isReturn ? 'return' as const : 'out' as const,
-        project: formData.project,
       }
 
       // Adicionar campos opcionais apenas se tiverem valor
@@ -186,27 +184,18 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
       // Atualizar o status do equipamento
       const newStatus = isReturn ? 'available' : 'in_use'
       
-      console.log("Atualizando equipamento:", { id: equipment.id, status: newStatus, isReturn, project: formData.project })
+      console.log("Atualizando equipamento:", { id: equipment.id, status: newStatus, isReturn })
       
       // Preparar dados de atualização
       const updateData: any = {
         status: newStatus
       }
       
-      // Para saídas, adicionar assigned_to e atualizar localização
+      // Para saídas, adicionar assigned_to
       if (!isReturn) {
         updateData.assigned_to = responsibleEmployee.id
-        // Mapear projeto para localização
-        const projectLocationMap: { [key: string]: string } = {
-          'obra-central': 'Obra Central',
-          'obra-norte': 'Obra Norte', 
-          'obra-sul': 'Obra Sul',
-          'manutencao': 'Manutenção'
-        }
-        updateData.location = projectLocationMap[formData.project] || "Obra"
       } else {
-        // Para devoluções, voltar para almoxarifado e limpar responsável
-        updateData.location = "Almoxarifado"
+        // Para devoluções, limpar responsável
         updateData.assigned_to = null // Limpar o responsável
       }
       
@@ -253,7 +242,12 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Status Atual
-              <Badge variant={equipment.status === "available" ? "secondary" : "outline"}>
+              <Badge 
+                variant={equipment.status === "available" ? "secondary" : "outline"}
+                className={equipment.status === "available" ? "bg-green-100 text-green-800 border-green-200" : 
+                          equipment.status === "in_use" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                          equipment.status === "maintenance" ? "bg-red-100 text-red-800 border-red-200" : ""}
+              >
                 {equipment.status === "available" ? "Disponível" : 
                  equipment.status === "in_use" ? "Em Uso" : 
                  equipment.status === "maintenance" ? "Manutenção" : equipment.status}
@@ -295,25 +289,6 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="project" className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-yellow-600" />
-                      Localização
-                    </Label>
-                    <Select
-                      value={formData.project}
-                      onValueChange={(value) => setFormData({ ...formData, project: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a localização" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="almoxarifado">Almoxarifado</SelectItem>
-                        <SelectItem value="obra">Obra</SelectItem>
-                        <SelectItem value="manutencao">Manutenção</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="expectedReturn" className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-green-600" />

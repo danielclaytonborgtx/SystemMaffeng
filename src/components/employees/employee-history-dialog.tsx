@@ -160,21 +160,20 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                     <TableHead>Data Retirada</TableHead>
                     <TableHead>Data Devolução</TableHead>
                     <TableHead>Dias de Uso</TableHead>
-                    <TableHead>Localização</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
                         <p className="text-muted-foreground">Carregando histórico...</p>
                       </TableCell>
                     </TableRow>
                   ) : error ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <p className="text-red-500">Erro ao carregar histórico</p>
                       </TableCell>
                     </TableRow>
@@ -191,13 +190,12 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                             : "-"
                           }
                         </TableCell>
-                        <TableCell>{movement.project}</TableCell>
                         <TableCell>{getStatusBadge(movement)}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <p className="text-muted-foreground">Nenhuma movimentação encontrada</p>
                       </TableCell>
                     </TableRow>
@@ -248,10 +246,6 @@ export function EmployeeHistoryDialog({ open, onOpenChange, employee, onClose }:
                               : "-"
                             }
                           </div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Localização:</span>
-                          <div className="font-medium truncate">{movement.project}</div>
                         </div>
                       </div>
                     </div>
