@@ -544,20 +544,20 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   {/* Arquivo atual (se existir e não há novo arquivo) */}
                   {equipment?.invoice_file && !invoiceFile && (
                     <div className="p-3 bg-gray-50 rounded-lg border">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-blue-600" />
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
                           <span className="text-sm text-gray-700 truncate">{equipment.invoice_file}</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             onClick={() => handleDownloadCurrentFile(equipment.invoice_file)}
-                            className="h-6 px-2 text-xs"
+                            className="h-7 px-3 text-xs flex-1 sm:flex-none cursor-pointer"
                           >
-                            <FileText className="h-3 w-3 mr-1" />
+                            <FileText className="h-3 w-3 mr-1 text-blue-600" />
                             Baixar
                           </Button>
                           <Button
@@ -565,9 +565,9 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                             variant="outline"
                             size="sm"
                             onClick={() => document.getElementById('invoiceFile')?.click()}
-                            className="h-6 px-2 text-xs"
+                            className="h-7 px-3 text-xs flex-1 sm:flex-none cursor-pointer"
                           >
-                            <Upload className="h-3 w-3 mr-1" />
+                            <Upload className="h-3 w-3 mr-1 text-orange-600" />
                             Trocar
                           </Button>
                         </div>
@@ -578,19 +578,20 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   {/* Novo arquivo selecionado */}
                   {invoiceFile && (
                     <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-green-600" />
-                          <span className="text-sm text-green-700">{invoiceFile.name}</span>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          <span className="text-sm text-green-700 truncate">{invoiceFile.name}</span>
                         </div>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={removeFile}
-                          className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                          className="h-7 px-3 text-xs text-red-600 hover:text-red-700 w-full sm:w-auto cursor-pointer"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-3 w-3 mr-1 text-red-600" />
+                          Remover
                         </Button>
                       </div>
                     </div>
@@ -602,9 +603,9 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                       type="button"
                       variant="outline"
                       onClick={() => document.getElementById('invoiceFile')?.click()}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 cursor-pointer"
                     >
-                      <Upload className="h-4 w-4" />
+                      <Upload className="h-4 w-4 text-blue-600" />
                       Selecionar Arquivo
                     </Button>
                   )}
