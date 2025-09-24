@@ -356,19 +356,13 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
                       <TableHead>Preço/L</TableHead>
                       <TableHead>Consumo</TableHead>
                       <TableHead>Posto</TableHead>
+                      <TableHead>Observações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {fuelHistory.map((record, index) => {
-                      // Usar consumo salvo no banco ou calcular se não existir
-                      let consumption = record.consumption || 0
-                      
-                      // Se não tem consumo salvo e não é o primeiro registro, calcular
-                      if (!record.consumption && index > 0) {
-                        const previousRecord = fuelHistory[index - 1]
-                        const kmTraveled = record.current_km - previousRecord.current_km
-                        consumption = kmTraveled > 0 ? kmTraveled / record.liters : 0
-                      }
+                      // Usar consumo salvo no banco
+                      const consumption = record.consumption || 0
                       
                       return (
                         <TableRow key={record.id}>
@@ -377,8 +371,14 @@ export function FuelDialog({ open, onOpenChange, vehicle, onClose, onSuccess }: 
                           <TableCell>{record.liters.toFixed(2)} L</TableCell>
                           <TableCell>R$ {record.cost.toFixed(2)}</TableCell>
                           <TableCell>R$ {record.price_per_liter.toFixed(3)}</TableCell>
-                          <TableCell>{consumption > 0 ? consumption.toFixed(2) : '-'} km/l</TableCell>
+                          <TableCell>
+                            {consumption > 0 ? `${consumption.toFixed(2)} km/l` : 
+                             index === fuelHistory.length - 1 ? 'N/A' : '-'}
+                          </TableCell>
                           <TableCell>{record.station}</TableCell>
+                          <TableCell className="max-w-32 truncate" title={record.observations || ''}>
+                            {record.observations || '-'}
+                          </TableCell>
                         </TableRow>
                       )
                     })}

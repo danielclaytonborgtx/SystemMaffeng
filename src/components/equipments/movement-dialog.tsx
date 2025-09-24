@@ -108,6 +108,7 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
         employee_name: responsibleEmployee.name,
         employee_code: responsibleEmployee.code,
         type: isReturn ? 'return' as const : 'out' as const,
+        project: 'Geral', // Valor padrão para o projeto
       }
 
       // Adicionar campos opcionais apenas se tiverem valor
