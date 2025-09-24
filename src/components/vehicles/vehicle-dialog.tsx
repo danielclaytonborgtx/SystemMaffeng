@@ -180,9 +180,8 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
       if (formData.engineCapacity) {
         vehicleData.engine_capacity = formData.engineCapacity
       }
-      if (selectedEmployee) {
-        vehicleData.assigned_to = selectedEmployee.id
-      }
+      // Sempre incluir assigned_to, mesmo se for null (para remover responsável)
+      vehicleData.assigned_to = selectedEmployee ? selectedEmployee.id : null
       if (formData.purchaseDate) {
         vehicleData.purchase_date = formData.purchaseDate
       }
