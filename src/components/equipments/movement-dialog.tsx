@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { EmployeeAutocomplete } from "@/components/ui/employee-autocomplete"
 import { useEquipmentMovementOperations, useEmployees, useEquipmentOperations, useEquipmentMovements } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
-import { User, Hash, Calendar, MapPin, FileText, CheckSquare } from "lucide-react"
+import { User, Hash, Calendar, MapPin, FileText, CheckSquare, Wrench } from "lucide-react"
 
 interface MovementDialogProps {
   open: boolean
@@ -228,6 +228,45 @@ export function MovementDialog({ open, onOpenChange, equipment, onClose, onSucce
   if (!equipment) return null
 
   const isReturn = equipment.status === "in_use"
+  const isMaintenance = equipment.status === "maintenance"
+
+  // Se o equipamento está em manutenção, mostrar mensagem e não permitir movimentação
+  if (isMaintenance) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Equipamento em Manutenção</DialogTitle>
+            <DialogDescription>
+              Este equipamento está atualmente em manutenção e não pode ser movimentado.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 rounded-full">
+                  <Wrench className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-yellow-800">Status: Manutenção</p>
+                  <p className="text-sm text-yellow-600">
+                    Para movimentar este equipamento, altere o status para "Disponível" nas configurações do equipamento.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button className="cursor-pointer" onClick={onClose} variant="outline">
+              Voltar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

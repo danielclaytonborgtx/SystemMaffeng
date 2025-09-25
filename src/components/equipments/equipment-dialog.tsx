@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { useEquipmentOperations, useEquipmentMovements, useBarcodeReader } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
-import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, Camera, CameraOff, Upload, X } from "lucide-react"
+import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, Camera, CameraOff, Upload, X, Activity } from "lucide-react"
 
 interface EquipmentDialogProps {
   open: boolean
@@ -103,6 +103,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
     purchaseDate: "",
     supplier: "",
     invoiceNumber: "",
+    status: "available",
   })
   
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null)
@@ -219,6 +220,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         purchaseDate: equipment.purchase_date || "",
         supplier: equipment.supplier || "",
         invoiceNumber: equipment.invoice_number || "",
+        status: equipment.status || "available",
       })
     } else {
       // Resetar formulário para novo equipamento
@@ -231,6 +233,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         purchaseDate: "",
         supplier: "",
         invoiceNumber: "",
+        status: "available",
       })
       setInvoiceFile(null) // Resetar arquivo também
     }
@@ -245,7 +248,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         name: formData.name,
         code: formData.code,
         category: formData.type,
-        status: 'available' as const,
+        status: formData.status,
       }
 
       // Adicionar campos opcionais apenas se tiverem valor
@@ -484,6 +487,48 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   rows={3}
                 />
               </div>
+
+              {isEditing && (
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-orange-600" />
+                    Status do Equipamento
+                  </Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(value) => setFormData({ ...formData, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          Disponível
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="in_use">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          Em Uso
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="maintenance">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                          Manutenção
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formData.status === 'maintenance' && (
+                    <p className="text-sm text-yellow-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                      ⚠️ Equipamento em manutenção não pode ser movimentado até voltar ao status "Disponível"
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 

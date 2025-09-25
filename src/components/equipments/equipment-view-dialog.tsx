@@ -228,7 +228,7 @@ export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: 
                         <p className="text-sm text-muted-foreground break-all">{equipment.invoice_file}</p>
                         <button
                           onClick={() => handleDownloadFile(equipment.invoice_file)}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors w-fit"
+                          className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors w-fit"
                         >
                           <FileText className="h-3 w-3" />
                           Baixar
