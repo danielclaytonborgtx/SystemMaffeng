@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { EmployeeAutocomplete } from "@/components/ui/employee-autocomplete"
 import { useVehicleOperations, useEmployees, useVehicleMaintenanceInfo } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
-import { Car, Hash, Calendar, MapPin, FileText, DollarSign, Wrench, Fuel, User, AlertTriangle, Shield, AlertCircle } from "lucide-react"
+import { Car, Hash, Calendar, MapPin, FileText, DollarSign, Wrench, Fuel, User, AlertTriangle, Shield, AlertCircle, CheckCircle, Clock, XCircle, CreditCard, Receipt, Settings, MessageSquare } from "lucide-react"
 
 interface VehicleDialogProps {
   open: boolean
@@ -248,6 +248,20 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
   const isEditing = !!vehicle
 
+  // Função para obter ícone de status
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "Ativo":
+        return <CheckCircle className="h-4 w-4 text-green-600" />
+      case "Manutenção":
+        return <Wrench className="h-4 w-4 text-yellow-600" />
+      case "Inativo":
+        return <XCircle className="h-4 w-4 text-red-600" />
+      default:
+        return <CheckCircle className="h-4 w-4 text-green-600" />
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[95vw] sm:w-[95vw] sm:max-h-[95vh] sm:mx-0 sm:p-6">
@@ -468,7 +482,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
               </CardHeader>
               <CardContent className="space-y-4 px-3 sm:px-6">
                 <div className="space-y-2">
-                  <Label htmlFor="chassisNumber">Número do Chassi</Label>
+                  <Label htmlFor="chassisNumber" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-blue-600" />
+                    Número do Chassi
+                  </Label>
                   <Input
                     id="chassisNumber"
                     value={formData.chassisNumber}
@@ -478,7 +495,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="renavam">RENAVAM</Label>
+                  <Label htmlFor="renavam" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-green-600" />
+                    RENAVAM
+                  </Label>
                   <Input
                     id="renavam"
                     value={formData.renavam}
@@ -491,7 +511,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   <div className="space-y-2">
                     <Label htmlFor="insuranceExpiry" className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                       <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
+                        <Shield className="h-4 w-4 text-blue-600" />
                         Vencimento do Seguro
                       </div>
                       {isDateExpired(formData.insuranceExpiry) && (
@@ -518,7 +538,7 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   <div className="space-y-2">
                     <Label htmlFor="licenseExpiry" className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-4 w-4 text-green-600" />
                         Vencimento do Licenciamento
                       </div>
                       {isDateExpired(formData.licenseExpiry) && (
@@ -554,7 +574,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
             <CardContent className="space-y-4 px-3 sm:px-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fuelType">Tipo de Combustível</Label>
+                  <Label htmlFor="fuelType" className="flex items-center gap-2">
+                    <Fuel className="h-4 w-4 text-orange-600" />
+                    Tipo de Combustível
+                  </Label>
                   <Select
                     value={formData.fuelType}
                     onValueChange={(value) => setFormData({ ...formData, fuelType: value })}
@@ -571,7 +594,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="engineCapacity">Cilindrada do Motor</Label>
+                  <Label htmlFor="engineCapacity" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4 text-purple-600" />
+                    Cilindrada do Motor
+                  </Label>
                   <Input
                     id="engineCapacity"
                     value={formData.engineCapacity}
@@ -589,7 +615,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="flex items-center gap-2">
+                    {getStatusIcon(formData.status)}
+                    Status
+                  </Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -598,9 +627,24 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Ativo">Ativo</SelectItem>
-                      <SelectItem value="Manutenção">Manutenção</SelectItem>
-                      <SelectItem value="Inativo">Inativo</SelectItem>
+                      <SelectItem value="Ativo">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          Ativo
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Manutenção">
+                        <div className="flex items-center gap-2">
+                          <Wrench className="h-4 w-4 text-yellow-600" />
+                          Manutenção
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Inativo">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4 text-red-600" />
+                          Inativo
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -608,7 +652,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="purchaseDate">Data de Aquisição</Label>
+                  <Label htmlFor="purchaseDate" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    Data de Aquisição
+                  </Label>
                   <Input
                     id="purchaseDate"
                     type="date"
@@ -617,7 +664,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="purchaseValue">Valor de Aquisição (R$)</Label>
+                  <Label htmlFor="purchaseValue" className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    Valor de Aquisição (R$)
+                  </Label>
                   <Input
                     id="purchaseValue"
                     type="number"
@@ -630,7 +680,10 @@ export function VehicleDialog({ open, onOpenChange, vehicle, onClose, onSuccess 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="observations">Observações</Label>
+                <Label htmlFor="observations" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-gray-600" />
+                  Observações
+                </Label>
                 <Textarea
                   id="observations"
                   value={formData.observations}

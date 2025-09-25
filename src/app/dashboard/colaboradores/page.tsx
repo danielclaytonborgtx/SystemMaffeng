@@ -218,13 +218,13 @@ export default function ColaboradoresPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Colaborador</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Contratos Ativos</TableHead>
-                  <TableHead>Departamento</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data de Contratação</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="w-[280px]">Colaborador</TableHead>
+                  <TableHead className="w-[180px]">Cargo</TableHead>
+                  <TableHead className="w-[160px]">Contratos Ativos</TableHead>
+                  <TableHead className="w-[140px]">Departamento</TableHead>
+                  <TableHead className="w-[120px]">Status</TableHead>
+                  <TableHead className="w-[140px]">Data de Contratação</TableHead>
+                  <TableHead className="w-[120px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -244,37 +244,56 @@ export default function ColaboradoresPage() {
                 ) : (
                   filteredEmployees.map((employee) => (
                 <TableRow key={employee.id}>
-                  <TableCell>
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-9 w-9 flex-shrink-0">
                         <AvatarImage src="/placeholder.svg" />
                         <AvatarFallback className="text-xs">{getInitials(employee.name)}</AvatarFallback>
                       </Avatar>
-                      <div>
-                        <div className="font-medium">{employee.name}</div>
-                        <div className="text-sm text-muted-foreground">{employee.email || 'Sem email'}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">{employee.name}</div>
+                        <div className="text-sm text-muted-foreground truncate">{employee.email || 'Sem email'}</div>
                         <div className="text-xs text-muted-foreground">Código: {employee.code}</div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{employee.position}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
+                    <div className="font-medium truncate" title={employee.position}>
+                      {employee.position}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4">
                     <div className="flex flex-col gap-1">
                       {employee.contracts && employee.contracts.length > 0 ? (
-                        employee.contracts.map((contract: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs w-fit">
+                        employee.contracts.slice(0, 2).map((contract: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs w-fit truncate">
                             {contract}
                           </Badge>
                         ))
                       ) : (
                         <span className="text-muted-foreground text-sm">Sem contratos</span>
                       )}
+                      {employee.contracts && employee.contracts.length > 2 && (
+                        <span className="text-xs text-muted-foreground">
+                          +{employee.contracts.length - 2} mais
+                        </span>
+                      )}
                     </div>
                   </TableCell>
-                  <TableCell>{employee.department}</TableCell>
-                  <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                  <TableCell>{new Date(employee.created_at).toLocaleDateString('pt-BR')}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
+                    <div className="truncate" title={employee.department}>
+                      {employee.department}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4">
+                    {getStatusBadge(employee.status)}
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <div className="text-sm">
+                      {new Date(employee.created_at).toLocaleDateString('pt-BR')}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
@@ -283,7 +302,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsEmployeeDialogOpen(true)
                         }}
-                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                         title="Editar colaborador"
                       >
                         <Pencil className="h-4 w-4 text-blue-600" />
@@ -295,7 +314,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsViewDialogOpen(true)
                         }}
-                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                         title="Visualizar colaborador"
                       >
                         <Eye className="h-4 w-4 text-purple-600" />
@@ -307,7 +326,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee)
                           setIsHistoryDialogOpen(true)
                         }}
-                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                         title="Histórico do colaborador"
                       >
                         <History className="h-4 w-4 text-green-600" />

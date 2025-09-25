@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { X, User, Mail, Phone, MapPin, Calendar, Building, Briefcase, FileText, Plus, Check, Trash2 } from "lucide-react"
+import { X, User, Mail, Phone, MapPin, Calendar, Building, Briefcase, FileText, Plus, Check, Trash2, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react"
 import { useEmployeeOperations } from "@/hooks"
 import { useToast } from "@/hooks/use-toast"
 
@@ -230,6 +230,22 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
     }
   }
 
+  // Função para obter ícone de status
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "Ativo":
+        return <CheckCircle className="h-4 w-4 text-green-600" />
+      case "Férias":
+        return <Clock className="h-4 w-4 text-blue-600" />
+      case "Afastado":
+        return <AlertCircle className="h-4 w-4 text-yellow-600" />
+      case "Inativo":
+        return <XCircle className="h-4 w-4 text-red-600" />
+      default:
+        return <CheckCircle className="h-4 w-4 text-green-600" />
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto overflow-x-hidden mx-auto p-2 sm:max-w-[95vw] sm:w-[95vw] sm:max-h-[95vh] sm:mx-0 sm:p-6">
@@ -427,7 +443,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="flex items-center gap-2">
+                    {getStatusIcon(formData.status)}
+                    Status
+                  </Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -436,10 +455,30 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                       <SelectValue placeholder="Selecione o status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Ativo">Ativo</SelectItem>
-                      <SelectItem value="Férias">Férias</SelectItem>
-                      <SelectItem value="Afastado">Afastado</SelectItem>
-                      <SelectItem value="Inativo">Inativo</SelectItem>
+                      <SelectItem value="Ativo">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          Ativo
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Férias">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-blue-600" />
+                          Férias
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Afastado">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-yellow-600" />
+                          Afastado
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Inativo">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4 text-red-600" />
+                          Inativo
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
