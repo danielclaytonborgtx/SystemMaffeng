@@ -249,6 +249,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
         code: formData.code,
         category: formData.type,
         status: formData.status,
+        location: "Almoxarifado", // Localização padrão
       }
 
       // Adicionar campos opcionais apenas se tiverem valor
@@ -487,6 +488,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   rows={3}
                 />
               </div>
+
 
               {isEditing && (
                 <div className="space-y-2">

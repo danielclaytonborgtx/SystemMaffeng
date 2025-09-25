@@ -84,6 +84,7 @@ export interface Database {
           purchase_date: string | null
           supplier: string | null
           invoice_number: string | null
+          invoice_file: string | null
           last_maintenance: string | null
           next_maintenance: string | null
           created_at: string
@@ -102,6 +103,7 @@ export interface Database {
           purchase_date?: string | null
           supplier?: string | null
           invoice_number?: string | null
+          invoice_file?: string | null
           last_maintenance?: string | null
           next_maintenance?: string | null
           created_at?: string
@@ -120,6 +122,7 @@ export interface Database {
           purchase_date?: string | null
           supplier?: string | null
           invoice_number?: string | null
+          invoice_file?: string | null
           last_maintenance?: string | null
           next_maintenance?: string | null
           created_at?: string
