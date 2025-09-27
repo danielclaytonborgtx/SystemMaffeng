@@ -1,16 +1,41 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Bell, Settings, User, LogOut, Menu, LayoutDashboard, Package, Users, Truck, FileText, Activity, AlertTriangle } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { NotificationsDropdown } from "@/components/dashboard/notifications-dropdown"
-import { Logo } from "@/components/ui/logo"
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { useAuth } from "@/contexts/auth-context"
+import { Button } from "@/components/ui/button";
+import {
+  Bell,
+  Settings,
+  User,
+  LogOut,
+  Menu,
+  LayoutDashboard,
+  Package,
+  Users,
+  Truck,
+  FileText,
+  Activity,
+  AlertTriangle,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { NotificationsDropdown } from "@/components/dashboard/notifications-dropdown";
+import { Logo } from "@/components/ui/logo";
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 
 const navigation = [
   {
@@ -53,44 +78,52 @@ const navigation = [
     href: "/dashboard/configuracoes",
     icon: Settings,
   },
-]
+];
 
 export function DashboardHeader() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { user, signOut } = useAuth()
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const handleSettingsClick = () => {
-    router.push("/dashboard/configuracoes")
-  }
+    router.push("/dashboard/configuracoes");
+  };
 
   return (
-    <header className="bg-sidebar text-sidebar-foreground border-b border-sidebar-border">
-      <div className="px-3 md:px-6 py-2">
+    <header className="bg-sidebar text-sidebar-foreground border-b border-sidebar-border flex-shrink-0">
+      <div className="px-2 sm:px-3 md:px-6 py-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer"
+                >
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0">
                 <SheetHeader className="sr-only">
                   <SheetTitle>Menu de Navegação</SheetTitle>
-                  <SheetDescription>Navegue pelas seções do sistema</SheetDescription>
+                  <SheetDescription>
+                    Navegue pelas seções do sistema
+                  </SheetDescription>
                 </SheetHeader>
                 <div className="flex h-full flex-col">
                   <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
                     <div className="flex flex-col">
                       <Logo className="[&>img]:h-8 [&>img]:w-8" />
-                      <span className="text-xs text-muted-foreground mt-1">Engenharia e Manutenção</span>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        Engenharia e Manutenção
+                      </span>
                     </div>
                   </div>
                   <nav className="flex-1 space-y-1 p-2">
                     {navigation.map((item) => {
-                      const isActive = pathname === item.href
+                      const isActive = pathname === item.href;
                       return (
                         <Link
                           key={item.name}
@@ -100,16 +133,20 @@ export function DashboardHeader() {
                             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg",
                             isActive
                               ? "bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 shadow-lg scale-105"
-                              : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:text-gray-700 hover:shadow-md",
+                              : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:text-gray-700 hover:shadow-md"
                           )}
                         >
-                          <item.icon className={cn(
-                            "h-5 w-5 flex-shrink-0 transition-colors duration-300",
-                            isActive ? "text-gray-800" : "text-sidebar-foreground group-hover:text-gray-600"
-                          )} />
+                          <item.icon
+                            className={cn(
+                              "h-5 w-5 flex-shrink-0 transition-colors duration-300",
+                              isActive
+                                ? "text-gray-800"
+                                : "text-sidebar-foreground group-hover:text-gray-600"
+                            )}
+                          />
                           <span>{item.name}</span>
                         </Link>
-                      )
+                      );
                     })}
                   </nav>
                 </div>
@@ -117,12 +154,16 @@ export function DashboardHeader() {
             </Sheet>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
             <NotificationsDropdown />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer"
+                >
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -133,14 +174,14 @@ export function DashboardHeader() {
                     <div className="text-xs">{user.email}</div>
                   </div>
                 )}
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="cursor-pointer"
                   onClick={handleSettingsClick}
                 >
                   <Settings className="mr-2 h-4 w-4" />
                   Configurações
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                   onClick={signOut}
                 >
@@ -153,5 +194,5 @@ export function DashboardHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

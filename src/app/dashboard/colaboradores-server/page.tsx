@@ -47,11 +47,10 @@ import { EmployeeDialog } from "@/components/employees/employee-dialog";
 import { EmployeeHistoryDialog } from "@/components/employees/employee-history-dialog";
 import { EmployeeViewDialog } from "@/components/employees/employee-view-dialog";
 import { VirtualPagination } from "@/components/ui/virtual-pagination";
-import { PerformanceComparison } from "@/components/performance-comparison";
-import { useEmployeesQuery, useVirtualPagination } from "@/hooks";
+import { useEmployeesPaginated } from "@/hooks";
 import { Employee } from "@/lib/supabase";
 
-export default function ColaboradoresPage() {
+export default function ColaboradoresServerPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -62,50 +61,65 @@ export default function ColaboradoresPage() {
     null
   );
 
+  // Usar paginação no servidor
   const {
-    data: employees = [],
-    isLoading: loading,
+    data: employees,
+    total,
+    page: currentPage,
+    limit: itemsPerPage,
+    totalPages,
+    loading,
     error,
     refetch,
-  } = useEmployeesQuery();
-
-  // Usar paginação virtual
-  const {
-    paginatedData: filteredEmployees,
-    currentPage,
-    totalPages,
-    totalItems,
-    itemsPerPage,
-    goToPage,
-    nextPage,
-    previousPage,
-    setItemsPerPage,
-    startIndex,
-    endIndex,
-    hasNextPage,
-    hasPreviousPage,
-  } = useVirtualPagination({
-    data: employees || [],
-    itemsPerPage: 20,
-    searchTerm,
-    searchFields: ["name", "code", "position", "email"],
-    filters: {
-      status: statusFilter,
-      department: departmentFilter,
-    },
+    setPage: goToPage,
+    setLimit: setItemsPerPage,
+    setSearch: setSearch,
+    setStatus: setStatus,
+    setDepartment: setDepartment,
+  } = useEmployeesPaginated({
+    page: 1,
+    limit: 20,
+    search: searchTerm,
+    status: statusFilter,
+    department: departmentFilter,
   });
 
-  // Calcular estatísticas
-  const stats = useMemo(() => {
-    if (!employees) return { total: 0, active: 0, vacation: 0, away: 0 };
+  // Sincronizar estados locais com o hook
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchTerm(value);
+      setSearch(value);
+    },
+    [setSearch]
+  );
 
+  const handleStatusChange = useCallback(
+    (value: string) => {
+      setStatusFilter(value);
+      setStatus(value);
+    },
+    [setStatus]
+  );
+
+  const handleDepartmentChange = useCallback(
+    (value: string) => {
+      setDepartmentFilter(value);
+      setDepartment(value);
+    },
+    [setDepartment]
+  );
+
+  // Calcular estatísticas (precisaríamos de um endpoint separado para isso)
+  const stats = useMemo(() => {
+    // Em uma implementação real, isso viria de um endpoint separado
+    // Por enquanto, vamos usar os dados disponíveis
     return {
-      total: employees.length,
-      active: employees.filter((emp) => emp.status === "active").length,
-      vacation: employees.filter((emp) => emp.status === "vacation").length,
-      away: employees.filter((emp) => emp.status === "away").length,
+      total: total,
+      active: 0, // Seria calculado no servidor
+      vacation: 0,
+      away: 0,
     };
-  }, [employees]);
+  }, [total]);
 
   const getStatusBadge = useCallback((status: string) => {
     switch (status) {
@@ -152,10 +166,10 @@ export default function ColaboradoresPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Colaboradores
+              Colaboradores (Server-side)
             </h1>
             <p className="text-muted-foreground">
-              Gerencie os funcionários e suas atribuições
+              Gerencie os funcionários com paginação no servidor
             </p>
           </div>
         </div>
@@ -173,15 +187,18 @@ export default function ColaboradoresPage() {
     );
   }
 
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(startIndex + itemsPerPage - 1, total);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Colaboradores
+            Colaboradores (Server-side)
           </h1>
           <p className="text-muted-foreground">
-            Gerencie os funcionários e suas atribuições
+            Gerencie os funcionários com paginação no servidor
           </p>
         </div>
         <Button
@@ -196,7 +213,7 @@ export default function ColaboradoresPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="text-2xl font-bold">
@@ -261,10 +278,10 @@ export default function ColaboradoresPage() {
                 placeholder="Buscar por nome, código ou cargo..."
                 className="pl-10"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -278,7 +295,7 @@ export default function ColaboradoresPage() {
             </Select>
             <Select
               value={departmentFilter}
-              onValueChange={setDepartmentFilter}
+              onValueChange={handleDepartmentChange}
             >
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Departamento" />
@@ -299,8 +316,8 @@ export default function ColaboradoresPage() {
         <CardHeader>
           <CardTitle>Lista de Colaboradores</CardTitle>
           <CardDescription>
-            {totalItems} colaborador(es) encontrado(s)
-            {totalItems > 0 && (
+            {total} colaborador(es) encontrado(s)
+            {total > 0 && (
               <span className="ml-2 text-sm text-muted-foreground">
                 (Página {currentPage} de {totalPages})
               </span>
@@ -334,7 +351,7 @@ export default function ColaboradoresPage() {
                       </p>
                     </TableCell>
                   </TableRow>
-                ) : filteredEmployees.length === 0 ? (
+                ) : employees.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
                       <p className="text-muted-foreground">
@@ -343,7 +360,7 @@ export default function ColaboradoresPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredEmployees.map((employee) => (
+                  employees.map((employee) => (
                     <TableRow key={employee.id}>
                       <TableCell className="py-4">
                         <div className="flex items-center gap-3">
@@ -466,7 +483,7 @@ export default function ColaboradoresPage() {
 
           {/* Mobile Card View */}
           <div className="lg:hidden space-y-4">
-            {filteredEmployees.map((employee) => (
+            {employees.map((employee) => (
               <Card key={employee.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -564,11 +581,11 @@ export default function ColaboradoresPage() {
           </div>
 
           {/* Paginação */}
-          {totalItems > 0 && (
+          {total > 0 && (
             <VirtualPagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={totalItems}
+              totalItems={total}
               itemsPerPage={itemsPerPage}
               onPageChange={goToPage}
               onItemsPerPageChange={setItemsPerPage}
@@ -581,12 +598,6 @@ export default function ColaboradoresPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Comparação de Performance */}
-      <PerformanceComparison
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-      />
 
       <EmployeeDialog
         open={isEmployeeDialogOpen}

@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -40,38 +40,38 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.18 0.02 260);
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.22 0.02 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  --popover: oklch(0.22 0.02 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.95 0.01 260);
+  --primary-foreground: oklch(0.22 0.02 260);
+  --secondary: oklch(0.3 0.02 260);
+  --secondary-foreground: oklch(0.95 0.01 260);
+  --muted: oklch(0.3 0.02 260);
+  --muted-foreground: oklch(0.7 0.01 260);
+  --accent: oklch(0.3 0.02 260);
+  --accent-foreground: oklch(0.95 0.01 260);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --border: oklch(0.32 0.02 260);
+  --input: oklch(0.3 0.02 260);
+  --ring: oklch(0.4 0.02 260);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.16 0.02 260);
+  --sidebar-foreground: oklch(0.95 0.01 260);
   --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar-primary-foreground: oklch(0.95 0.01 260);
+  --sidebar-accent: oklch(0.22 0.02 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 260);
+  --sidebar-border: oklch(0.22 0.02 260);
+  --sidebar-ring: oklch(0.4 0.02 260);
 }
 
 @theme inline {
@@ -121,5 +121,200 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Melhorias para dark mode */
+  .dark {
+    /* Scrollbar personalizada para dark mode */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: oklch(0.18 0.02 260);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: oklch(0.32 0.02 260);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: oklch(0.4 0.02 260);
+    }
+
+    /* Melhor contraste para inputs no dark mode */
+    input,
+    textarea,
+    select {
+      @apply bg-input border-border;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      @apply ring-ring border-ring;
+    }
+
+    /* Melhor contraste para ícones */
+    .lucide,
+    [data-lucide],
+    svg {
+      color: oklch(0.85 0.02 260) !important;
+    }
+
+    /* Ícones em hover */
+    button:hover .lucide,
+    button:hover [data-lucide],
+    button:hover svg,
+    .cursor-pointer:hover .lucide,
+    .cursor-pointer:hover [data-lucide],
+    .cursor-pointer:hover svg {
+      color: oklch(0.95 0.01 260) !important;
+    }
+
+    /* Paginação melhorada */
+    .pagination button,
+    .pagination select,
+    [role="combobox"] {
+      background-color: oklch(0.25 0.02 260) !important;
+      border-color: oklch(0.35 0.02 260) !important;
+      color: oklch(0.9 0.01 260) !important;
+    }
+
+    .pagination button:hover,
+    .pagination select:hover,
+    [role="combobox"]:hover {
+      background-color: oklch(0.32 0.02 260) !important;
+      border-color: oklch(0.42 0.02 260) !important;
+    }
+
+    /* Dropdowns e selects */
+    [data-radix-select-trigger],
+    [data-radix-combobox-trigger] {
+      background-color: oklch(0.25 0.02 260) !important;
+      border-color: oklch(0.35 0.02 260) !important;
+      color: oklch(0.9 0.01 260) !important;
+    }
+
+    [data-radix-select-trigger]:hover,
+    [data-radix-combobox-trigger]:hover {
+      background-color: oklch(0.32 0.02 260) !important;
+      border-color: oklch(0.42 0.02 260) !important;
+    }
+
+    /* Cards com melhor contraste */
+    .card {
+      @apply bg-card border-border shadow-lg;
+    }
+
+    /* Responsividade melhorada */
+    @media (max-width: 640px) {
+      .text-responsive {
+        font-size: 0.875rem;
+      }
+
+      .p-responsive {
+        padding: 0.5rem;
+      }
+
+      .gap-responsive {
+        gap: 0.75rem;
+      }
+    }
+
+    /* Melhor scroll em mobile */
+    @media (max-width: 768px) {
+      .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Tabelas responsivas */
+      .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .table-responsive table {
+        min-width: 600px;
+      }
+    }
+
+    /* Botões com melhor contraste */
+    .btn-primary {
+      @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    }
+
+    .btn-secondary {
+      @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    }
+
+    /* Tabelas com melhor legibilidade */
+    table {
+      @apply border-border;
+    }
+
+    th {
+      @apply bg-muted text-muted-foreground border-border;
+    }
+
+    td {
+      @apply border-border;
+    }
+
+    /* Dropdowns e modais */
+    .dropdown-content,
+    .modal-content {
+      @apply bg-popover border-border shadow-xl;
+    }
+
+    /* Notificações */
+    .notification {
+      @apply bg-card border-border shadow-lg;
+    }
+
+    /* Sidebar melhorada */
+    .sidebar {
+      @apply bg-sidebar border-sidebar-border;
+    }
+
+    .sidebar-item:hover {
+      @apply bg-sidebar-accent;
+    }
+
+    .sidebar-item.active {
+      @apply bg-sidebar-primary text-sidebar-primary-foreground;
+    }
+  }
+
+  /* Transições suaves para mudanças de tema */
+  * {
+    transition: background-color 0.2s ease, border-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  /* Melhorias para light mode também */
+  .light {
+    /* Scrollbar personalizada para light mode */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: oklch(0.97 0 0);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: oklch(0.922 0 0);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: oklch(0.708 0 0);
+    }
   }
 }

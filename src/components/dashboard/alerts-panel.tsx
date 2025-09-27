@@ -1,29 +1,39 @@
-"use client"
+"use client";
 
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, Clock, Wrench, Shield, FileText, ArrowRight } from "lucide-react"
-import { memo, useMemo } from "react"
-import { useEmployees, useEquipment, useVehicles } from "@/hooks"
-import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertTriangle,
+  Clock,
+  Wrench,
+  Shield,
+  FileText,
+  ArrowRight,
+} from "lucide-react";
+import { memo, useMemo } from "react";
+import {
+  useEmployeesQuery,
+  useEquipmentQuery,
+  useVehiclesQuery,
+} from "@/hooks";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export const AlertsPanel = memo(function AlertsPanel() {
-  const router = useRouter()
-  const { data: employees } = useEmployees()
-  const { data: equipment } = useEquipment()
-  const { data: vehicles } = useVehicles()
+  const router = useRouter();
+  const { data: employees = [] } = useEmployeesQuery();
+  const { data: equipment = [] } = useEquipmentQuery();
+  const { data: vehicles = [] } = useVehiclesQuery();
 
   const alerts = useMemo(() => {
-    const alertsList = []
-    const today = new Date()
-    
+    const alertsList = [];
+    const today = new Date();
+
     // Alertas de manutenção por quilometragem e data
-    vehicles.forEach(vehicle => {
+    vehicles.forEach((vehicle) => {
       if (vehicle.current_km && vehicle.maintenance_km) {
-        const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km
-        
+        const kmUntilMaintenance = vehicle.maintenance_km - vehicle.current_km;
+
         // Alerta por quilometragem (1000km antes da manutenção)
         if (kmUntilMaintenance <= 1000 && kmUntilMaintenance > 0) {
           alertsList.push({
@@ -33,33 +43,40 @@ export const AlertsPanel = memo(function AlertsPanel() {
             title: "Manutenção Próxima por KM",
             description: `${vehicle.plate} - ${vehicle.model} - Faltam ${kmUntilMaintenance} km para manutenção`,
             time: "Atenção",
-          })
+          });
         } else if (kmUntilMaintenance <= 0) {
           alertsList.push({
             id: `maintenance-overdue-km-${vehicle.id}`,
             type: "urgent",
             icon: AlertTriangle,
             title: "Manutenção Vencida por KM",
-            description: `${vehicle.plate} - ${vehicle.model} - Manutenção vencida há ${Math.abs(kmUntilMaintenance)} km`,
+            description: `${vehicle.plate} - ${
+              vehicle.model
+            } - Manutenção vencida há ${Math.abs(kmUntilMaintenance)} km`,
             time: "Urgente",
-          })
+          });
         }
       }
-      
+
       // Alerta por data (se existir nextMaintenance)
       if (vehicle.next_maintenance) {
-        const nextMaintenanceDate = new Date(vehicle.next_maintenance)
-        const daysUntilMaintenance = Math.ceil((nextMaintenanceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-        
+        const nextMaintenanceDate = new Date(vehicle.next_maintenance);
+        const daysUntilMaintenance = Math.ceil(
+          (nextMaintenanceDate.getTime() - today.getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+
         if (daysUntilMaintenance < 0) {
           alertsList.push({
             id: `maintenance-overdue-date-${vehicle.id}`,
             type: "urgent",
             icon: AlertTriangle,
             title: "Manutenção Vencida por Data",
-            description: `${vehicle.plate} - ${vehicle.model} - Manutenção vencida há ${Math.abs(daysUntilMaintenance)} dias`,
+            description: `${vehicle.plate} - ${
+              vehicle.model
+            } - Manutenção vencida há ${Math.abs(daysUntilMaintenance)} dias`,
             time: "Urgente",
-          })
+          });
         } else if (daysUntilMaintenance <= 7) {
           alertsList.push({
             id: `maintenance-due-date-${vehicle.id}`,
@@ -68,26 +85,30 @@ export const AlertsPanel = memo(function AlertsPanel() {
             title: "Manutenção Próxima por Data",
             description: `${vehicle.plate} - ${vehicle.model} - Revisão em ${daysUntilMaintenance} dias`,
             time: "Atenção",
-          })
+          });
         }
       }
-    })
+    });
 
     // Alertas de seguro vencido
-    vehicles.forEach(vehicle => {
+    vehicles.forEach((vehicle) => {
       if (vehicle.insurance_expiry) {
-        const insuranceDate = new Date(vehicle.insurance_expiry)
-        const daysUntilInsurance = Math.ceil((insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-        
+        const insuranceDate = new Date(vehicle.insurance_expiry);
+        const daysUntilInsurance = Math.ceil(
+          (insuranceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
         if (daysUntilInsurance < 0) {
           alertsList.push({
             id: `insurance-overdue-${vehicle.id}`,
             type: "urgent",
             icon: Shield,
             title: "Seguro Vencido",
-            description: `${vehicle.plate} - ${vehicle.model} - Seguro vencido há ${Math.abs(daysUntilInsurance)} dias`,
+            description: `${vehicle.plate} - ${
+              vehicle.model
+            } - Seguro vencido há ${Math.abs(daysUntilInsurance)} dias`,
             time: "Urgente",
-          })
+          });
         } else if (daysUntilInsurance <= 30) {
           alertsList.push({
             id: `insurance-due-${vehicle.id}`,
@@ -96,26 +117,30 @@ export const AlertsPanel = memo(function AlertsPanel() {
             title: "Seguro Próximo do Vencimento",
             description: `${vehicle.plate} - ${vehicle.model} - Seguro vence em ${daysUntilInsurance} dias`,
             time: "Atenção",
-          })
+          });
         }
       }
-    })
+    });
 
     // Alertas de licenciamento próximo
-    vehicles.forEach(vehicle => {
+    vehicles.forEach((vehicle) => {
       if (vehicle.license_expiry) {
-        const licenseDate = new Date(vehicle.license_expiry)
-        const daysUntilLicense = Math.ceil((licenseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-        
+        const licenseDate = new Date(vehicle.license_expiry);
+        const daysUntilLicense = Math.ceil(
+          (licenseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
         if (daysUntilLicense < 0) {
           alertsList.push({
             id: `license-overdue-${vehicle.id}`,
             type: "urgent",
             icon: FileText,
             title: "Licenciamento Vencido",
-            description: `${vehicle.plate} - ${vehicle.model} - Licenciamento vencido há ${Math.abs(daysUntilLicense)} dias`,
+            description: `${vehicle.plate} - ${
+              vehicle.model
+            } - Licenciamento vencido há ${Math.abs(daysUntilLicense)} dias`,
             time: "Urgente",
-          })
+          });
         } else if (daysUntilLicense <= 30) {
           alertsList.push({
             id: `license-due-${vehicle.id}`,
@@ -124,13 +149,15 @@ export const AlertsPanel = memo(function AlertsPanel() {
             title: "Licenciamento Próximo do Vencimento",
             description: `${vehicle.plate} - ${vehicle.model} - Licenciamento vence em ${daysUntilLicense} dias`,
             time: "Atenção",
-          })
+          });
         }
       }
-    })
-    
+    });
+
     // Alertas de equipamentos disponíveis
-    const availableEquipment = equipment.filter(eq => eq.status === 'available')
+    const availableEquipment = equipment.filter(
+      (eq) => eq.status === "available"
+    );
     if (availableEquipment.length > 0) {
       alertsList.push({
         id: "equipment-available",
@@ -139,17 +166,20 @@ export const AlertsPanel = memo(function AlertsPanel() {
         title: "Equipamentos Disponíveis",
         description: `${availableEquipment.length} equipamentos disponíveis no almoxarifado`,
         time: "Info",
-      })
+      });
     }
-    
+
     // Ordenar alertas por prioridade (urgent primeiro, depois warning, depois info)
     const sortedAlerts = alertsList.sort((a, b) => {
-      const priority = { urgent: 0, warning: 1, info: 2 }
-      return priority[a.type as keyof typeof priority] - priority[b.type as keyof typeof priority]
-    })
-    
-    return sortedAlerts.slice(0, 3) // Limitar a 3 alertas
-  }, [employees, equipment, vehicles])
+      const priority = { urgent: 0, warning: 1, info: 2 };
+      return (
+        priority[a.type as keyof typeof priority] -
+        priority[b.type as keyof typeof priority]
+      );
+    });
+
+    return sortedAlerts.slice(0, 3); // Limitar a 3 alertas
+  }, [employees, equipment, vehicles]);
 
   return (
     <Card className="border shadow-lg bg-card">
@@ -161,21 +191,26 @@ export const AlertsPanel = memo(function AlertsPanel() {
       </CardHeader>
       <CardContent className="space-y-4 p-6">
         {alerts.map((alert) => (
-          <div key={alert.id} className="flex items-start gap-3 p-4 rounded-lg border bg-muted/30">
-            <div className={`p-2 rounded-full ${
-              alert.type === "urgent"
-                ? "bg-red-500/20"
-                : alert.type === "warning"
+          <div
+            key={alert.id}
+            className="flex items-start gap-3 p-4 rounded-lg border bg-muted/30"
+          >
+            <div
+              className={`p-2 rounded-full ${
+                alert.type === "urgent"
+                  ? "bg-red-500/20"
+                  : alert.type === "warning"
                   ? "bg-yellow-500/20"
                   : "bg-blue-500/20"
-            }`}>
+              }`}
+            >
               <alert.icon
                 className={`h-5 w-5 ${
                   alert.type === "urgent"
                     ? "text-red-500"
                     : alert.type === "warning"
-                      ? "text-yellow-500"
-                      : "text-blue-500"
+                    ? "text-yellow-500"
+                    : "text-blue-500"
                 }`}
               />
             </div>
@@ -184,28 +219,34 @@ export const AlertsPanel = memo(function AlertsPanel() {
                 <p className="font-medium text-sm">{alert.title}</p>
                 <Badge
                   className={`${
-                    alert.type === "urgent" 
-                      ? "bg-red-500 text-white" 
-                      : alert.type === "warning" 
-                        ? "bg-yellow-500 text-white"
-                        : "bg-blue-500 text-white"
+                    alert.type === "urgent"
+                      ? "bg-red-500 text-white"
+                      : alert.type === "warning"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-blue-500 text-white"
                   }`}
                 >
-                  {alert.type === "urgent" ? "Urgente" : alert.type === "warning" ? "Atenção" : "Info"}
+                  {alert.type === "urgent"
+                    ? "Urgente"
+                    : alert.type === "warning"
+                    ? "Atenção"
+                    : "Info"}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">{alert.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {alert.description}
+              </p>
               <p className="text-xs text-muted-foreground">{alert.time}</p>
             </div>
           </div>
         ))}
-        
+
         {alerts.length > 0 && (
           <div className="mt-4 pt-4 border-t">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => router.push('/dashboard/alertas')}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/dashboard/alertas")}
               className="w-full cursor-pointer"
             >
               Ver Todos os Alertas
@@ -215,5 +256,5 @@ export const AlertsPanel = memo(function AlertsPanel() {
         )}
       </CardContent>
     </Card>
-  )
-})
+  );
+});

@@ -1,315 +1,420 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Search, Filter, Calendar, Loader2 } from "lucide-react"
-import { useEmployees, useEquipment, useVehicles, useEquipmentMovements, useVehicleMaintenances, useVehicleFuels, useVehicleScheduledMaintenances } from "@/hooks"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { VirtualPagination } from "@/components/ui/virtual-pagination";
+import { PerformanceComparison } from "@/components/performance-comparison";
+import { Search, Filter, Calendar, Loader2 } from "lucide-react";
+import {
+  useEmployeesQuery,
+  useEquipmentQuery,
+  useVehiclesQuery,
+  useEquipmentMovementsQuery,
+  useVehicleMaintenancesQuery,
+  useVehicleFuelsQuery,
+  useVehicleScheduledMaintenancesQuery,
+  useVirtualPagination,
+} from "@/hooks";
 
 interface Activity {
-  id: string
-  entityType: string
-  entityId: string
-  entityName: string
-  action: string
-  details?: string
-  createdAt: any
+  id: string;
+  entityType: string;
+  entityId: string;
+  entityName: string;
+  action: string;
+  details?: string;
+  createdAt: any;
 }
 
 export default function AtividadesPage() {
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [typeFilter, setTypeFilter] = useState("all")
-  const [actionFilter, setActionFilter] = useState("all")
-  const [hasMore, setHasMore] = useState(true)
-  const [lastDoc, setLastDoc] = useState<any>(null)
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [actionFilter, setActionFilter] = useState("all");
+  const [hasMore, setHasMore] = useState(true);
+  const [lastDoc, setLastDoc] = useState<any>(null);
 
-  // Usar hooks padronizados
-  const { data: employees, loading: employeesLoading } = useEmployees()
-  const { data: equipment, loading: equipmentLoading } = useEquipment()
-  const { data: vehicles, loading: vehiclesLoading } = useVehicles()
-  const { data: movements, loading: movementsLoading } = useEquipmentMovements()
-  const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
-  const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
-  const { data: scheduledMaintenances, loading: scheduledMaintenancesLoading } = useVehicleScheduledMaintenances()
+  // Usar hooks padronizados com React Query
+  const { data: employees = [], isLoading: employeesLoading } =
+    useEmployeesQuery();
+  const { data: equipment = [], isLoading: equipmentLoading } =
+    useEquipmentQuery();
+  const { data: vehicles = [], isLoading: vehiclesLoading } =
+    useVehiclesQuery();
+  const { data: movements = [], isLoading: movementsLoading } =
+    useEquipmentMovementsQuery();
+  const { data: maintenances = [], isLoading: maintenancesLoading } =
+    useVehicleMaintenancesQuery();
+  const { data: fuels = [], isLoading: fuelsLoading } = useVehicleFuelsQuery();
+  const {
+    data: scheduledMaintenances = [],
+    isLoading: scheduledMaintenancesLoading,
+  } = useVehicleScheduledMaintenancesQuery();
 
   // Loading geral - qualquer hook carregando
-  const loading = employeesLoading || equipmentLoading || vehiclesLoading || movementsLoading || maintenancesLoading || fuelsLoading || scheduledMaintenancesLoading
+  const loading =
+    employeesLoading ||
+    equipmentLoading ||
+    vehiclesLoading ||
+    movementsLoading ||
+    maintenancesLoading ||
+    fuelsLoading ||
+    scheduledMaintenancesLoading;
 
   // Função para processar atividades dos dados dos hooks
   const processActivities = () => {
-    const allActivities: Activity[] = []
-    
+    const allActivities: Activity[] = [];
+
     // Processar colaboradores
-    employees.forEach(emp => {
+    employees.forEach((emp) => {
       allActivities.push({
         id: `employee_${emp.id}`,
-        entityType: 'Colaborador',
-        entityId: emp.id || '',
-        entityName: emp.name || 'Nome não disponível',
-        action: 'foi criado',
-        details: `${emp.position || 'Cargo não informado'} - ${emp.department || 'Departamento não informado'}`,
-        createdAt: emp.created_at
-      })
+        entityType: "Colaborador",
+        entityId: emp.id || "",
+        entityName: emp.name || "Nome não disponível",
+        action: "foi criado",
+        details: `${emp.position || "Cargo não informado"} - ${
+          emp.department || "Departamento não informado"
+        }`,
+        createdAt: emp.created_at,
+      });
 
       // Verificar se foi atualizado recentemente
       if (emp.updated_at && emp.created_at) {
-        const updatedTime = new Date(emp.updated_at)
-        const createdTime = new Date(emp.created_at)
-        
+        const updatedTime = new Date(emp.updated_at);
+        const createdTime = new Date(emp.created_at);
+
         // Só incluir se foi atualizado há mais de 1 minuto após criação
         if (updatedTime.getTime() > createdTime.getTime() + 60000) {
           allActivities.push({
             id: `employee_updated_${emp.id}`,
-            entityType: 'Colaborador',
-            entityId: emp.id || '',
-            entityName: emp.name || 'Nome não disponível',
-            action: 'foi atualizado',
-            details: `${emp.position || 'Cargo não informado'} - ${emp.department || 'Departamento não informado'}`,
-            createdAt: emp.updated_at
-          })
+            entityType: "Colaborador",
+            entityId: emp.id || "",
+            entityName: emp.name || "Nome não disponível",
+            action: "foi atualizado",
+            details: `${emp.position || "Cargo não informado"} - ${
+              emp.department || "Departamento não informado"
+            }`,
+            createdAt: emp.updated_at,
+          });
         }
       }
-    })
-    
+    });
+
     // Processar equipamentos
-    equipment.forEach(eq => {
+    equipment.forEach((eq) => {
       allActivities.push({
         id: `equipment_${eq.id}`,
-        entityType: 'Equipamento',
-        entityId: eq.id || '',
-        entityName: eq.name || 'Nome não disponível',
-        action: 'foi criado',
-        details: `${eq.category || 'Categoria não informada'} - ${eq.status || 'Status não informado'}`,
-        createdAt: eq.created_at
-      })
+        entityType: "Equipamento",
+        entityId: eq.id || "",
+        entityName: eq.name || "Nome não disponível",
+        action: "foi criado",
+        details: `${eq.category || "Categoria não informada"} - ${
+          eq.status || "Status não informado"
+        }`,
+        createdAt: eq.created_at,
+      });
 
       // Verificar se foi atualizado recentemente
       if (eq.updated_at && eq.created_at) {
-        const updatedTime = new Date(eq.updated_at)
-        const createdTime = new Date(eq.created_at)
-        
+        const updatedTime = new Date(eq.updated_at);
+        const createdTime = new Date(eq.created_at);
+
         // Só incluir se foi atualizado há mais de 1 minuto após criação
         if (updatedTime.getTime() > createdTime.getTime() + 60000) {
           allActivities.push({
             id: `equipment_updated_${eq.id}`,
-            entityType: 'Equipamento',
-            entityId: eq.id || '',
-            entityName: eq.name || 'Nome não disponível',
-            action: 'foi atualizado',
-            details: `${eq.category || 'Categoria não informada'} - ${eq.status || 'Status não informado'}`,
-            createdAt: eq.updated_at
-          })
+            entityType: "Equipamento",
+            entityId: eq.id || "",
+            entityName: eq.name || "Nome não disponível",
+            action: "foi atualizado",
+            details: `${eq.category || "Categoria não informada"} - ${
+              eq.status || "Status não informado"
+            }`,
+            createdAt: eq.updated_at,
+          });
         }
       }
-    })
-    
+    });
+
     // Processar veículos
-    vehicles.forEach(veh => {
+    vehicles.forEach((veh) => {
       allActivities.push({
         id: `vehicle_${veh.id}`,
-        entityType: 'Veículo',
-        entityId: veh.id || '',
-        entityName: `${veh.plate || 'Placa não informada'} - ${veh.model || 'Modelo não informado'}`,
-        action: 'foi criado',
-        details: `${veh.brand || 'Marca não informada'} - ${veh.status || 'Status não informado'}`,
-        createdAt: veh.created_at
-      })
+        entityType: "Veículo",
+        entityId: veh.id || "",
+        entityName: `${veh.plate || "Placa não informada"} - ${
+          veh.model || "Modelo não informado"
+        }`,
+        action: "foi criado",
+        details: `${veh.brand || "Marca não informada"} - ${
+          veh.status || "Status não informado"
+        }`,
+        createdAt: veh.created_at,
+      });
 
       // Verificar se foi atualizado recentemente
       if (veh.updated_at && veh.created_at) {
-        const updatedTime = new Date(veh.updated_at)
-        const createdTime = new Date(veh.created_at)
-        
+        const updatedTime = new Date(veh.updated_at);
+        const createdTime = new Date(veh.created_at);
+
         // Só incluir se foi atualizado há mais de 1 minuto após criação
         if (updatedTime.getTime() > createdTime.getTime() + 60000) {
           allActivities.push({
             id: `vehicle_updated_${veh.id}`,
-            entityType: 'Veículo',
-            entityId: veh.id || '',
-            entityName: `${veh.plate || 'Placa não informada'} - ${veh.model || 'Modelo não informado'}`,
-            action: 'foi atualizado',
-            details: `${veh.brand || 'Marca não informada'} - ${veh.status || 'Status não informado'}`,
-            createdAt: veh.updated_at
-          })
+            entityType: "Veículo",
+            entityId: veh.id || "",
+            entityName: `${veh.plate || "Placa não informada"} - ${
+              veh.model || "Modelo não informado"
+            }`,
+            action: "foi atualizado",
+            details: `${veh.brand || "Marca não informada"} - ${
+              veh.status || "Status não informado"
+            }`,
+            createdAt: veh.updated_at,
+          });
         }
       }
-    })
-    
+    });
+
     // Processar movimentações
-    movements.forEach(mov => {
+    movements.forEach((mov) => {
       allActivities.push({
         id: `movement_${mov.id}`,
-        entityType: 'Movimentação',
-        entityId: mov.id || '',
-        entityName: mov.equipment_name || 'Equipamento não informado',
-        action: mov.type === 'out' ? 'foi retirado' : 'foi devolvido',
-        details: `${mov.employee_name || 'Funcionário não informado'} - ${mov.project || 'Projeto não informado'}`,
-        createdAt: mov.created_at
-      })
-    })
-    
+        entityType: "Movimentação",
+        entityId: mov.id || "",
+        entityName: mov.equipment_name || "Equipamento não informado",
+        action: mov.type === "out" ? "foi retirado" : "foi devolvido",
+        details: `${mov.employee_name || "Funcionário não informado"} - ${
+          mov.project || "Projeto não informado"
+        }`,
+        createdAt: mov.created_at,
+      });
+    });
+
     // Processar manutenções
-    maintenances.forEach(maint => {
+    maintenances.forEach((maint) => {
       allActivities.push({
         id: `maintenance_${maint.id}`,
-        entityType: 'Manutenção',
-        entityId: maint.id || '',
-        entityName: `${maint.vehicle_plate || 'Placa não informada'} - ${maint.vehicle_model || 'Modelo não informado'}`,
-        action: 'foi registrada',
-        details: `${maint.type || 'Tipo não informado'} - R$ ${maint.cost?.toFixed(2) || '0,00'}`,
-        createdAt: maint.created_at
-      })
-    })
-    
+        entityType: "Manutenção",
+        entityId: maint.id || "",
+        entityName: `${maint.vehicle_plate || "Placa não informada"} - ${
+          maint.vehicle_model || "Modelo não informado"
+        }`,
+        action: "foi registrada",
+        details: `${maint.type || "Tipo não informado"} - R$ ${
+          maint.cost?.toFixed(2) || "0,00"
+        }`,
+        createdAt: maint.created_at,
+      });
+    });
+
     // Processar abastecimentos
-    fuels.forEach(fuel => {
+    fuels.forEach((fuel) => {
       allActivities.push({
         id: `fuel_${fuel.id}`,
-        entityType: 'Abastecimento',
-        entityId: fuel.id || '',
-        entityName: `${fuel.vehicle_plate || 'Placa não informada'} - ${fuel.vehicle_model || 'Modelo não informado'}`,
-        action: 'foi registrado',
-        details: `${fuel.liters || 0}L - R$ ${fuel.cost?.toFixed(2) || '0,00'}`,
-        createdAt: fuel.created_at
-      })
+        entityType: "Abastecimento",
+        entityId: fuel.id || "",
+        entityName: `${fuel.vehicle_plate || "Placa não informada"} - ${
+          fuel.vehicle_model || "Modelo não informado"
+        }`,
+        action: "foi registrado",
+        details: `${fuel.liters || 0}L - R$ ${fuel.cost?.toFixed(2) || "0,00"}`,
+        createdAt: fuel.created_at,
+      });
 
       // Verificar se foi atualizado recentemente
       if (fuel.updated_at && fuel.created_at) {
-        const updatedTime = new Date(fuel.updated_at)
-        const createdTime = new Date(fuel.created_at)
-        
+        const updatedTime = new Date(fuel.updated_at);
+        const createdTime = new Date(fuel.created_at);
+
         // Só incluir se foi atualizado há mais de 1 minuto após criação
         if (updatedTime.getTime() > createdTime.getTime() + 60000) {
           allActivities.push({
             id: `fuel_updated_${fuel.id}`,
-            entityType: 'Abastecimento',
-            entityId: fuel.id || '',
-            entityName: `${fuel.vehicle_plate || 'Placa não informada'} - ${fuel.vehicle_model || 'Modelo não informado'}`,
-            action: 'foi atualizado',
-            details: `${fuel.liters || 0}L - R$ ${fuel.cost?.toFixed(2) || '0,00'}`,
-            createdAt: fuel.updated_at
-          })
+            entityType: "Abastecimento",
+            entityId: fuel.id || "",
+            entityName: `${fuel.vehicle_plate || "Placa não informada"} - ${
+              fuel.vehicle_model || "Modelo não informado"
+            }`,
+            action: "foi atualizado",
+            details: `${fuel.liters || 0}L - R$ ${
+              fuel.cost?.toFixed(2) || "0,00"
+            }`,
+            createdAt: fuel.updated_at,
+          });
         }
       }
-    })
+    });
 
     // Processar manutenções programadas
-    scheduledMaintenances.forEach(sched => {
+    scheduledMaintenances.forEach((sched) => {
       allActivities.push({
         id: `scheduled_maintenance_${sched.id}`,
-        entityType: 'Manutenção Programada',
-        entityId: sched.id || '',
-        entityName: sched.maintenance_name || 'Manutenção Programada',
-        action: 'foi configurada',
-        details: `${sched.maintenance_type || 'Tipo não informado'} - Próxima em ${sched.next_maintenance_km || 0} km`,
-        createdAt: sched.created_at
-      })
+        entityType: "Manutenção Programada",
+        entityId: sched.id || "",
+        entityName: sched.maintenance_name || "Manutenção Programada",
+        action: "foi configurada",
+        details: `${
+          sched.maintenance_type || "Tipo não informado"
+        } - Próxima em ${sched.next_maintenance_km || 0} km`,
+        createdAt: sched.created_at,
+      });
 
       // Verificar se foi atualizado recentemente
       if (sched.updated_at && sched.created_at) {
-        const updatedTime = new Date(sched.updated_at)
-        const createdTime = new Date(sched.created_at)
-        
+        const updatedTime = new Date(sched.updated_at);
+        const createdTime = new Date(sched.created_at);
+
         // Só incluir se foi atualizado há mais de 1 minuto após criação
         if (updatedTime.getTime() > createdTime.getTime() + 60000) {
           allActivities.push({
             id: `scheduled_maintenance_updated_${sched.id}`,
-            entityType: 'Manutenção Programada',
-            entityId: sched.id || '',
-            entityName: sched.maintenance_name || 'Manutenção Programada',
-            action: 'foi atualizada',
-            details: `${sched.maintenance_type || 'Tipo não informado'} - Próxima em ${sched.next_maintenance_km || 0} km`,
-            createdAt: sched.updated_at
-          })
+            entityType: "Manutenção Programada",
+            entityId: sched.id || "",
+            entityName: sched.maintenance_name || "Manutenção Programada",
+            action: "foi atualizada",
+            details: `${
+              sched.maintenance_type || "Tipo não informado"
+            } - Próxima em ${sched.next_maintenance_km || 0} km`,
+            createdAt: sched.updated_at,
+          });
         }
       }
-    })
-    
+    });
+
     // Ordenar por data (mais recente primeiro)
     allActivities.sort((a, b) => {
-      const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
-      const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
-      return dateB.getTime() - dateA.getTime()
-    })
-    
-    return allActivities
-  }
+      const dateA = a.createdAt?.toDate
+        ? a.createdAt.toDate()
+        : new Date(a.createdAt);
+      const dateB = b.createdAt?.toDate
+        ? b.createdAt.toDate()
+        : new Date(b.createdAt);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    return allActivities;
+  };
 
   // Processar atividades quando os dados dos hooks mudarem
   useEffect(() => {
     if (!loading) {
-      console.log('Processando atividades com dados:', {
+      console.log("Processando atividades com dados:", {
         employees: employees.length,
         equipment: equipment.length,
         vehicles: vehicles.length,
         movements: movements.length,
         maintenances: maintenances.length,
-        fuels: fuels.length
-      })
-      const processedActivities = processActivities()
-      console.log('Atividades processadas:', processedActivities.length)
-      setActivities(processedActivities)
+        fuels: fuels.length,
+      });
+      const processedActivities = processActivities();
+      console.log("Atividades processadas:", processedActivities.length);
+      setActivities(processedActivities);
     }
-  }, [employees, equipment, vehicles, movements, maintenances, fuels, scheduledMaintenances, loading])
+  }, [
+    employees,
+    equipment,
+    vehicles,
+    movements,
+    maintenances,
+    fuels,
+    scheduledMaintenances,
+    loading,
+  ]);
 
   const formatTimeAgo = (timestamp: any) => {
-    if (!timestamp) return "Agora"
-    
-    const now = new Date()
-    const activityDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    const diffInMinutes = Math.floor((now.getTime() - activityDate.getTime()) / (1000 * 60))
-    
-    if (diffInMinutes < 1) return "Agora"
-    if (diffInMinutes < 60) return `${diffInMinutes} min atrás`
-    
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours < 24) return `${diffInHours} hora${diffInHours > 1 ? 's' : ''} atrás`
-    
-    const diffInDays = Math.floor(diffInHours / 24)
-    return `${diffInDays} dia${diffInDays > 1 ? 's' : ''} atrás`
-  }
+    if (!timestamp) return "Agora";
+
+    const now = new Date();
+    const activityDate = timestamp.toDate
+      ? timestamp.toDate()
+      : new Date(timestamp);
+    const diffInMinutes = Math.floor(
+      (now.getTime() - activityDate.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 1) return "Agora";
+    if (diffInMinutes < 60) return `${diffInMinutes} min atrás`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24)
+      return `${diffInHours} hora${diffInHours > 1 ? "s" : ""} atrás`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays} dia${diffInDays > 1 ? "s" : ""} atrás`;
+  };
 
   const formatDate = (timestamp: any) => {
-    if (!timestamp) return "Data não disponível"
-    
-    const activityDate = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    return activityDate.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    if (!timestamp) return "Data não disponível";
 
-  const filteredActivities = activities.filter(activity => {
-    const matchesSearch = (activity.entityName?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-                         (activity.details?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
-    const matchesType = typeFilter === "all" || activity.entityType === typeFilter
-    const matchesAction = actionFilter === "all" || activity.action.includes(actionFilter)
-    
-    return matchesSearch && matchesType && matchesAction
-  })
+    const activityDate = timestamp.toDate
+      ? timestamp.toDate()
+      : new Date(timestamp);
+    return activityDate.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Usar paginação virtual
+  const {
+    paginatedData: paginatedActivities,
+    currentPage,
+    totalPages,
+    totalItems,
+    goToPage,
+    setItemsPerPage,
+    itemsPerPage,
+    startIndex,
+    endIndex,
+  } = useVirtualPagination({
+    data: activities,
+    itemsPerPage: 20,
+    searchTerm,
+    searchFields: ["entityName", "details", "entityType"],
+    filters: {
+      entityType: typeFilter,
+      action: actionFilter,
+    },
+  });
 
   const getEntityTypeColor = (entityType: string) => {
     switch (entityType) {
-      case 'Colaborador': return 'bg-blue-100 text-blue-800'
-      case 'Equipamento': return 'bg-green-100 text-green-800'
-      case 'Veículo': return 'bg-purple-100 text-purple-800'
-      case 'Movimentação': return 'bg-orange-100 text-orange-800'
-      case 'Manutenção': return 'bg-yellow-100 text-yellow-800'
-      case 'Manutenção Programada': return 'bg-indigo-100 text-indigo-800'
-      case 'Abastecimento': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "Colaborador":
+        return "bg-blue-100 text-blue-800";
+      case "Equipamento":
+        return "bg-green-100 text-green-800";
+      case "Veículo":
+        return "bg-purple-100 text-purple-800";
+      case "Movimentação":
+        return "bg-orange-100 text-orange-800";
+      case "Manutenção":
+        return "bg-yellow-100 text-yellow-800";
+      case "Manutenção Programada":
+        return "bg-indigo-100 text-indigo-800";
+      case "Abastecimento":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   // Se ainda está carregando, mostrar skeleton
   if (loading) {
@@ -354,7 +459,10 @@ export default function AtividadesPage() {
           <CardContent>
             <div className="space-y-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 border rounded-lg">
+                <div
+                  key={i}
+                  className="flex items-start gap-4 p-4 border rounded-lg"
+                >
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="flex-1 space-y-2">
                     <div className="flex items-start justify-between">
@@ -374,13 +482,15 @@ export default function AtividadesPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Todas as Atividades</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          Todas as Atividades
+        </h1>
       </div>
 
       {/* Filtros */}
@@ -405,7 +515,7 @@ export default function AtividadesPage() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo</label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -419,12 +529,14 @@ export default function AtividadesPage() {
                   <SelectItem value="Veículo">Veículo</SelectItem>
                   <SelectItem value="Movimentação">Movimentação</SelectItem>
                   <SelectItem value="Manutenção">Manutenção</SelectItem>
-                  <SelectItem value="Manutenção Programada">Manutenção Programada</SelectItem>
+                  <SelectItem value="Manutenção Programada">
+                    Manutenção Programada
+                  </SelectItem>
                   <SelectItem value="Abastecimento">Abastecimento</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Ação</label>
               <Select value={actionFilter} onValueChange={setActionFilter}>
@@ -452,54 +564,76 @@ export default function AtividadesPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Atividades ({filteredActivities.length})</span>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Ordenado por data
-            </Badge>
+            <span>Atividades ({totalItems})</span>
+            <div className="flex items-center gap-2">
+              {totalItems > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  (Página {currentPage} de {totalPages})
+                </span>
+              )}
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Ordenado por data
+              </Badge>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {error ? (
             <div className="text-center py-8">
               <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => window.location.reload()} className="cursor-pointer">
+              <Button
+                onClick={() => window.location.reload()}
+                className="cursor-pointer"
+              >
                 Tentar Novamente
               </Button>
             </div>
-          ) : filteredActivities.length === 0 ? (
+          ) : paginatedActivities.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {searchTerm || typeFilter !== "all" || actionFilter !== "all" 
+              {searchTerm || typeFilter !== "all" || actionFilter !== "all"
                 ? "Nenhuma atividade encontrada com os filtros aplicados"
-                : "Nenhuma atividade encontrada"
-              }
+                : "Nenhuma atividade encontrada"}
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+              {paginatedActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                >
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className={getEntityTypeColor(activity.entityType)}>
+                    <AvatarFallback
+                      className={getEntityTypeColor(activity.entityType)}
+                    >
                       {activity.entityType
                         .split(" ")
                         .map((n) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   <div className="flex-1 space-y-2">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <p className="text-sm font-medium">
-                          <span className="font-semibold">{activity.entityType}</span>{" "}
-                          <span className="font-semibold text-blue-600">{activity.entityName}</span>{" "}
-                          <span className="text-muted-foreground">{activity.action}</span>
+                          <span className="font-semibold">
+                            {activity.entityType}
+                          </span>{" "}
+                          <span className="font-semibold text-blue-600">
+                            {activity.entityName}
+                          </span>{" "}
+                          <span className="text-muted-foreground">
+                            {activity.action}
+                          </span>
                         </p>
                         {activity.details && (
-                          <p className="text-sm text-muted-foreground">{activity.details}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {activity.details}
+                          </p>
                         )}
                       </div>
-                      
+
                       <div className="text-right text-xs text-muted-foreground">
                         <div>{formatTimeAgo(activity.createdAt)}</div>
                         <div>{formatDate(activity.createdAt)}</div>
@@ -508,11 +642,33 @@ export default function AtividadesPage() {
                   </div>
                 </div>
               ))}
-              
+
+              {/* Paginação */}
+              {totalItems > 0 && (
+                <VirtualPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={goToPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  isLoading={loading}
+                  showItemsPerPageSelector={true}
+                  itemsPerPageOptions={[10, 20, 50, 100]}
+                />
+              )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Comparação de Performance */}
+      <PerformanceComparison
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+      />
     </div>
-  )
+  );
 }
