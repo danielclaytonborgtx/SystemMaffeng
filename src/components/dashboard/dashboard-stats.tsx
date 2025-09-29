@@ -110,7 +110,7 @@ export const DashboardStats = memo(function DashboardStats() {
         value: maintenanceAlerts.toString(),
         icon: AlertTriangle,
         iconColor: "text-red-500",
-        description: "Manutenções próximas do vencimento",
+        description: "Manutenções vencidas",
         loading: vehiclesLoading || scheduledMaintenancesLoading,
       },
     ];

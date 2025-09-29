@@ -16,7 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { VirtualPagination } from "@/components/ui/virtual-pagination";
 import { PerformanceComparison } from "@/components/performance-comparison";
-import { Search, Filter, Calendar, Loader2 } from "lucide-react";
+import { Search, Filter, Calendar, Loader2, User, Wrench, Truck, Package, Fuel, Activity } from "lucide-react";
 import {
   useEmployeesQuery,
   useEquipmentQuery,
@@ -416,6 +416,48 @@ export default function AtividadesPage() {
     }
   };
 
+  const getActivityIcon = (entityType: string) => {
+    switch (entityType) {
+      case "Colaborador":
+        return <User className="h-4 w-4" />;
+      case "Equipamento":
+        return <Wrench className="h-4 w-4" />;
+      case "Veículo":
+        return <Truck className="h-4 w-4" />;
+      case "Movimentação":
+        return <Package className="h-4 w-4" />;
+      case "Manutenção":
+        return <Wrench className="h-4 w-4" />;
+      case "Abastecimento":
+        return <Fuel className="h-4 w-4" />;
+      case "Manutenção Programada":
+        return <Wrench className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
+    }
+  };
+
+  const getActivityColor = (entityType: string) => {
+    switch (entityType) {
+      case "Colaborador":
+        return "bg-blue-500";
+      case "Equipamento":
+        return "bg-green-500";
+      case "Veículo":
+        return "bg-purple-500";
+      case "Movimentação":
+        return "bg-orange-500";
+      case "Manutenção":
+        return "bg-red-500";
+      case "Abastecimento":
+        return "bg-yellow-500";
+      case "Manutenção Programada":
+        return "bg-indigo-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
   // Se ainda está carregando, mostrar skeleton
   if (loading) {
     return (
@@ -604,12 +646,9 @@ export default function AtividadesPage() {
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarFallback
-                      className={getEntityTypeColor(activity.entityType)}
+                      className={`${getActivityColor(activity.entityType)} text-white`}
                     >
-                      {activity.entityType
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                      {getActivityIcon(activity.entityType)}
                     </AvatarFallback>
                   </Avatar>
 

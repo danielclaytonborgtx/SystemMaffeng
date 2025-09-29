@@ -167,9 +167,9 @@ export default function EquipamentosPage() {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-red-600 mb-4">
-              Erro ao carregar equipamentos: {error}
+              Erro ao carregar equipamentos: {error?.message || String(error)}
             </p>
-            <Button onClick={refetch} className="cursor-pointer">
+            <Button onClick={() => refetch()} className="cursor-pointer">
               Tentar Novamente
             </Button>
           </CardContent>

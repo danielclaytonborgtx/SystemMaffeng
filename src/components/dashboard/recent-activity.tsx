@@ -22,6 +22,7 @@ import {
   useEquipmentMovementsQuery,
   useVehicleMaintenancesQuery,
   useVehicleFuelsQuery,
+  useVehicleScheduledMaintenancesQuery,
 } from "@/hooks";
 
 interface Activity {
@@ -68,6 +69,11 @@ export const RecentActivity = memo(function RecentActivity() {
     isLoading: fuelsLoading,
     error: fuelsError,
   } = useVehicleFuelsQuery();
+  const {
+    data: scheduledMaintenances = [],
+    isLoading: scheduledMaintenancesLoading,
+    error: scheduledMaintenancesError,
+  } = useVehicleScheduledMaintenancesQuery();
 
   const loading =
     employeesLoading ||
@@ -75,14 +81,16 @@ export const RecentActivity = memo(function RecentActivity() {
     vehiclesLoading ||
     movementsLoading ||
     maintenancesLoading ||
-    fuelsLoading;
+    fuelsLoading ||
+    scheduledMaintenancesLoading;
   const error =
     employeesError ||
     equipmentError ||
     vehiclesError ||
     movementsError ||
     maintenancesError ||
-    fuelsError;
+    fuelsError ||
+    scheduledMaintenancesError;
 
   // Gerar atividades baseadas nos dados em cache
   const activities = useMemo(() => {
@@ -170,12 +178,25 @@ export const RecentActivity = memo(function RecentActivity() {
       });
     });
 
+    // Atividades de manutenções programadas (últimos 2)
+    scheduledMaintenances.slice(0, 2).forEach((sched) => {
+      allActivities.push({
+        id: `scheduled_maintenance_${sched.id}`,
+        entityType: "Manutenção Programada",
+        entityId: sched.id,
+        entityName: sched.maintenance_name || "Manutenção Programada",
+        action: "foi configurada",
+        details: `${sched.maintenance_type || "Tipo não informado"} - Próxima em ${sched.next_maintenance_km || 0} km`,
+        createdAt: new Date(sched.created_at),
+      });
+    });
+
     // Ordenar todas as atividades por data (mais recente primeiro)
     allActivities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     // Pegar apenas as 6 mais recentes
     return allActivities.slice(0, 6);
-  }, [employees, equipment, vehicles, movements, maintenances, fuels]);
+  }, [employees, equipment, vehicles, movements, maintenances, fuels, scheduledMaintenances]);
 
   const getActivityIcon = (entityType: string) => {
     switch (entityType) {
@@ -191,6 +212,8 @@ export const RecentActivity = memo(function RecentActivity() {
         return <Wrench className="h-4 w-4" />;
       case "Abastecimento":
         return <Fuel className="h-4 w-4" />;
+      case "Manutenção Programada":
+        return <Wrench className="h-4 w-4" />;
       default:
         return <Activity className="h-4 w-4" />;
     }
@@ -210,6 +233,8 @@ export const RecentActivity = memo(function RecentActivity() {
         return "bg-red-500";
       case "Abastecimento":
         return "bg-yellow-500";
+      case "Manutenção Programada":
+        return "bg-indigo-500";
       default:
         return "bg-gray-500";
     }
@@ -267,7 +292,7 @@ export const RecentActivity = memo(function RecentActivity() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <p className="text-sm text-muted-foreground text-center">{error}</p>
+          <p className="text-sm text-muted-foreground text-center">{error?.message}</p>
         </CardContent>
       </Card>
     );
