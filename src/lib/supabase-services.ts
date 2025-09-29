@@ -666,4 +666,19 @@ export const vehicleScheduledMaintenanceService = {
       if (error) throw error;
     }
   },
+
+  async updateSpecificScheduledMaintenance(
+    vehicleId: string,
+    maintenanceType: string,
+    updatedData: Partial<VehicleScheduledMaintenanceUpdate>
+  ): Promise<void> {
+    const { error } = await supabase
+      .from("vehicle_scheduled_maintenances")
+      .update(updatedData)
+      .eq("vehicle_id", vehicleId)
+      .eq("maintenance_type", maintenanceType)
+      .eq("is_active", true);
+
+    if (error) throw error;
+  },
 };

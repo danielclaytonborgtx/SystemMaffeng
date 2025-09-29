@@ -677,12 +677,27 @@ export function useVehicleScheduledMaintenanceOperations() {
     }
   }
 
+  const updateSpecificScheduledMaintenance = async (vehicleId: string, maintenanceType: string, updatedData: Partial<VehicleScheduledMaintenanceUpdate>) => {
+    try {
+      setLoading(true)
+      setError(null)
+      await vehicleScheduledMaintenanceService.updateSpecificScheduledMaintenance(vehicleId, maintenanceType, updatedData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar manutenção específica')
+      console.error('Erro ao atualizar manutenção específica:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return { 
     loading, 
     error, 
     createScheduledMaintenance, 
     updateScheduledMaintenance, 
     deleteScheduledMaintenance,
-    upsertScheduledMaintenances
+    upsertScheduledMaintenances,
+    updateSpecificScheduledMaintenance
   }
 }

@@ -53,21 +53,35 @@ export function useVehicleMaintenanceInfo(vehicle?: Vehicle | null): Maintenance
     let isOverdue = false
     let kmRemaining: number | null = null
 
-    // Verificar se há manutenção programada mais próxima
+    // Criar array com todas as manutenções (programadas + manual) para comparar
+    const allMaintenances = []
+
+    // Adicionar manutenções programadas
     if (activeScheduledMaintenances.length > 0) {
-      const nextScheduled = activeScheduledMaintenances[0]
-      nextMaintenanceKm = nextScheduled.nextKm
-      nextMaintenanceType = nextScheduled.name
-      isOverdue = nextScheduled.isOverdue
-      kmRemaining = nextScheduled.kmRemaining
+      allMaintenances.push(...activeScheduledMaintenances)
     }
 
-    // Se não há manutenção programada, usar a manutenção manual do veículo
-    if (!nextMaintenanceKm && vehicleMaintenanceKm) {
-      nextMaintenanceKm = vehicleMaintenanceKm
-      nextMaintenanceType = "Manutenção Manual"
-      isOverdue = vehicleMaintenanceKm <= currentKm
-      kmRemaining = vehicleMaintenanceKm - currentKm
+    // Adicionar manutenção manual se existir
+    if (vehicleMaintenanceKm) {
+      allMaintenances.push({
+        type: 'manual',
+        name: 'Manutenção Manual',
+        nextKm: vehicleMaintenanceKm,
+        isOverdue: vehicleMaintenanceKm <= currentKm,
+        kmRemaining: vehicleMaintenanceKm - currentKm
+      })
+    }
+
+    // Se há manutenções, encontrar a mais próxima (menor quilometragem)
+    if (allMaintenances.length > 0) {
+      // Ordenar por quilometragem (menor primeiro)
+      allMaintenances.sort((a, b) => a.nextKm - b.nextKm)
+      
+      const nextMaintenance = allMaintenances[0]
+      nextMaintenanceKm = nextMaintenance.nextKm
+      nextMaintenanceType = nextMaintenance.name
+      isOverdue = nextMaintenance.isOverdue
+      kmRemaining = nextMaintenance.kmRemaining
     }
 
     return {

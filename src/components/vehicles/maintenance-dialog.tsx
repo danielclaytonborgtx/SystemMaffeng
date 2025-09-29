@@ -43,6 +43,12 @@ import {
   Calendar,
   CheckSquare,
   Loader2,
+  Edit,
+  Save,
+  X,
+  Pause,
+  Play,
+  Settings,
 } from "lucide-react";
 import {
   useVehicleMaintenances,
@@ -55,6 +61,10 @@ import {
 } from "@/hooks";
 import { Vehicle } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { MaintenanceStatusDashboard } from "./maintenance-status-dashboard";
+import { MaintenanceAlertsPanel } from "./maintenance-alerts-panel";
+import { useMaintenanceRecalc } from "@/hooks/use-maintenance-recalc";
+import { supabase } from "@/lib/supabase";
 
 interface MaintenanceDialogProps {
   open: boolean;
@@ -103,6 +113,9 @@ export function MaintenanceDialog({
     }))
   );
 
+  const [editingMaintenance, setEditingMaintenance] = useState<string | null>(null);
+  const [customIntervals, setCustomIntervals] = useState<Record<string, number>>({});
+
   const {
     data: maintenanceHistory,
     loading: historyLoading,
@@ -120,6 +133,11 @@ export function MaintenanceDialog({
     useVehicleScheduledMaintenanceOperations();
   const maintenanceInfo = useVehicleMaintenanceInfo(vehicle);
   const { toast } = useToast();
+  const { 
+    recalculateSpecificMaintenance, 
+    recalculateAllMaintenances,
+    loading: recalcLoading 
+  } = useMaintenanceRecalc();
 
   // Paginação virtual para o histórico de manutenções
   const {
@@ -257,11 +275,56 @@ export function MaintenanceDialog({
           if (enabled) {
             // Se habilitando, calcular a próxima manutenção baseada no KM atual + intervalo
             const currentKm = vehicle?.current_km || 0;
-            const nextKm = currentKm + item.intervalKm;
-            return { ...item, enabled, nextKm };
+            const interval = customIntervals[typeId] || item.intervalKm;
+            const nextKm = currentKm + interval;
+            return { ...item, enabled, nextKm, intervalKm: interval };
           } else {
             return { ...item, enabled, nextKm: 0 };
           }
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleEditMaintenance = (typeId: string) => {
+    setEditingMaintenance(typeId);
+    const maintenance = scheduledMaintenances.find(m => m.id === typeId);
+    if (maintenance) {
+      setCustomIntervals(prev => ({
+        ...prev,
+        [typeId]: maintenance.intervalKm
+      }));
+    }
+  };
+
+  const handleSaveMaintenance = (typeId: string) => {
+    const customInterval = customIntervals[typeId];
+    if (customInterval && customInterval > 0) {
+      setScheduledMaintenances((prev) =>
+        prev.map((item) => {
+          if (item.id === typeId) {
+            const currentKm = vehicle?.current_km || 0;
+            const nextKm = currentKm + customInterval;
+            return { ...item, intervalKm: customInterval, nextKm };
+          }
+          return item;
+        })
+      );
+    }
+    setEditingMaintenance(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMaintenance(null);
+    setCustomIntervals({});
+  };
+
+  const handlePauseMaintenance = (typeId: string) => {
+    setScheduledMaintenances((prev) =>
+      prev.map((item) => {
+        if (item.id === typeId) {
+          return { ...item, enabled: false, nextKm: 0 };
         }
         return item;
       })
@@ -319,6 +382,74 @@ export function MaintenanceDialog({
       toast({
         title: "Erro",
         description: "Erro ao salvar manutenções programadas",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRecalculateMaintenance = async (maintenanceType: string) => {
+    if (!vehicle?.id) return;
+    
+    try {
+      if (maintenanceType === 'all') {
+        await recalculateAllMaintenances(vehicle.id, vehicle.current_km || 0);
+      } else {
+        await recalculateSpecificMaintenance(vehicle.id, maintenanceType, vehicle.current_km || 0);
+      }
+      
+      // Recarregar dados
+      refetchScheduled();
+    } catch (error) {
+      console.error('Erro ao recalcular manutenção:', error);
+    }
+  };
+
+
+  const handleDismissAlert = (alertId: string) => {
+    // Implementar dismiss de alerta
+    console.log('Dispensar alerta:', alertId);
+  };
+
+  const handleMarkAsRead = (alertId: string) => {
+    // Implementar marcar como lido
+    console.log('Marcar como lido:', alertId);
+  };
+
+  const handleDeleteMaintenance = async (maintenance: any) => {
+    if (!vehicle?.id) return;
+    
+    try {
+      // Confirmar exclusão
+      const confirmed = window.confirm(
+        `Tem certeza que deseja excluir a manutenção "${maintenance.maintenance_name}"?\n\nEsta ação não pode ser desfeita.`
+      );
+      
+      if (!confirmed) return;
+
+      // Excluir manutenção programada
+      const { error } = await supabase
+        .from('vehicle_scheduled_maintenances')
+        .delete()
+        .eq('vehicle_id', vehicle.id)
+        .eq('maintenance_type', maintenance.maintenance_type);
+
+      if (error) {
+        throw new Error('Erro ao excluir manutenção: ' + error.message);
+      }
+
+      toast({
+        title: "Sucesso",
+        description: `Manutenção "${maintenance.maintenance_name}" excluída com sucesso!`,
+      });
+
+      // Recarregar dados
+      refetchScheduled();
+
+    } catch (error) {
+      console.error('Erro ao excluir manutenção:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir manutenção programada",
         variant: "destructive",
       });
     }
@@ -886,131 +1017,208 @@ export function MaintenanceDialog({
         )}
 
         {activeTab === "schedule" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
-                Programar Manutenções Preventivas
-              </CardTitle>
-              <CardDescription>
-                Configure os intervalos de manutenção preventiva para este
-                veículo. As manutenções serão automaticamente agendadas baseadas
-                na quilometragem.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {scheduledLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  <span>Carregando programações...</span>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-4">
-                    {scheduledMaintenances.map((maintenance) => (
-                      <div key={maintenance.id} className="group relative">
-                        <div
-                          className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3 transition-all duration-200 ${
-                            maintenance.enabled
-                              ? "border-blue-200 bg-blue-50 shadow-sm"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Checkbox
-                              checked={maintenance.enabled}
-                              onCheckedChange={(checked) =>
-                                handleScheduleToggle(maintenance.id, !!checked)
-                              }
-                              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                            />
-                            <div className="flex-1">
-                              <div className="font-medium text-sm text-gray-900">
-                                {maintenance.name}
-                              </div>
-                              <div className="text-xs text-gray-500 mt-1">
-                                Intervalo:{" "}
-                                {maintenance.intervalKm.toLocaleString("pt-BR")}{" "}
-                                km
-                              </div>
-                            </div>
-                          </div>
-                          {maintenance.enabled && (
-                            <div className="text-left sm:text-right">
-                              <div className="text-xs font-medium text-gray-600">
-                                Próxima manutenção:
-                              </div>
-                              <div className="text-sm font-bold text-blue-600">
-                                {maintenance.nextKm.toLocaleString("pt-BR")} km
-                              </div>
-                              <div className="text-xs text-gray-500 mt-1">
-                                {vehicle && vehicle.current_km
-                                  ? `Faltam ${(
-                                      maintenance.nextKm - vehicle.current_km
-                                    ).toLocaleString("pt-BR")} km`
-                                  : "KM atual não informado"}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+          <div className="space-y-6">
 
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
-                        <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <p className="font-medium mb-1">Como funciona:</p>
-                        <ul className="space-y-1 text-xs">
-                          <li>
-                            • As manutenções são agendadas automaticamente
-                            baseadas na quilometragem
-                          </li>
-                          <li>
-                            • Você receberá alertas quando a manutenção estiver
-                            próxima
-                          </li>
-                          <li>
-                            • Após realizar a manutenção, a próxima será
-                            automaticamente recalculada
-                          </li>
-                        </ul>
+
+            {/* Configuração de Manutenções Programadas - Sempre mostrar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  Programar Manutenções Preventivas
+                </CardTitle>
+                <CardDescription>
+                  Configure os intervalos de manutenção preventiva para este
+                  veículo. As manutenções serão automaticamente agendadas baseadas
+                  na quilometragem.
+                </CardDescription>
+                {(!existingScheduledMaintenances || existingScheduledMaintenances.length === 0) && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium">Nenhuma manutenção programada salva</p>
+                        <p className="text-xs mt-1">
+                          Configure e salve manutenções preventivas abaixo para receber alertas automáticos e melhor controle da frota.
+                        </p>
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={onClose}
-                      className="cursor-pointer"
-                      disabled={saveScheduledLoading}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      onClick={handleSaveScheduledMaintenances}
-                      className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-                      disabled={saveScheduledLoading}
-                    >
-                      {saveScheduledLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Salvando...
-                        </>
-                      ) : (
-                        "Salvar Programação"
-                      )}
-                    </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {scheduledLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                    <span>Carregando programações...</span>
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      {scheduledMaintenances.map((maintenance) => (
+                        <div key={maintenance.id} className="group relative">
+                          <div
+                            className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3 transition-all duration-200 ${
+                              maintenance.enabled
+                                ? "border-blue-200 bg-blue-50 shadow-sm"
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <Checkbox
+                                checked={maintenance.enabled}
+                                onCheckedChange={(checked) =>
+                                  handleScheduleToggle(maintenance.id, !!checked)
+                                }
+                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-gray-900">
+                                  {maintenance.name}
+                                </div>
+                                {editingMaintenance === maintenance.id ? (
+                                  <div className="flex items-center space-x-2 mt-2">
+                                    <Input
+                                      type="number"
+                                      value={customIntervals[maintenance.id] || maintenance.intervalKm}
+                                      onChange={(e) => setCustomIntervals(prev => ({
+                                        ...prev,
+                                        [maintenance.id]: parseInt(e.target.value) || maintenance.intervalKm
+                                      }))}
+                                      className="w-24 h-8 text-xs"
+                                      placeholder="Intervalo"
+                                    />
+                                    <span className="text-xs text-gray-500">km</span>
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    Intervalo:{" "}
+                                    {maintenance.intervalKm.toLocaleString("pt-BR")}{" "}
+                                    km
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                              {maintenance.enabled && (
+                                <div className="text-left sm:text-right">
+                                  <div className="text-xs font-medium text-gray-600">
+                                    Próxima manutenção:
+                                  </div>
+                                  <div className="text-sm font-bold text-blue-600">
+                                    {maintenance.nextKm.toLocaleString("pt-BR")} km
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {vehicle && vehicle.current_km
+                                      ? (() => {
+                                          const kmDiff = maintenance.nextKm - vehicle.current_km;
+                                          if (kmDiff <= 0) {
+                                            return `Vencida há ${Math.abs(kmDiff).toLocaleString("pt-BR")} km`;
+                                          } else {
+                                            return `Faltam ${kmDiff.toLocaleString("pt-BR")} km`;
+                                          }
+                                        })()
+                                      : "KM atual não informado"}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center space-x-1">
+                                {editingMaintenance === maintenance.id ? (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleSaveMaintenance(maintenance.id)}
+                                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                      title="Salvar"
+                                    >
+                                      <Save className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={handleCancelEdit}
+                                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      title="Cancelar"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEditMaintenance(maintenance.id)}
+                                      className="h-8 w-8 p-0"
+                                      title="Editar intervalo"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    {maintenance.enabled ? (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handlePauseMaintenance(maintenance.id)}
+                                        className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                                        title="Pausar manutenção"
+                                      >
+                                        <Pause className="h-4 w-4" />
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleScheduleToggle(maintenance.id, true)}
+                                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                        title="Reativar manutenção"
+                                      >
+                                        <Play className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                   
+
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onClose}
+                        className="cursor-pointer"
+                        disabled={saveScheduledLoading}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleSaveScheduledMaintenances}
+                        className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                        disabled={saveScheduledLoading}
+                      >
+                        {saveScheduledLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          "Salvar Programação"
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
       </DialogContent>
     </Dialog>

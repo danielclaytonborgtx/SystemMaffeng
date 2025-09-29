@@ -99,7 +99,7 @@ export function VehicleViewDialog({ open, onOpenChange, vehicle, onClose }: Vehi
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-orange-600" />
-                      <span>KM Atual: {vehicle.current_km?.toLocaleString() || 'Não informado'}</span>
+                      <span>KM Atual: {vehicle.current_km?.toLocaleString("pt-BR") || 'Não informado'}</span>
                     </div>
                   </div>
                 </div>
@@ -239,8 +239,8 @@ export function VehicleViewDialog({ open, onOpenChange, vehicle, onClose }: Vehi
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-blue-600" />
                     <div>
-                      <p className="text-sm font-medium">KM para Manutenção</p>
-                      <p className="text-sm text-muted-foreground">{vehicle.maintenance_km.toLocaleString()}</p>
+                      <p className="text-sm font-medium">Próxima Manutenção</p>
+                      <p className="text-sm text-muted-foreground">{vehicle.maintenance_km.toLocaleString("pt-BR")} km</p>
                     </div>
                   </div>
                 )}
