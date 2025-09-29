@@ -157,10 +157,7 @@ export function MaintenanceDialog({
 
   // Carregar manutenções programadas existentes
   useEffect(() => {
-    if (
-      existingScheduledMaintenances &&
-      existingScheduledMaintenances.length > 0
-    ) {
+    if (existingScheduledMaintenances) {
       const updatedScheduled = maintenanceTypes.map((type) => {
         const existing = existingScheduledMaintenances.find(
           (scheduled) => scheduled.maintenance_type === type.id
@@ -176,6 +173,17 @@ export function MaintenanceDialog({
         };
       });
       setScheduledMaintenances(updatedScheduled);
+    } else {
+      // Se não há manutenções programadas, resetar para estado inicial
+      setScheduledMaintenances(
+        maintenanceTypes.map((type) => ({
+          ...type,
+          enabled: false,
+          nextKm: vehicle
+            ? (vehicle.current_km || 0) + type.intervalKm
+            : type.intervalKm,
+        }))
+      );
     }
   }, [existingScheduledMaintenances, vehicle]);
 
@@ -346,15 +354,7 @@ export function MaintenanceDialog({
         (m) => m.enabled
       );
 
-      if (enabledMaintenances.length === 0) {
-        toast({
-          title: "Aviso",
-          description: "Nenhuma manutenção selecionada para programar",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      // Permitir salvar sem nenhuma manutenção selecionada (para limpar todas)
       const scheduledMaintenancesData = enabledMaintenances.map(
         (maintenance) => ({
           vehicle_id: vehicle.id,
@@ -368,13 +368,31 @@ export function MaintenanceDialog({
 
       await upsertScheduledMaintenances(vehicle.id, scheduledMaintenancesData);
 
-      toast({
-        title: "Sucesso",
-        description: "Manutenções programadas salvas com sucesso!",
-      });
+      if (enabledMaintenances.length === 0) {
+        toast({
+          title: "Sucesso",
+          description: "Todas as manutenções programadas foram removidas!",
+        });
+      } else {
+        toast({
+          title: "Sucesso",
+          description: "Manutenções programadas salvas com sucesso!",
+        });
+      }
 
-      // Recarregar dados
-      refetchScheduled();
+      // Recarregar dados e forçar atualização do estado local
+      await refetchScheduled();
+      
+      // Forçar reset do estado local para garantir que está limpo
+      setScheduledMaintenances(
+        maintenanceTypes.map((type) => ({
+          ...type,
+          enabled: false,
+          nextKm: vehicle
+            ? (vehicle.current_km || 0) + type.intervalKm
+            : type.intervalKm,
+        }))
+      );
 
       // Chamar callback de sucesso se fornecido
       onSuccess?.();
@@ -1032,19 +1050,6 @@ export function MaintenanceDialog({
                   veículo. As manutenções serão automaticamente agendadas baseadas
                   na quilometragem.
                 </CardDescription>
-                {(!existingScheduledMaintenances || existingScheduledMaintenances.length === 0) && (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
-                      <div className="text-sm text-blue-800">
-                        <p className="font-medium">Nenhuma manutenção programada salva</p>
-                        <p className="text-xs mt-1">
-                          Configure e salve manutenções preventivas abaixo para receber alertas automáticos e melhor controle da frota.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </CardHeader>
               <CardContent>
                 {scheduledLoading ? (

@@ -35,6 +35,7 @@ export function useVehicleMaintenanceInfo(vehicle?: Vehicle | null): Maintenance
     const currentKm = vehicle.current_km || 0
     const vehicleMaintenanceKm = vehicle.maintenance_km
 
+
     // Processar manutenções programadas ativas
     const activeScheduledMaintenances = scheduledMaintenances
       .filter(sm => sm.is_active)
@@ -46,6 +47,7 @@ export function useVehicleMaintenanceInfo(vehicle?: Vehicle | null): Maintenance
         kmRemaining: sm.next_maintenance_km - currentKm
       }))
       .sort((a, b) => a.nextKm - b.nextKm) // Ordenar por quilometragem
+
 
     // Encontrar a próxima manutenção (seja programada ou manual)
     let nextMaintenanceKm: number | null = null
