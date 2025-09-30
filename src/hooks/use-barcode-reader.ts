@@ -24,7 +24,7 @@ export function useBarcodeReader({ onCodeRead, onError }: BarcodeReaderOptions) 
       setIsSupported(true)
     } else {
       // Verificar se o navegador suporta getUserMedia (necessário para ZXing)
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
         setIsSupported(true)
         // Inicializar ZXing como fallback
         zxingReaderRef.current = new BrowserMultiFormatReader()
@@ -87,7 +87,7 @@ export function useBarcodeReader({ onCodeRead, onError }: BarcodeReaderOptions) 
         // Usar ZXing como fallback
         try {
           await zxingReaderRef.current.decodeFromVideoDevice(
-            undefined, // Usar câmera padrão
+            null, // Usar câmera padrão
             videoRef.current!,
             (result, error) => {
               if (result) {

@@ -107,6 +107,7 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
   })
   
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null)
+  const [isBarcodeInput, setIsBarcodeInput] = useState(false)
 
   // Função para lidar com upload de arquivo
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,6 +209,37 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
       })
     }
   })
+
+  // Função para detectar entrada de leitor USB (que "bipa")
+  const handleBarcodeInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement
+    const currentValue = input.value
+    
+    // Detectar se é entrada de leitor USB (características típicas):
+    // 1. Entrada muito rápida (menos de 100ms entre caracteres)
+    // 2. Sempre termina com Enter
+    // 3. Padrão de comprimento típico de códigos de barras
+    
+    if (e.key === 'Enter' && currentValue.length > 0) {
+      // Verificar se parece com código de barras (não é digitação manual)
+      const isLikelyBarcode = currentValue.length >= 8 && 
+                              currentValue.length <= 20 && 
+                              /^[0-9A-Za-z]+$/.test(currentValue)
+      
+      if (isLikelyBarcode) {
+        setFormData({ ...formData, code: currentValue })
+        setIsBarcodeInput(true)
+        
+        toast({
+          title: "Código lido com sucesso!",
+          description: `Código: ${currentValue}`,
+        })
+        
+        // Resetar após um tempo
+        setTimeout(() => setIsBarcodeInput(false), 2000)
+      }
+    }
+  }
 
   useEffect(() => {
     if (equipment) {
@@ -413,9 +445,10 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                       id="code"
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      placeholder="Ex: EQ001"
+                      onKeyDown={handleBarcodeInput}
+                      placeholder="Ex: EQ001 ou use leitor óptico"
                       required
-                      className="flex-1"
+                      className={`flex-1 ${isBarcodeInput ? 'ring-2 ring-green-500 bg-green-50' : ''}`}
                     />
                     {isBarcodeSupported && (
                       <Button
@@ -436,6 +469,9 @@ export function EquipmentDialog({ open, onOpenChange, equipment, onClose, onSucc
                   {barcodeError && (
                     <p className="text-sm text-red-600">{barcodeError}</p>
                   )}
+                  <p className="text-xs text-gray-500">
+                    💡 Dica: Use leitor USB (bipa) ou câmera para ler códigos automaticamente
+                  </p>
                 </div>
               </div>
 
