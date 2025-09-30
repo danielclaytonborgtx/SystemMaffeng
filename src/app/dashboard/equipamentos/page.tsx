@@ -21,6 +21,7 @@ import {
   MapPin,
   Settings,
   Pencil,
+  Edit,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -382,7 +383,7 @@ export default function EquipamentosPage() {
                               className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 h-6 w-6 p-0"
                               title="Editar equipamento"
                             >
-                              <Pencil className="h-3 w-3 text-blue-600" />
+                              <Edit className="h-3 w-3 text-blue-600" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -453,7 +454,7 @@ export default function EquipamentosPage() {
                         className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
                         title="Editar equipamento"
                       >
-                        <Pencil className="h-4 w-4 text-blue-600" />
+                        <Edit className="h-4 w-4 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"

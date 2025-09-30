@@ -17,7 +17,7 @@ import {
   Fuel,
   AlertTriangle,
   Loader2,
-  Pencil,
+  Edit,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -202,9 +202,9 @@ export default function VeiculosPage() {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-red-600 mb-4">
-              Erro ao carregar veículos: {error}
+              Erro ao carregar veículos: {error?.message || 'Erro desconhecido'}
             </p>
-            <Button onClick={refetch} className="cursor-pointer">
+            <Button onClick={() => refetch()} className="cursor-pointer">
               Tentar Novamente
             </Button>
           </CardContent>
@@ -405,7 +405,7 @@ export default function VeiculosPage() {
                             className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                             title="Editar veículo"
                           >
-                            <Pencil className="h-4 w-4 text-blue-600" />
+                            <Edit className="h-4 w-4 text-blue-600" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -486,7 +486,7 @@ export default function VeiculosPage() {
                         className="cursor-pointer h-7 w-7 hover:bg-gray-200 dark:hover:bg-gray-700"
                         title="Editar veículo"
                       >
-                        <Pencil className="h-3 w-3 text-blue-600" />
+                        <Edit className="h-3 w-3 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
