@@ -393,18 +393,25 @@ export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: 
                           <div className="bg-orange-50 p-2 rounded border-l-4 border-orange-400">
                             <span className="font-medium text-orange-800">Saída:</span><br />
                             <span className="text-orange-700">
-                              {created.toLocaleDateString('pt-BR')} às {created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(created.getTime() - created.getTimezoneOffset() * 60000).toLocaleDateString('pt-BR')} às {created.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
 
-                          {returned && (
+                          {movement.expected_return_date && !returned ? (
+                            <div className="bg-blue-50 p-2 rounded border-l-4 border-blue-400">
+                              <span className="font-medium text-blue-800">Previsão de Devolução:</span><br />
+                              <span className="text-blue-700">
+                                {new Date(movement.expected_return_date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                          ) : returned ? (
                             <div className="bg-green-50 p-2 rounded border-l-4 border-green-400">
                               <span className="font-medium text-green-800">Devolução:</span><br />
                               <span className="text-green-700">
                                 {returned.toLocaleDateString('pt-BR')} às {returned.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                          )}
+                          ) : null}
                         </div>
 
                         {/* Checklist de Devolução */}

@@ -405,7 +405,7 @@ export default function EquipamentosPage() {
                                 setIsMovementDialogOpen(true);
                               }}
                               className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 h-6 w-6 p-0"
-                              title="Histórico de movimentação"
+                              title="Movimentar equipamento"
                             >
                               <ArrowUpDown className="h-3 w-3 text-green-600" />
                             </Button>

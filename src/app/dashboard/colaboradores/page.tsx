@@ -16,14 +16,6 @@ import {
   History,
   Loader2,
   User,
-  Hash,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Building,
-  Briefcase,
-  Pencil,
   Edit,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -43,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EmployeeDialog } from "@/components/employees/employee-dialog";
 import { EmployeeHistoryDialog } from "@/components/employees/employee-history-dialog";
 import { EmployeeViewDialog } from "@/components/employees/employee-view-dialog";
@@ -348,12 +339,9 @@ export default function ColaboradoresPage() {
                     <TableRow key={employee.id}>
                       <TableCell className="py-4">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 flex-shrink-0">
-                            <AvatarImage src="/placeholder.svg" />
-                            <AvatarFallback className="text-xs">
-                              {getInitials(employee.name)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <div className="h-9 w-9 flex-shrink-0 bg-gray-100 rounded-full flex items-center justify-center">
+                            <User className="h-5 w-5 text-gray-600" />
+                          </div>
                           <div className="min-w-0 flex-1">
                             <div className="font-medium truncate">
                               {employee.name}
@@ -471,12 +459,9 @@ export default function ColaboradoresPage() {
               <Card key={employee.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src="/placeholder.svg" />
-                      <AvatarFallback className="text-sm">
-                        {getInitials(employee.name)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="h-10 w-10 flex-shrink-0 bg-gray-100 rounded-full flex items-center justify-center">
+                      <User className="h-6 w-6 text-gray-600" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">
                         {employee.name}
