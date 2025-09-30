@@ -4,7 +4,7 @@ import type React from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, User, Building } from "lucide-react"
+import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, User, Building, CheckCircle, XCircle } from "lucide-react"
 import { useEquipmentMovements } from "@/hooks/use-supabase"
 import { supabase } from "@/lib/supabase"
 
@@ -56,6 +56,24 @@ const formatCurrency = (value: number | null) => {
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Não informado'
   return new Date(dateString).toLocaleDateString('pt-BR')
+}
+
+// Função para formatar checklist de devolução
+const formatChecklist = (checklist: any) => {
+  if (!checklist) return null
+  
+  const checklistItems = [
+    { key: 'equipment_good_condition', label: 'Equipamento em bom estado' },
+    { key: 'accessories_included', label: 'Todos os acessórios incluídos' },
+    { key: 'manual_present', label: 'Manual de instruções presente' },
+    { key: 'equipment_clean', label: 'Equipamento limpo' },
+    { key: 'no_visible_damage', label: 'Sem danos visíveis' }
+  ]
+  
+  return checklistItems.map(item => ({
+    label: item.label,
+    checked: checklist[item.key] || false
+  }))
 }
 
 export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: EquipmentViewDialogProps) {
@@ -346,6 +364,7 @@ export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: 
                     }
                     
                     const returned = formatReturnDate(movement.actual_return_date)
+                    const checklistData = formatChecklist(movement.checklist)
 
                     return (
                       <div key={movement.id} className="p-2 sm:p-3 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -387,6 +406,41 @@ export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: 
                             </div>
                           )}
                         </div>
+
+                        {/* Checklist de Devolução */}
+                        {returned && checklistData && (
+                          <div className="mt-3 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                            <div className="flex items-center gap-2 mb-2">
+                              <FileText className="h-4 w-4 text-blue-600" />
+                              <span className="font-medium text-blue-800 text-sm">Checklist de Devolução:</span>
+                            </div>
+                            <div className="space-y-1">
+                              {checklistData.map((item, index) => (
+                                <div key={index} className="flex items-center gap-2 text-xs">
+                                  {item.checked ? (
+                                    <CheckCircle className="h-3 w-3 text-green-600" />
+                                  ) : (
+                                    <XCircle className="h-3 w-3 text-red-600" />
+                                  )}
+                                  <span className={item.checked ? "text-green-700" : "text-red-700"}>
+                                    {item.label}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Observações */}
+                        {movement.observations && (
+                          <div className="mt-2 p-2 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                            <div className="flex items-center gap-2 mb-1">
+                              <FileText className="h-3 w-3 text-yellow-600" />
+                              <span className="font-medium text-yellow-800 text-xs">Observações:</span>
+                            </div>
+                            <p className="text-xs text-yellow-700">{movement.observations}</p>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
