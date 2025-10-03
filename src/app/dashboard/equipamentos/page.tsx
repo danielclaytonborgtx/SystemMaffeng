@@ -22,6 +22,7 @@ import {
   Settings,
   Pencil,
   Edit,
+  AlertTriangle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ import {
   useEmployeesQuery,
   useVirtualPagination,
   useEquipmentMutations,
+  useEquipmentMovements,
 } from "@/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { Equipment } from "@/lib/supabase";
@@ -72,6 +74,7 @@ export default function EquipamentosPage() {
     refetch,
   } = useEquipmentQuery();
   const { data: employees = [] } = useEmployeesQuery();
+  const { data: equipmentMovements = [] } = useEquipmentMovements();
   const { deleteEquipment } = useEquipmentMutations();
   const { toast } = useToast();
 
@@ -142,6 +145,43 @@ export default function EquipamentosPage() {
         return <Badge variant="outline">{status}</Badge>;
     }
   }, []);
+
+  // Função para verificar se um equipamento está com devolução em atraso
+  const isEquipmentOverdue = useCallback((equipment: Equipment) => {
+    if (!equipmentMovements || equipmentMovements.length === 0) return false;
+
+    // Encontrar a última movimentação de saída (type: 'out') para este equipamento
+    // que ainda não foi devolvida (sem corresponding 'return')
+    const equipmentOutMovements = equipmentMovements
+      .filter(movement => 
+        movement.equipment_id === equipment.id && 
+        movement.type === 'out'
+      )
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    if (equipmentOutMovements.length === 0) return false;
+
+    // Verificar se há uma devolução correspondente para a última saída
+    const lastOutMovement = equipmentOutMovements[0];
+    const hasReturn = equipmentMovements.some(movement => 
+      movement.equipment_id === equipment.id && 
+      movement.type === 'return' &&
+      new Date(movement.created_at) > new Date(lastOutMovement.created_at)
+    );
+
+    if (hasReturn) return false;
+
+    // Se há data de devolução prevista, verificar se está em atraso
+    if (lastOutMovement.expected_return_date) {
+      const expectedReturnDate = new Date(lastOutMovement.expected_return_date);
+      const today = new Date();
+      const daysOverdue = Math.ceil((today.getTime() - expectedReturnDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      return daysOverdue > 0;
+    }
+
+    return false;
+  }, [equipmentMovements]);
 
   // Função temporariamente desabilitada - será implementada nas mutations
   const handleFixInconsistentData = async () => {
@@ -366,7 +406,12 @@ export default function EquipamentosPage() {
                           {equipment.category}
                         </TableCell>
                         <TableCell className="px-2">
-                          {getStatusBadge(equipment.status)}
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(equipment.status)}
+                            {isEquipmentOverdue(equipment) && (
+                              <AlertTriangle className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-xs px-2">
                           {getEmployeeName(equipment.assigned_to)}
@@ -435,7 +480,12 @@ export default function EquipamentosPage() {
                       Local: {equipment.location}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Status: {equipment.status}
+                      <div className="flex items-center gap-2">
+                        Status: {equipment.status}
+                        {isEquipmentOverdue(equipment) && (
+                          <AlertTriangle className="h-3 w-3 text-red-500" />
+                        )}
+                      </div>
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       Responsável: {getEmployeeName(equipment.assigned_to)}
