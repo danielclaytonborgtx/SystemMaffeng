@@ -422,7 +422,7 @@ export default function AlertasPage() {
               movement.equipment_code
             }) - Devolução em atraso há ${Math.abs(
               daysUntilReturn
-            )} dias - Projeto: ${movement.project}`,
+            )} dias - Responsável: ${employees.find(emp => emp.id === equipment.find(eq => eq.id === movement.equipment_id)?.assigned_to)?.name || 'Não atribuído'}`,
             time: "Urgente",
           });
         }

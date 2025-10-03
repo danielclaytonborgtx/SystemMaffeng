@@ -288,7 +288,10 @@ export function NotificationsDropdown() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => clearAllNotifications()}
+                  onClick={() => {
+                    clearAllNotifications();
+                    setIsOpen(false);
+                  }}
                   className="h-6 w-6 p-0 cursor-pointer"
                 >
                   <X className="h-3 w-3" />
