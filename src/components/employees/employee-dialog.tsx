@@ -398,13 +398,49 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                     <Briefcase className="h-4 w-4 text-blue-600" />
                     Cargo
                   </Label>
-                  <Input
-                    id="position"
+                  <Select
                     value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    placeholder="Ex: Operador de Máquinas"
-                    required
-                  />
+                    onValueChange={(value) => setFormData({ ...formData, position: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Administrador De Obras">Administrador De Obras</SelectItem>
+                      <SelectItem value="Analista Administrativo">Analista Administrativo</SelectItem>
+                      <SelectItem value="Analista Financeiro">Analista Financeiro</SelectItem>
+                      <SelectItem value="Analista RH">Analista RH</SelectItem>
+                      <SelectItem value="Assistente de Engenharia">Assistente de Engenharia</SelectItem>
+                      <SelectItem value="Auxiliar Administrativo">Auxiliar Administrativo</SelectItem>
+                      <SelectItem value="Auxiliar de Compras">Auxiliar de Compras</SelectItem>
+                      <SelectItem value="Auxiliar de Engenharia">Auxiliar de Engenharia</SelectItem>
+                      <SelectItem value="Auxiliar de Manutenção">Auxiliar de Manutenção</SelectItem>
+                      <SelectItem value="Auxiliar de Serviços Gerais">Auxiliar de Serviços Gerais</SelectItem>
+                      <SelectItem value="Diretor">Diretor</SelectItem>
+                      <SelectItem value="Eletricista">Eletricista</SelectItem>
+                      <SelectItem value="Eletricista II">Eletricista II</SelectItem>
+                      <SelectItem value="Encarregado de Obras">Encarregado de Obras</SelectItem>
+                      <SelectItem value="Engenheiro Civil">Engenheiro Civil</SelectItem>
+                      <SelectItem value="Estagiário">Estagiário</SelectItem>
+                      <SelectItem value="Gerente">Gerente</SelectItem>
+                      <SelectItem value="Gerente Administrativo">Gerente Administrativo</SelectItem>
+                      <SelectItem value="Gerente de Engenharia">Gerente de Engenharia</SelectItem>
+                      <SelectItem value="Mestre de Obras">Mestre de Obras</SelectItem>
+                      <SelectItem value="Oficial de Manutenção">Oficial de Manutenção</SelectItem>
+                      <SelectItem value="Pedreiro">Pedreiro</SelectItem>
+                      <SelectItem value="Pintor">Pintor</SelectItem>
+                      <SelectItem value="Profissional de Manutenção">Profissional de Manutenção</SelectItem>
+                      <SelectItem value="Serviços Gerais">Serviços Gerais</SelectItem>
+                      <SelectItem value="Supervisor">Supervisor</SelectItem>
+                      <SelectItem value="Supervisor de Compras">Supervisor de Compras</SelectItem>
+                      <SelectItem value="Supervisor de Frotas">Supervisor de Frotas</SelectItem>
+                      <SelectItem value="Supervisor Engenharia">Supervisor Engenharia</SelectItem>
+                      <SelectItem value="Supervisor RH">Supervisor RH</SelectItem>
+                      <SelectItem value="Técnico de Manutenção">Técnico de Manutenção</SelectItem>
+                      <SelectItem value="Técnico em Edificações">Técnico em Edificações</SelectItem>
+                      <SelectItem value="Técnico Hidráulico">Técnico Hidráulico</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="department" className="flex items-center gap-2">

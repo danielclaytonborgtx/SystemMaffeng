@@ -515,12 +515,8 @@ export function VehicleDialog({
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Caminhão">Caminhão</SelectItem>
-                        <SelectItem value="Caminhonete">Caminhonete</SelectItem>
-                        <SelectItem value="Escavadeira">Escavadeira</SelectItem>
-                        <SelectItem value="Trator">Trator</SelectItem>
-                        <SelectItem value="Betoneira">Betoneira</SelectItem>
-                        <SelectItem value="Guindaste">Guindaste</SelectItem>
+                        <SelectItem value="Carro">Carro</SelectItem>
+                        <SelectItem value="Moto">Moto</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

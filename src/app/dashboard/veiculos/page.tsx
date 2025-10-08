@@ -306,10 +306,8 @@ export default function VeiculosPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Tipos</SelectItem>
-                <SelectItem value="Caminhão">Caminhão</SelectItem>
-                <SelectItem value="Caminhonete">Caminhonete</SelectItem>
-                <SelectItem value="Escavadeira">Escavadeira</SelectItem>
-                <SelectItem value="Trator">Trator</SelectItem>
+                <SelectItem value="Carro">Carro</SelectItem>
+                <SelectItem value="Moto">Moto</SelectItem>
               </SelectContent>
             </Select>
           </div>

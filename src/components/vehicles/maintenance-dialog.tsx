@@ -81,6 +81,14 @@ const maintenanceTypes = [
   { id: "freios", name: "Revisão de Freios", intervalKm: 15000 },
   { id: "correia", name: "Troca de Correia Dentada", intervalKm: 60000 },
   { id: "revisao", name: "Revisão Geral", intervalKm: 10000 },
+  { id: "vidros", name: "Troca vidros e perifericos veiculo", intervalKm: 50000 },
+  { id: "lampadas", name: "Troca Lampadas", intervalKm: 30000 },
+  { id: "motor", name: "Consertos/Troca/Manutenção Motor", intervalKm: 50000 },
+  { id: "suspensao", name: "Consertos/Troca/Manutenção Suspensão", intervalKm: 30000 },
+  { id: "alinhamento", name: "Alinhamento e Balançeamento", intervalKm: 10000 },
+  { id: "estofados", name: "Consertos/Troca/Manutenção estofados", intervalKm: 50000 },
+  { id: "portas", name: "Consertos/Troca/Manutenção Portas", intervalKm: 50000 },
+  { id: "externas", name: "Consertos/Troca/Manutenção das Partes externas do veiculo", intervalKm: 50000 },
 ];
 
 export function MaintenanceDialog({
