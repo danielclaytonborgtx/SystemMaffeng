@@ -146,42 +146,38 @@ export default function EquipamentosPage() {
     }
   }, []);
 
-  // Função para verificar se um equipamento está com devolução em atraso
-  const isEquipmentOverdue = useCallback((equipment: Equipment) => {
-    if (!equipmentMovements || equipmentMovements.length === 0) return false;
+          // Função para verificar se um equipamento está com devolução em atraso
+          const isEquipmentOverdue = useCallback((equipment: Equipment) => {
+            if (!equipmentMovements || equipmentMovements.length === 0) return false;
 
-    // Encontrar a última movimentação de saída (type: 'out') para este equipamento
-    // que ainda não foi devolvida (sem corresponding 'return')
-    const equipmentOutMovements = equipmentMovements
-      .filter(movement => 
-        movement.equipment_id === equipment.id && 
-        movement.type === 'out'
-      )
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            // Encontrar todas as movimentações para este equipamento
+            const equipmentMovementsFiltered = equipmentMovements
+              .filter(movement => movement.equipment_id === equipment.id)
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    if (equipmentOutMovements.length === 0) return false;
+            if (equipmentMovementsFiltered.length === 0) return false;
 
-    // Verificar se há uma devolução correspondente para a última saída
-    const lastOutMovement = equipmentOutMovements[0];
-    const hasReturn = equipmentMovements.some(movement => 
-      movement.equipment_id === equipment.id && 
-      movement.type === 'return' &&
-      new Date(movement.created_at) > new Date(lastOutMovement.created_at)
-    );
+            // Encontrar a última movimentação de saída que não tem actual_return_date
+            const lastOutMovement = equipmentMovementsFiltered.find(movement => 
+              movement.type === 'out' && !movement.actual_return_date
+            );
 
-    if (hasReturn) return false;
+            // Se não há movimentação pendente, não está em atraso
+            if (!lastOutMovement) return false;
 
-    // Se há data de devolução prevista, verificar se está em atraso
-    if (lastOutMovement.expected_return_date) {
-      const expectedReturnDate = new Date(lastOutMovement.expected_return_date);
-      const today = new Date();
-      const daysOverdue = Math.ceil((today.getTime() - expectedReturnDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      return daysOverdue > 0;
-    }
+            // Se há data de devolução prevista, verificar se está em atraso
+            if (lastOutMovement.expected_return_date) {
+              const expectedReturnDate = new Date(lastOutMovement.expected_return_date);
+              const today = new Date();
+              const daysOverdue = Math.ceil((today.getTime() - expectedReturnDate.getTime()) / (1000 * 60 * 60 * 24));
+              
+              return daysOverdue > 0;
+            }
 
-    return false;
-  }, [equipmentMovements]);
+            // Se não há data prevista mas está há mais de 30 dias, considerar atraso
+            const daysSinceOut = Math.ceil((new Date().getTime() - new Date(lastOutMovement.created_at).getTime()) / (1000 * 60 * 60 * 24));
+            return daysSinceOut > 30;
+          }, [equipmentMovements]);
 
   // Função temporariamente desabilitada - será implementada nas mutations
   const handleFixInconsistentData = async () => {

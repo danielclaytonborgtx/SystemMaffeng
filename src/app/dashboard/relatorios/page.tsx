@@ -7,7 +7,7 @@ import { Download, Calendar, FileText, Loader2, Check } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { ReportsCharts } from "@/components/reports/reports-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
-import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels, useAlerts } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels, useAlerts, useEquipmentMovementsQuery } from "@/hooks"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -19,13 +19,14 @@ export default function RelatoriosPage() {
   const { data: vehicles, loading: vehiclesLoading } = useVehicles()
   const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
   const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
+  const { data: movements = [], isLoading: movementsLoading } = useEquipmentMovementsQuery()
   const { alerts, totalAlerts } = useAlerts()
 
   // Estado para armazenar os períodos definidos por relatório
   const [reportPeriods, setReportPeriods] = useState<Record<string, any>>({})
 
   // Loading geral - qualquer hook carregando
-  const loading = employeesLoading || equipmentLoading || vehiclesLoading || maintenancesLoading || fuelsLoading
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading || maintenancesLoading || fuelsLoading || movementsLoading
 
   // Função para filtrar dados por data
   const filterDataByDate = (data: any[], dateField: string, dateRange?: any) => {
@@ -33,7 +34,7 @@ export default function RelatoriosPage() {
     
     return data.filter((item) => {
       const itemDate = item[dateField]
-      if (!itemDate) return false
+      if (!itemDate) return true // Se não tem data, incluir sempre
       
       // Converter para Date se necessário
       const date = itemDate?.toDate ? itemDate.toDate() : new Date(itemDate)
@@ -67,6 +68,7 @@ export default function RelatoriosPage() {
     const filteredVehicles = filterDataByDate(vehicles, 'createdAt', period)
     const filteredMaintenances = filterDataByDate(maintenances, 'date', period)
     const filteredFuels = filterDataByDate(fuels, 'date', period)
+    const filteredMovements = filterDataByDate(movements, 'createdAt', period)
     const filteredAlerts = alerts // Alertas serão filtrados no gerador de PDF
 
     const result = await generatePDF({
@@ -80,6 +82,7 @@ export default function RelatoriosPage() {
         vehicles: filteredVehicles,
         maintenances: filteredMaintenances,
         fuels: filteredFuels,
+        movements: filteredMovements,
         alerts: filteredAlerts
       }
     })

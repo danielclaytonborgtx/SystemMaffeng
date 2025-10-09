@@ -19,6 +19,7 @@ interface PDFGeneratorOptions {
     maintenances?: any[]
     fuels?: any[]
     alerts?: any[]
+    movements?: any[]
   }
 }
 
@@ -60,7 +61,7 @@ export function usePDFGenerator() {
                 reportData = generateAlertsReportData(data?.alerts || [], options.period)
                 break
         case "relatorio-equipamentos":
-          reportData = generateEquipmentReportData(data?.equipment || [])
+          reportData = generateEquipmentReportData(data?.equipment || [], data?.movements || [], options.period)
           break
         case "relatorio-veiculos":
           reportData = generateVehicleReportData(data?.vehicles || [])
@@ -95,7 +96,7 @@ export function usePDFGenerator() {
       // Adicionar rodapé
       pdf.setFontSize(8)
       pdf.text("Sistema de Gestão de Estoque e Frotas - MAFFENG", 20, 285)
-      pdf.text("Página " + pdf.getCurrentPageInfo().pageNumber, 170, 285)
+      pdf.text("Página 1", 170, 285)
       
       // Salvar o PDF
       pdf.save(`${filename}.pdf`)
@@ -151,7 +152,7 @@ function generateAlertsReportData(alerts: any[], period?: { from?: Date; to?: Da
   }, {} as Record<string, number>)
 
   const categoryText = Object.entries(categories)
-    .map(([category, count]) => `• ${category}: ${count} alerta(s) (${total > 0 ? ((count / total) * 100).toFixed(1) : 0}%)`)
+    .map(([category, count]) => `• ${category}: ${count} alerta(s) (${total > 0 ? (((count as number) / total) * 100).toFixed(1) : 0}%)`)
     .join('\n')
 
   // Listar alertas críticos
@@ -203,7 +204,8 @@ DETALHAMENTO POR CATEGORIA:
 ${Object.entries(categories).map(([category, count]) => {
   const categoryAlerts = filteredAlerts.filter(a => a.category === category)
   const categoryText = categoryAlerts.map(a => `  - ${a.title}: ${a.description}`).join('\n')
-  return `\n${category.toUpperCase()} (${count} alerta${count > 1 ? 's' : ''}):\n${categoryText || '  - Nenhum alerta nesta categoria'}`
+  const countNum = count as number
+  return `\n${category.toUpperCase()} (${countNum} alerta${countNum > 1 ? 's' : ''}):\n${categoryText || '  - Nenhum alerta nesta categoria'}`
 }).join('\n')}
 
 ANÁLISE DE PRIORIDADE:
@@ -216,50 +218,120 @@ Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o perí
   `
 }
 
-function generateEquipmentReportData(equipment: any[]): string {
+function generateEquipmentReportData(equipment: any[], movements: any[], period?: { from?: Date; to?: Date }): string {
   const total = equipment.length
-  const available = equipment.filter(e => e.status === 'Disponível').length
-  const inUse = equipment.filter(e => e.status === 'Em Uso').length
-  const maintenance = equipment.filter(e => e.status === 'Manutenção').length
-  const unavailable = equipment.filter(e => e.status === 'Indisponível').length
+  const available = equipment.filter(e => e.status === 'available').length
+  const inUse = equipment.filter(e => e.status === 'in_use').length
+  const maintenance = equipment.filter(e => e.status === 'maintenance').length
 
-  // Agrupar por categoria
-  const categories = equipment.reduce((acc, item) => {
-    acc[item.category] = (acc[item.category] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  // Filtrar movimentações por período se especificado
+  let filteredMovements = movements
+  
+  if (period?.from || period?.to) {
+    filteredMovements = movements.filter(movement => {
+      const movementDate = new Date(movement.created_at)
+      
+      if (period.from && movementDate < period.from) return false
+      if (period.to && movementDate > period.to) return false
+      
+      return true
+    })
+  }
 
-  const categoryText = Object.entries(categories)
-    .map(([category, count]) => `• ${category}: ${count} unidades`)
-    .join('\n')
+  // Debug: log das movimentações
+  console.log('=== DEBUG MOVIMENTAÇÕES PDF ===')
+  console.log('Total de movimentações:', filteredMovements.length)
+  console.log('Primeiras 5 movimentações:', filteredMovements.slice(0, 5))
+  console.log('Tipos encontrados:', [...new Set(filteredMovements.map(m => m.type))])
+  
+  // Estatísticas de movimentações
+  const totalMovements = filteredMovements.length
+  const exitMovements = filteredMovements.filter(m => m.type === 'out').length
+  const returnMovements = filteredMovements.filter(m => m.type === 'return').length
+  
+  // Contar devoluções baseado em actual_return_date (já que devoluções atualizam a movimentação existente)
+  const actualReturns = filteredMovements.filter(m => m.type === 'out' && m.actual_return_date).length
+  
+  console.log('Saídas (type=out):', exitMovements)
+  console.log('Devoluções (type=return):', returnMovements)
+  console.log('Devoluções (actual_return_date):', actualReturns)
+  
+  const pendingReturns = filteredMovements.filter(m => {
+    const isExit = m.type === 'out'
+    const hasReturn = filteredMovements.some(r => 
+      r.equipment_id === m.equipment_id && 
+      r.type === 'return' &&
+      new Date(r.created_at) > new Date(m.created_at)
+    )
+    return isExit && !hasReturn && !m.actual_return_date
+  }).length
+  
+  console.log('Devoluções pendentes:', pendingReturns)
+  console.log('=== FIM DEBUG MOVIMENTAÇÕES PDF ===')
+
+  // Movimentações recentes
+  const recentMovements = filteredMovements
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 10)
+
+  // Formatação do período
+  const periodText = period?.from && period?.to
+    ? `${period.from.toLocaleDateString('pt-BR')} até ${period.to.toLocaleDateString('pt-BR')}`
+    : period?.from
+    ? `A partir de ${period.from.toLocaleDateString('pt-BR')}`
+    : period?.to
+    ? `Até ${period.to.toLocaleDateString('pt-BR')}`
+    : 'Todos os equipamentos cadastrados'
 
   return `
 RELATÓRIO DE EQUIPAMENTOS
 
+PERÍODO DO RELATÓRIO:
+${periodText}
+
 RESUMO EXECUTIVO:
-Este relatório apresenta a situação atual dos equipamentos da empresa, incluindo status de utilização, manutenções pendentes e análise de performance.
+Este relatório apresenta a situação ${period ? 'do período selecionado' : 'atual'} dos equipamentos da empresa, incluindo status de utilização e histórico de movimentações.
 
 DADOS GERAIS:
 • Total de Equipamentos: ${total} unidades
 • Equipamentos Disponíveis: ${available} (${total > 0 ? ((available / total) * 100).toFixed(1) : 0}%)
 • Equipamentos em Uso: ${inUse} (${total > 0 ? ((inUse / total) * 100).toFixed(1) : 0}%)
 • Equipamentos em Manutenção: ${maintenance} (${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%)
-• Equipamentos Indisponíveis: ${unavailable} (${total > 0 ? ((unavailable / total) * 100).toFixed(1) : 0}%)
 
-CATEGORIAS:
-${categoryText || '• Nenhuma categoria encontrada'}
+RELATÓRIO DE MOVIMENTAÇÕES:
+• Total de Movimentações ${period ? 'no Período' : ''}: ${totalMovements}
+• Saídas de Equipamentos: ${exitMovements}
+• Devoluções de Equipamentos: ${actualReturns}
+• Devoluções Pendentes: ${pendingReturns}
 
-EQUIPAMENTOS RECENTES:
-${equipment.slice(0, 5).map(e => `• ${e.name} - ${e.status} - ${e.category}`).join('\n') || '• Nenhum equipamento cadastrado'}
+MOVIMENTAÇÕES RECENTES ${period ? 'DO PERÍODO' : ''}:
+${recentMovements.length > 0 
+  ? recentMovements.map(m => {
+      // Determinar tipo baseado em actual_return_date ou type
+      let movementType = 'SAÍDA'
+      let date = new Date(m.created_at).toLocaleDateString('pt-BR')
+      
+      if (m.actual_return_date) {
+        movementType = 'DEVOLUÇÃO'
+        date = new Date(m.actual_return_date).toLocaleDateString('pt-BR')
+      } else if (m.type === 'return') {
+        movementType = 'DEVOLUÇÃO'
+      }
+      
+      const equipmentName = equipment.find(e => e.id === m.equipment_id)?.name || 'Equipamento não encontrado'
+      const responsible = m.employee_name || m.employee_code || 'Responsável não informado'
+      return `• ${movementType} - ${equipmentName} - ${date} - ${responsible}`
+    }).join('\n')
+  : '• Nenhuma movimentação no período selecionado'
+}
 
-RECOMENDAÇÕES:
-1. Realizar manutenção preventiva nos equipamentos em atraso
-2. Avaliar necessidade de aquisição de novos equipamentos
-3. Implementar sistema de rastreamento mais detalhado
-4. Treinar colaboradores no uso correto dos equipamentos
+ANÁLISE DE UTILIZAÇÃO:
+• Taxa de Utilização: ${total > 0 ? ((inUse / total) * 100).toFixed(1) : 0}%
+• Taxa de Disponibilidade: ${total > 0 ? ((available / total) * 100).toFixed(1) : 0}%
+• Taxa de Manutenção: ${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%
 
 OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema e reflete a situação atual dos equipamentos cadastrados.
+Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o período especificado' : 'com base nos dados atuais'} e reflete a situação dos equipamentos e suas movimentações.
   `
 }
 
@@ -335,7 +407,7 @@ function generateEmployeeReportData(employees: any[]): string {
   }, {} as Record<string, number>)
 
   const departmentText = Object.entries(departments)
-    .map(([dept, count]) => `• ${dept}: ${count} colaboradores (${total > 0 ? ((count / total) * 100).toFixed(1) : 0}%)`)
+    .map(([dept, count]) => `• ${dept}: ${count} colaboradores (${total > 0 ? (((count as number) / total) * 100).toFixed(1) : 0}%)`)
     .join('\n')
 
   // Agrupar por cargo
