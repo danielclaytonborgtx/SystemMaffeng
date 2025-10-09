@@ -15,13 +15,33 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { useMemo } from "react"
+import { useMemo, useEffect, useState } from "react"
 import { useEmployees, useEquipment, useVehicles } from "@/hooks"
 
 export function ReportsCharts() {
   const { data: employees } = useEmployees()
   const { data: equipment } = useEquipment()
   const { data: vehicles } = useVehicles()
+  
+  const [isDark, setIsDark] = useState(false)
+  
+  useEffect(() => {
+    const checkTheme = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark')
+      setIsDark(isDarkMode)
+    }
+    
+    checkTheme()
+    
+    // Observer para detectar mudanças no tema
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    
+    return () => observer.disconnect()
+  }, [])
   const equipmentData = useMemo(() => {
     const total = equipment.length
     const available = equipment.filter(eq => eq.status === 'available').length
@@ -79,7 +99,22 @@ export function ReportsCharts() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value, name) => [`${value}`, name]} />
+              <Tooltip 
+                formatter={(value, name) => [`${value}`, name]}
+                contentStyle={isDark ? {
+                  backgroundColor: "#1f2937",
+                  border: "1px solid #374151",
+                  borderRadius: "8px",
+                  color: "#b4b4b4",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+                } : {
+                  backgroundColor: "hsl(var(--popover))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                  color: "hsl(var(--popover-foreground))",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                }}
+              />
               <Bar dataKey="value" fill="#3b82f6" name="Quantidade" />
             </BarChart>
           </ResponsiveContainer>
@@ -106,7 +141,32 @@ export function ReportsCharts() {
                   <Cell key={`cell-${index}`} fill={index === 0 ? "#22c55e" : "#f59e0b"} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div 
+                        style={{
+                          backgroundColor: isDark ? "#1f2937" : "hsl(var(--popover))",
+                          border: isDark ? "1px solid #374151" : "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          padding: "8px 12px",
+                          boxShadow: isDark ? "0 10px 25px rgba(0,0,0,0.3)" : "0 10px 25px rgba(0,0,0,0.1)",
+                        }}
+                      >
+                        <p style={{ 
+                          color: isDark ? "#b4b4b4" : "hsl(var(--popover-foreground))",
+                          margin: 0,
+                          fontSize: "14px"
+                        }}>
+                          {`${payload[0].name}: ${payload[0].value}`}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -123,7 +183,22 @@ export function ReportsCharts() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value, name) => [`${value}`, name]} />
+              <Tooltip 
+                formatter={(value, name) => [`${value}`, name]}
+                contentStyle={isDark ? {
+                  backgroundColor: "#1f2937",
+                  border: "1px solid #374151",
+                  borderRadius: "8px",
+                  color: "#b4b4b4",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+                } : {
+                  backgroundColor: "hsl(var(--popover))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                  color: "hsl(var(--popover-foreground))",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                }}
+              />
               <Bar dataKey="value" fill="#8b5cf6" name="Quantidade" />
             </BarChart>
           </ResponsiveContainer>

@@ -16,7 +16,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useEffect, useState } from "react";
 import {
   useEmployeesQuery,
   useEquipmentQuery,
@@ -27,6 +27,26 @@ export const DashboardCharts = memo(function DashboardCharts() {
   const { data: employees = [] } = useEmployeesQuery();
   const { data: equipment = [] } = useEquipmentQuery();
   const { data: vehicles = [] } = useVehiclesQuery();
+  
+  const [isDark, setIsDark] = useState(false);
+  
+  useEffect(() => {
+    const checkTheme = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      setIsDark(isDarkMode);
+    };
+    
+    checkTheme();
+    
+    // Observer para detectar mudanças no tema
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const chartData = useMemo(() => {
     // Dados baseados em dados reais do Firestore
@@ -66,7 +86,13 @@ export const DashboardCharts = memo(function DashboardCharts() {
             <XAxis dataKey="name" className="stroke-muted-foreground" />
             <YAxis className="stroke-muted-foreground" />
             <Tooltip
-              contentStyle={{
+              contentStyle={isDark ? {
+                backgroundColor: "#1f2937",
+                border: "1px solid #374151",
+                borderRadius: "8px",
+                color: "#b4b4b4",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+              } : {
                 backgroundColor: "hsl(var(--popover))",
                 border: "1px solid hsl(var(--border))",
                 borderRadius: "8px",
