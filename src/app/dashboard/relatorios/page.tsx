@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Download, Calendar, FileText, Loader2 } from "lucide-react"
+import { Download, Calendar, FileText, Loader2, Check } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { ReportsCharts } from "@/components/reports/reports-charts"
-import { AlertsCharts } from "@/components/reports/alerts-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
 import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels, useAlerts } from "@/hooks"
 import { toast } from "sonner"
+import { useState } from "react"
+import { Badge } from "@/components/ui/badge"
 
 export default function RelatoriosPage() {
   const { generatePDF, isGenerating } = usePDFGenerator()
@@ -20,21 +21,65 @@ export default function RelatoriosPage() {
   const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
   const { alerts, totalAlerts } = useAlerts()
 
+  // Estado para armazenar os períodos definidos por relatório
+  const [reportPeriods, setReportPeriods] = useState<Record<string, any>>({})
+
   // Loading geral - qualquer hook carregando
   const loading = employeesLoading || equipmentLoading || vehiclesLoading || maintenancesLoading || fuelsLoading
 
+  // Função para filtrar dados por data
+  const filterDataByDate = (data: any[], dateField: string, dateRange?: any) => {
+    if (!dateRange?.from) return data
+    
+    return data.filter((item) => {
+      const itemDate = item[dateField]
+      if (!itemDate) return false
+      
+      // Converter para Date se necessário
+      const date = itemDate?.toDate ? itemDate.toDate() : new Date(itemDate)
+      
+      if (dateRange.from && date < dateRange.from) return false
+      if (dateRange.to && date > dateRange.to) return false
+      
+      return true
+    })
+  }
+
+  // Função para salvar período definido
+  const handleSetPeriod = (category: string, period: any) => {
+    setReportPeriods(prev => ({
+      ...prev,
+      [category]: period
+    }))
+  }
+
+  // Função para verificar se tem período definido
+  const hasPeriod = (category: string) => {
+    return !!reportPeriods[category]?.from
+  }
+
   const handleGeneratePDF = async (category: string, title: string) => {
+    const period = reportPeriods[category]
+    
+    // Aplicar filtros de data aos dados
+    const filteredEmployees = filterDataByDate(employees, 'createdAt', period)
+    const filteredEquipment = filterDataByDate(equipment, 'createdAt', period)
+    const filteredVehicles = filterDataByDate(vehicles, 'createdAt', period)
+    const filteredMaintenances = filterDataByDate(maintenances, 'date', period)
+    const filteredFuels = filterDataByDate(fuels, 'date', period)
+    const filteredAlerts = alerts // Alertas não precisam de filtro de data (são sempre atuais)
+
     const result = await generatePDF({
       filename: `relatorio-${category}`,
       title: title,
       includeCharts: true,
       data: {
-        employees,
-        equipment,
-        vehicles,
-        maintenances,
-        fuels,
-        alerts
+        employees: filteredEmployees,
+        equipment: filteredEquipment,
+        vehicles: filteredVehicles,
+        maintenances: filteredMaintenances,
+        fuels: filteredFuels,
+        alerts: filteredAlerts
       }
     })
 
@@ -116,10 +161,7 @@ export default function RelatoriosPage() {
           </CardContent>
         </Card>
       ) : (
-        <>
-          <AlertsCharts />
-          <ReportsCharts />
-        </>
+        <ReportsCharts />
       )}
 
       <div>
@@ -133,10 +175,18 @@ export default function RelatoriosPage() {
                     <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
                       <report.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
-                        {report.title}
-                      </CardTitle>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+                          {report.title}
+                        </CardTitle>
+                        {hasPeriod(report.category) && (
+                          <Badge variant="outline" className="bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 flex items-center gap-1 text-xs">
+                            <Check className="h-3 w-3" />
+                            Período
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -153,14 +203,18 @@ export default function RelatoriosPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-col gap-3">
-                  <ReportFiltersDialog category={report.category}>
+                  <ReportFiltersDialog 
+                    category={report.category}
+                    currentPeriod={reportPeriods[report.category]}
+                    onSetPeriod={(period) => handleSetPeriod(report.category, period)}
+                  >
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="w-full justify-center border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200 cursor-pointer"
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      Configurar Filtros
+                      {hasPeriod(report.category) ? 'Editar Período' : 'Definir Período'}
                     </Button>
                   </ReportFiltersDialog>
                   <Button 

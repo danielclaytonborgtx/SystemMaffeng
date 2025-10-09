@@ -9,14 +9,23 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 
-export function DatePickerWithRange({ className }: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
+interface DatePickerWithRangeProps extends React.HTMLAttributes<HTMLDivElement> {
+  onPeriodChange?: (period: DateRange | undefined) => void
+  initialPeriod?: DateRange | undefined
+}
+
+export function DatePickerWithRange({ className, onPeriodChange, initialPeriod }: DatePickerWithRangeProps) {
+  const [date, setDate] = React.useState<DateRange | undefined>(initialPeriod || {
     from: new Date(2024, 0, 1),
     to: new Date(),
   })
 
-  const [startDate, setStartDate] = React.useState("01/01/2024")
-  const [endDate, setEndDate] = React.useState(new Date().toLocaleDateString("pt-BR"))
+  const [startDate, setStartDate] = React.useState(
+    initialPeriod?.from ? initialPeriod.from.toLocaleDateString("pt-BR") : "01/01/2024"
+  )
+  const [endDate, setEndDate] = React.useState(
+    initialPeriod?.to ? initialPeriod.to.toLocaleDateString("pt-BR") : new Date().toLocaleDateString("pt-BR")
+  )
 
   const presetPeriods = [
     {
@@ -107,26 +116,32 @@ export function DatePickerWithRange({ className }: React.HTMLAttributes<HTMLDivE
 
   const handlePresetClick = (preset: any) => {
     const result = preset.getValue()
-    setDate({ from: result.from, to: result.to })
+    const newDateRange = { from: result.from, to: result.to }
+    setDate(newDateRange)
     setStartDate(result.startDate)
     setEndDate(result.endDate)
+    onPeriodChange?.(newDateRange)
   }
 
   const handleStartDateChange = (value: string) => {
     setStartDate(value)
     const [day, month, year] = value.split('/')
-    if (day && month && year) {
+    if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
       const newDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-      setDate(prev => ({ ...prev, from: newDate }))
+      const newDateRange = { ...date, from: newDate }
+      setDate(newDateRange)
+      onPeriodChange?.(newDateRange)
     }
   }
 
   const handleEndDateChange = (value: string) => {
     setEndDate(value)
     const [day, month, year] = value.split('/')
-    if (day && month && year) {
+    if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
       const newDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-      setDate(prev => ({ ...prev, to: newDate }))
+      const newDateRange = { ...date, to: newDate }
+      setDate(newDateRange)
+      onPeriodChange?.(newDateRange)
     }
   }
 
