@@ -8,6 +8,10 @@ interface PDFGeneratorOptions {
   filename: string
   title: string
   includeCharts?: boolean
+  period?: {
+    from?: Date
+    to?: Date
+  }
   data?: {
     employees?: any[]
     equipment?: any[]
@@ -51,10 +55,10 @@ export function usePDFGenerator() {
       let reportData = ""
       let yPosition = 60
       
-      switch (filename.toLowerCase()) {
-        case "relatorio-alertas":
-          reportData = generateAlertsReportData(data?.alerts || [])
-          break
+            switch (filename.toLowerCase()) {
+              case "relatorio-alertas":
+                reportData = generateAlertsReportData(data?.alerts || [], options.period)
+                break
         case "relatorio-equipamentos":
           reportData = generateEquipmentReportData(data?.equipment || [])
           break
@@ -113,14 +117,35 @@ export function usePDFGenerator() {
 }
 
 // Funções auxiliares para gerar dados dos relatórios
-function generateAlertsReportData(alerts: any[]): string {
-  const total = alerts.length
-  const critical = alerts.filter(a => a.type === 'critical').length
-  const warning = alerts.filter(a => a.type === 'warning').length
-  const info = alerts.filter(a => a.type === 'info').length
+function generateAlertsReportData(alerts: any[], period?: { from?: Date; to?: Date }): string {
+  // Filtrar alertas por período se especificado
+  let filteredAlerts = alerts
+  
+  if (period?.from || period?.to) {
+    filteredAlerts = alerts.filter(alert => {
+      // Para alertas que têm data específica (como manutenções, seguros, etc.)
+      if (alert.daysOverdue !== undefined) {
+        const alertDate = new Date()
+        alertDate.setDate(alertDate.getDate() - (alert.daysOverdue || 0))
+        
+        if (period.from && alertDate < period.from) return false
+        if (period.to && alertDate > period.to) return false
+        
+        return true
+      }
+      
+      // Para alertas sem data específica (como equipamentos disponíveis), incluir sempre
+      return true
+    })
+  }
+
+  const total = filteredAlerts.length
+  const critical = filteredAlerts.filter(a => a.type === 'critical' || a.type === 'urgent').length
+  const warning = filteredAlerts.filter(a => a.type === 'warning').length
+  const info = filteredAlerts.filter(a => a.type === 'info').length
 
   // Agrupar por categoria
-  const categories = alerts.reduce((acc, item) => {
+  const categories = filteredAlerts.reduce((acc, item) => {
     acc[item.category] = (acc[item.category] || 0) + 1
     return acc
   }, {} as Record<string, number>)
@@ -130,31 +155,43 @@ function generateAlertsReportData(alerts: any[]): string {
     .join('\n')
 
   // Listar alertas críticos
-  const criticalAlerts = alerts.filter(a => a.type === 'critical')
+  const criticalAlerts = filteredAlerts.filter(a => a.type === 'critical' || a.type === 'urgent')
   const criticalText = criticalAlerts.length > 0
     ? criticalAlerts.map(a => `• ${a.title} - ${a.description}`).join('\n')
-    : '• Nenhum alerta crítico no momento'
+    : '• Nenhum alerta crítico no período selecionado'
 
   // Listar alertas de atenção
-  const warningAlerts = alerts.filter(a => a.type === 'warning')
+  const warningAlerts = filteredAlerts.filter(a => a.type === 'warning')
   const warningText = warningAlerts.length > 0
     ? warningAlerts.slice(0, 5).map(a => `• ${a.title} - ${a.description}`).join('\n')
-    : '• Nenhum alerta de atenção no momento'
+    : '• Nenhum alerta de atenção no período selecionado'
+
+  // Formatação do período
+  const periodText = period?.from && period?.to
+    ? `${period.from.toLocaleDateString('pt-BR')} até ${period.to.toLocaleDateString('pt-BR')}`
+    : period?.from
+    ? `A partir de ${period.from.toLocaleDateString('pt-BR')}`
+    : period?.to
+    ? `Até ${period.to.toLocaleDateString('pt-BR')}`
+    : 'Todos os alertas ativos'
 
   return `
 RELATÓRIO DE ALERTAS DO SISTEMA
 
+PERÍODO DO RELATÓRIO:
+${periodText}
+
 RESUMO EXECUTIVO:
-Este relatório apresenta um panorama completo dos alertas ativos no sistema, incluindo alertas críticos, avisos e informações importantes que requerem atenção.
+Este relatório apresenta um panorama completo dos alertas ${period ? 'do período selecionado' : 'ativos no sistema'}, incluindo alertas críticos, avisos e informações importantes que requerem atenção.
 
 DADOS GERAIS:
-• Total de Alertas: ${total}
+• Total de Alertas ${period ? 'no Período' : 'Ativos'}: ${total}
 • Alertas Críticos: ${critical} (${total > 0 ? ((critical / total) * 100).toFixed(1) : 0}%)
 • Alertas de Atenção: ${warning} (${total > 0 ? ((warning / total) * 100).toFixed(1) : 0}%)
 • Alertas Informativos: ${info} (${total > 0 ? ((info / total) * 100).toFixed(1) : 0}%)
 
 DISTRIBUIÇÃO POR CATEGORIA:
-${categoryText || '• Nenhuma categoria encontrada'}
+${categoryText || '• Nenhuma categoria encontrada no período'}
 
 ALERTAS CRÍTICOS (Ação Urgente Necessária):
 ${criticalText}
@@ -162,20 +199,20 @@ ${criticalText}
 ALERTAS DE ATENÇÃO (Próximos ${Math.min(5, warningAlerts.length)}):
 ${warningText}
 
+DETALHAMENTO POR CATEGORIA:
+${Object.entries(categories).map(([category, count]) => {
+  const categoryAlerts = filteredAlerts.filter(a => a.category === category)
+  const categoryText = categoryAlerts.map(a => `  - ${a.title}: ${a.description}`).join('\n')
+  return `\n${category.toUpperCase()} (${count} alerta${count > 1 ? 's' : ''}):\n${categoryText || '  - Nenhum alerta nesta categoria'}`
+}).join('\n')}
+
 ANÁLISE DE PRIORIDADE:
 • Nível Crítico: ${critical} alerta(s) - Requer ação imediata
 • Nível Atenção: ${warning} alerta(s) - Requer planejamento
 • Nível Info: ${info} alerta(s) - Para conhecimento
 
-RECOMENDAÇÕES:
-1. Priorizar resolução de alertas críticos relacionados a documentação vencida
-2. Agendar manutenções preventivas para evitar alertas críticos futuros
-3. Implementar rotina de verificação semanal de alertas
-4. Criar protocolo de resposta rápida para alertas críticos
-5. Manter atualizado o cadastro de vencimentos e prazos
-
 OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema e reflete o estado atual dos alertas. É recomendado revisar este relatório periodicamente para garantir que todas as ações necessárias sejam tomadas em tempo hábil.
+Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o período especificado' : 'com base nos alertas ativos'}. É recomendado revisar este relatório periodicamente para garantir que todas as ações necessárias sejam tomadas em tempo hábil.
   `
 }
 

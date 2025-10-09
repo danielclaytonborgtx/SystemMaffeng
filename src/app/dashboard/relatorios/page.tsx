@@ -67,12 +67,13 @@ export default function RelatoriosPage() {
     const filteredVehicles = filterDataByDate(vehicles, 'createdAt', period)
     const filteredMaintenances = filterDataByDate(maintenances, 'date', period)
     const filteredFuels = filterDataByDate(fuels, 'date', period)
-    const filteredAlerts = alerts // Alertas não precisam de filtro de data (são sempre atuais)
+    const filteredAlerts = alerts // Alertas serão filtrados no gerador de PDF
 
     const result = await generatePDF({
       filename: `relatorio-${category}`,
       title: title,
       includeCharts: true,
+      period: period, // Passar o período para o gerador de PDF
       data: {
         employees: filteredEmployees,
         equipment: filteredEquipment,
