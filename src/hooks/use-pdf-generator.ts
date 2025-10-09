@@ -813,56 +813,189 @@ function generateFuelReportData(fuels: any[]): string {
   const totalCost = fuels.reduce((sum, f) => sum + (f.cost || 0), 0)
   const avgPricePerLiter = totalLiters > 0 ? totalCost / totalLiters : 0
 
-  // Agrupar por tipo de combustível
-  const fuelTypes = fuels.reduce((acc, item) => {
-    const type = item.fuelType || 'Não informado'
-    acc[type] = (acc[type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const fuelTypeText = Object.entries(fuelTypes)
-    .map(([type, count]) => `• ${type}: ${count} abastecimentos`)
-    .join('\n')
-
   // Calcular consumo médio
   const avgLitersPerFill = total > 0 ? totalLiters / total : 0
   const avgCostPerFill = total > 0 ? totalCost / total : 0
 
+  // Análise por veículo
+  const vehicleAnalysis = fuels.reduce((acc, fuel) => {
+    const key = `${fuel.vehicle_plate} - ${fuel.vehicle_model}`
+    if (!acc[key]) {
+      acc[key] = {
+        plate: fuel.vehicle_plate,
+        model: fuel.vehicle_model,
+        totalLiters: 0,
+        totalCost: 0,
+        count: 0,
+        consumptions: []
+      }
+    }
+    acc[key].totalLiters += fuel.liters || 0
+    acc[key].totalCost += fuel.cost || 0
+    acc[key].count += 1
+    if (fuel.consumption && fuel.consumption > 0) {
+      acc[key].consumptions.push(fuel.consumption)
+    }
+    return acc
+  }, {} as Record<string, any>)
+
+  // Top 10 veículos por consumo total
+  const topVehiclesByConsumption = Object.values(vehicleAnalysis)
+    .sort((a: any, b: any) => b.totalLiters - a.totalLiters)
+    .slice(0, 10)
+
+  // Top 10 veículos por custo total
+  const topVehiclesByCost = Object.values(vehicleAnalysis)
+    .sort((a: any, b: any) => b.totalCost - a.totalCost)
+    .slice(0, 10)
+
+  // Análise de postos
+  const stationAnalysis = fuels.reduce((acc, fuel) => {
+    const station = fuel.station || 'Não informado'
+    if (!acc[station]) {
+      acc[station] = { count: 0, totalLiters: 0, totalCost: 0 }
+    }
+    acc[station].count += 1
+    acc[station].totalLiters += fuel.liters || 0
+    acc[station].totalCost += fuel.cost || 0
+    return acc
+  }, {} as Record<string, any>)
+
+  // Top 10 postos mais utilizados
+  const topStations = Object.entries(stationAnalysis)
+    .map(([station, data]: [string, any]) => ({
+      station,
+      count: data.count,
+      totalLiters: data.totalLiters,
+      totalCost: data.totalCost,
+      avgPricePerLiter: data.totalLiters > 0 ? data.totalCost / data.totalLiters : 0
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10)
+
+  // Análise de consumo por veículo
+  const vehicleConsumptionAnalysis = Object.values(vehicleAnalysis)
+    .map((vehicle: any) => {
+      const avgConsumption = vehicle.consumptions.length > 0 
+        ? vehicle.consumptions.reduce((sum: number, c: number) => sum + c, 0) / vehicle.consumptions.length 
+        : 0
+      return {
+        ...vehicle,
+        avgConsumption
+      }
+    })
+    .filter(v => v.avgConsumption > 0)
+    .sort((a, b) => b.avgConsumption - a.avgConsumption)
+    .slice(0, 10)
+
+  // Análise temporal (últimos 6 meses)
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  
+  const recentFuels = fuels.filter(fuel => {
+    const fuelDate = new Date(fuel.created_at)
+    return fuelDate >= sixMonthsAgo
+  })
+
+  // Análise de preços
+  const priceAnalysis = fuels
+    .filter(f => f.price_per_liter && f.price_per_liter > 0)
+    .sort((a, b) => a.price_per_liter - b.price_per_liter)
+
+  const lowestPrice = priceAnalysis.length > 0 ? priceAnalysis[0].price_per_liter : 0
+  const highestPrice = priceAnalysis.length > 0 ? priceAnalysis[priceAnalysis.length - 1].price_per_liter : 0
+
+  // Histórico detalhado dos últimos 20
+  const detailedHistory = fuels
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 20)
+    .map(f => {
+      const date = new Date(f.created_at).toLocaleDateString('pt-BR')
+      const consumption = f.consumption ? `${f.consumption.toFixed(2)} km/l` : 'N/A'
+      const station = f.station || 'Não informado'
+      const observations = f.observations ? ` - ${f.observations}` : ''
+      return `• ${date} - ${f.vehicle_plate} - ${f.liters.toFixed(2)}L - R$ ${f.cost.toFixed(2)} - ${consumption} - ${station}${observations}`
+    }).join('\n')
+
   return `
-RELATÓRIO DE ABASTECIMENTOS
+RELATÓRIO DETALHADO DE ABASTECIMENTOS
 
 RESUMO EXECUTIVO:
-Este relatório apresenta o histórico de abastecimentos, custos de combustível e análise de consumo.
+Este relatório apresenta análise completa do histórico de abastecimentos, custos de combustível, análise de consumo por veículo e performance da frota.
 
-DADOS GERAIS:
-• Total de Abastecimentos: ${total}
-• Total de Litros: ${totalLiters.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} L
-• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-• Preço Médio por Litro: R$ ${avgPricePerLiter.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
+DADOS GERAIS DO PERÍODO
 
-DISTRIBUIÇÃO POR TIPO DE COMBUSTÍVEL:
-${fuelTypeText || '• Nenhum tipo de combustível encontrado'}
+Total de Abastecimentos: ${total}
+Total de Litros Abastecidos: ${totalLiters.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} L
+Custo Total Investido: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+Preço Médio por Litro: R$ ${avgPricePerLiter.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
+Abastecimentos com Custo Registrado: ${fuels.filter(f => f.cost && f.cost > 0).length}
 
-ANÁLISE DE CONSUMO:
-• Média de Litros por Abastecimento: ${avgLitersPerFill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} L
-• Custo Médio por Abastecimento: R$ ${avgCostPerFill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-• Abastecimentos com Custo: ${fuels.filter(f => f.cost && f.cost > 0).length}
+ANÁLISE DE CUSTOS
 
-ABASTECIMENTOS RECENTES:
-${fuels.slice(0, 5).map(f => `• ${f.liters || 0}L - ${f.fuelType || 'Não informado'} - R$ ${(f.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`).join('\n') || '• Nenhum abastecimento cadastrado'}
+Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+Custo Médio por Abastecimento: R$ ${avgCostPerFill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+Preço por Litro - Menor: R$ ${lowestPrice.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
+Preço por Litro - Maior: R$ ${highestPrice.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
+Amplitude de Preços: R$ ${(highestPrice - lowestPrice).toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
 
-ANÁLISE DE CUSTOS:
-• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+ANÁLISE POR VEÍCULO (Top 10)
+
+Veículos com Maior Consumo de Combustível:
+${topVehiclesByConsumption.length > 0 
+  ? topVehiclesByConsumption.map((v: any, index) => 
+      `${index + 1}. ${v.plate} - ${v.model}: ${v.totalLiters.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}L (${v.count} abastecimentos)`
+    ).join('\n')
+  : '• Nenhum veículo encontrado'}
+
+Veículos com Maior Custo Total:
+${topVehiclesByCost.length > 0 
+  ? topVehiclesByCost.map((v: any, index) => 
+      `${index + 1}. ${v.plate} - ${v.model}: R$ ${v.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${v.count} abastecimentos)`
+    ).join('\n')
+  : '• Nenhum veículo encontrado'}
+
+ANÁLISE DE CONSUMO POR VEÍCULO (Top 10)
+
+Melhor Consumo Médio:
+${vehicleConsumptionAnalysis.length > 0 
+  ? vehicleConsumptionAnalysis.map((v: any, index) => 
+      `${index + 1}. ${v.plate} - ${v.model}: ${v.avgConsumption.toFixed(2)} km/l (${v.consumptions.length} medições)`
+    ).join('\n')
+  : '• Nenhum dado de consumo disponível'}
+
+POSTOS MAIS UTILIZADOS (Top 10)
+
+${topStations.length > 0 
+  ? topStations.map((s, index) => 
+      `${index + 1}. ${s.station}: ${s.count} abastecimentos - ${s.totalLiters.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}L - R$ ${s.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Média: R$ ${s.avgPricePerLiter.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}/L`
+    ).join('\n')
+  : '• Nenhum posto registrado'}
+
+HISTÓRICO DETALHADO DOS ABASTECIMENTOS (Últimos 20)
+
+${detailedHistory || '• Nenhum abastecimento cadastrado'}
+
+INDICADORES DE PERFORMANCE
+
+Consumo Médio da Frota: ${vehicleConsumptionAnalysis.length > 0 
+  ? (vehicleConsumptionAnalysis.reduce((sum: number, v: any) => sum + v.avgConsumption, 0) / vehicleConsumptionAnalysis.length).toFixed(2) 
+  : 'N/A'} km/l
+
+Eficiência de Custos:
 • Custo Médio por Litro: R$ ${avgPricePerLiter.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
-• Economia Potencial: R$ ${(totalCost * 0.1).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (10% de economia)
+• Economia Potencial (10%): R$ ${(totalCost * 0.1).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Abastecimentos nos Últimos 6 Meses: ${recentFuels.length}
 
-RECOMENDAÇÕES:
-1. Implementar controle de consumo por veículo
-2. Negociar preços com postos parceiros
-3. Treinar motoristas em direção econômica
-4. Implementar sistema de alertas de abastecimento
+ANÁLISE TEMPORAL
 
-OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema e reflete o histórico de abastecimentos cadastrados.
+Abastecimentos Recentes (6 meses): ${recentFuels.length}
+Litros nos Últimos 6 Meses: ${recentFuels.reduce((sum, f) => sum + (f.liters || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} L
+Custo nos Últimos 6 Meses: R$ ${recentFuels.reduce((sum, f) => sum + (f.cost || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+
+OBSERVAÇÕES FINAIS:
+Este relatório foi gerado automaticamente pelo Sistema de Gestão MAFFENG e reflete o histórico completo de abastecimentos cadastrados. Recomenda-se revisão periódica mensal deste relatório para acompanhamento de custos e otimização do consumo de combustível.
+
+Data de Geração: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
   `
 }
