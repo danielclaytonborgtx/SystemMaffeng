@@ -20,6 +20,7 @@ interface PDFGeneratorOptions {
     fuels?: any[]
     alerts?: any[]
     movements?: any[]
+    scheduledMaintenances?: any[]
   }
 }
 
@@ -42,11 +43,24 @@ export function usePDFGenerator() {
       // Adicionar título
       pdf.text(title, 20, 30)
       
-      // Adicionar data de geração
+      // Adicionar data de geração e período
       pdf.setFont("helvetica", "normal")
       pdf.setFontSize(10)
       const currentDate = new Date().toLocaleDateString("pt-BR")
-      pdf.text(`Gerado em: ${currentDate}`, 20, 40)
+      
+      // Formatar período se existir
+      let periodText = ""
+      if (options.period?.from || options.period?.to) {
+        if (options.period.from && options.period.to) {
+          periodText = ` | Período: ${options.period.from.toLocaleDateString('pt-BR')} até ${options.period.to.toLocaleDateString('pt-BR')}`
+        } else if (options.period.from) {
+          periodText = ` | Período: a partir de ${options.period.from.toLocaleDateString('pt-BR')}`
+        } else if (options.period.to) {
+          periodText = ` | Período: até ${options.period.to.toLocaleDateString('pt-BR')}`
+        }
+      }
+      
+      pdf.text(`Gerado em: ${currentDate}${periodText}`, 20, 40)
       
       // Adicionar linha separadora
       pdf.setLineWidth(0.5)
@@ -56,7 +70,7 @@ export function usePDFGenerator() {
       let reportData = ""
       let yPosition = 60
       
-            switch (filename.toLowerCase()) {
+      switch (filename.toLowerCase()) {
               case "relatorio-alertas":
                 reportData = generateAlertsReportData(data?.alerts || [], options.period)
                 break
@@ -64,7 +78,13 @@ export function usePDFGenerator() {
           reportData = generateEquipmentReportData(data?.equipment || [], data?.movements || [], options.period)
           break
         case "relatorio-veiculos":
-          reportData = generateVehicleReportData(data?.vehicles || [])
+          reportData = generateVehicleReportData(
+            data?.vehicles || [], 
+            data?.maintenances || [], 
+            data?.fuels || [], 
+            data?.scheduledMaintenances || [], 
+            options.period
+          )
           break
         case "relatorio-manutencoes":
           reportData = generateMaintenanceReportData(data?.maintenances || [])
@@ -238,12 +258,6 @@ function generateEquipmentReportData(equipment: any[], movements: any[], period?
     })
   }
 
-  // Debug: log das movimentações
-  console.log('=== DEBUG MOVIMENTAÇÕES PDF ===')
-  console.log('Total de movimentações:', filteredMovements.length)
-  console.log('Primeiras 5 movimentações:', filteredMovements.slice(0, 5))
-  console.log('Tipos encontrados:', [...new Set(filteredMovements.map(m => m.type))])
-  
   // Estatísticas de movimentações
   const totalMovements = filteredMovements.length
   const exitMovements = filteredMovements.filter(m => m.type === 'out').length
@@ -251,10 +265,6 @@ function generateEquipmentReportData(equipment: any[], movements: any[], period?
   
   // Contar devoluções baseado em actual_return_date (já que devoluções atualizam a movimentação existente)
   const actualReturns = filteredMovements.filter(m => m.type === 'out' && m.actual_return_date).length
-  
-  console.log('Saídas (type=out):', exitMovements)
-  console.log('Devoluções (type=return):', returnMovements)
-  console.log('Devoluções (actual_return_date):', actualReturns)
   
   const pendingReturns = filteredMovements.filter(m => {
     const isExit = m.type === 'out'
@@ -265,9 +275,6 @@ function generateEquipmentReportData(equipment: any[], movements: any[], period?
     )
     return isExit && !hasReturn && !m.actual_return_date
   }).length
-  
-  console.log('Devoluções pendentes:', pendingReturns)
-  console.log('=== FIM DEBUG MOVIMENTAÇÕES PDF ===')
 
   // Movimentações recentes
   const recentMovements = filteredMovements
@@ -332,6 +339,143 @@ ANÁLISE DE UTILIZAÇÃO:
 
 OBSERVAÇÕES:
 Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o período especificado' : 'com base nos dados atuais'} e reflete a situação dos equipamentos e suas movimentações.
+  `
+}
+
+function generateVehicleReportData(vehicles: any[], maintenances: any[], fuels: any[], scheduledMaintenances: any[], period?: { from?: Date; to?: Date }): string {
+  const total = vehicles.length
+  const active = vehicles.filter(v => v.status === 'active').length
+  const maintenance = vehicles.filter(v => v.status === 'maintenance').length
+  const retired = vehicles.filter(v => v.status === 'retired').length
+
+  // Filtrar manutenções por período se especificado
+  let filteredMaintenances = maintenances
+  if (period?.from || period?.to) {
+    filteredMaintenances = maintenances.filter(maintenance => {
+      const maintenanceDate = new Date(maintenance.created_at)
+      
+      if (period.from && maintenanceDate < period.from) return false
+      if (period.to && maintenanceDate > period.to) return false
+      
+      return true
+    })
+  }
+
+  // Filtrar abastecimentos por período se especificado
+  let filteredFuels = fuels
+  if (period?.from || period?.to) {
+    filteredFuels = fuels.filter(fuel => {
+      const fuelDate = new Date(fuel.created_at)
+      
+      if (period.from && fuelDate < period.from) return false
+      if (period.to && fuelDate > period.to) return false
+      
+      return true
+    })
+  }
+
+  // Estatísticas de manutenções
+  const totalMaintenances = filteredMaintenances.length
+  const preventiveMaintenances = filteredMaintenances.filter(m => m.type === 'preventiva').length
+  const correctiveMaintenances = filteredMaintenances.filter(m => m.type === 'corretiva').length
+  const predictiveMaintenances = filteredMaintenances.filter(m => m.type === 'preditiva').length
+  const totalMaintenanceCost = filteredMaintenances.reduce((sum, m) => sum + (m.cost || 0), 0)
+
+  // Estatísticas de abastecimentos
+  const totalFuels = filteredFuels.length
+  const totalLiters = filteredFuels.reduce((sum, f) => sum + (f.liters || 0), 0)
+  const totalFuelCost = filteredFuels.reduce((sum, f) => sum + (f.cost || 0), 0)
+  const avgPricePerLiter = totalLiters > 0 ? totalFuelCost / totalLiters : 0
+
+  // Calcular quilometragem total atual
+  const totalCurrentKm = vehicles.reduce((sum, v) => sum + (v.current_km || 0), 0)
+  const avgCurrentKm = total > 0 ? totalCurrentKm / total : 0
+
+  // Manutenções programadas ativas
+  const activeScheduledMaintenances = scheduledMaintenances.filter(sm => sm.is_active)
+  const overdueMaintenances = activeScheduledMaintenances.filter(sm => {
+    const vehicle = vehicles.find(v => v.id === sm.vehicle_id)
+    return vehicle && sm.next_maintenance_km <= (vehicle.current_km || 0)
+  })
+
+  // Formatação do período
+  const periodText = period?.from && period?.to
+    ? `${period.from.toLocaleDateString('pt-BR')} até ${period.to.toLocaleDateString('pt-BR')}`
+    : period?.from
+    ? `A partir de ${period.from.toLocaleDateString('pt-BR')}`
+    : period?.to
+    ? `Até ${period.to.toLocaleDateString('pt-BR')}`
+    : 'Todos os veículos cadastrados'
+
+  return `
+RELATÓRIO DE VEÍCULOS
+
+RESUMO EXECUTIVO:
+Este relatório apresenta a situação ${period ? 'do período selecionado' : 'atual'} da frota de veículos, incluindo status, manutenções realizadas e abastecimentos registrados.
+
+DADOS GERAIS DA FROTA:
+• Total de Veículos: ${total} unidades
+• Veículos Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
+• Veículos em Manutenção: ${maintenance} (${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%)
+• Veículos Inativos: ${retired} (${total > 0 ? ((retired / total) * 100).toFixed(1) : 0}%)
+• Quilometragem Total Atual: ${totalCurrentKm.toLocaleString('pt-BR')} km
+• Quilometragem Média: ${avgCurrentKm.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} km
+
+RELATÓRIO DE MANUTENÇÕES ${period ? 'DO PERÍODO' : ''}:
+• Total de Manutenções: ${totalMaintenances}
+• Manutenções Preventivas: ${preventiveMaintenances}
+• Manutenções Corretivas: ${correctiveMaintenances}
+• Manutenções Preditivas: ${predictiveMaintenances}
+• Custo Total de Manutenções: R$ ${totalMaintenanceCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+
+MANUTENÇÕES PROGRAMADAS:
+• Total de Manutenções Programadas Ativas: ${activeScheduledMaintenances.length}
+• Manutenções Vencidas: ${overdueMaintenances.length}
+
+MANUTENÇÕES RECENTES ${period ? 'DO PERÍODO' : ''}:
+${filteredMaintenances.length > 0 
+  ? filteredMaintenances
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10)
+      .map(m => {
+        const vehicle = vehicles.find(v => v.id === m.vehicle_id)
+        const vehicleInfo = vehicle ? `${vehicle.plate} - ${vehicle.model}` : 'Veículo não encontrado'
+        const date = new Date(m.created_at).toLocaleDateString('pt-BR')
+        const cost = m.cost ? `R$ ${m.cost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Custo não informado'
+        return `• ${m.description} - ${vehicleInfo} - ${date} - ${cost}`
+      }).join('\n')
+  : '• Nenhuma manutenção no período selecionado'
+}
+
+RELATÓRIO DE ABASTECIMENTOS ${period ? 'DO PERÍODO' : ''}:
+• Total de Abastecimentos: ${totalFuels}
+• Litros Abastecidos: ${totalLiters.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} L
+• Custo Total: R$ ${totalFuelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+• Preço Médio por Litro: R$ ${avgPricePerLiter.toLocaleString('pt-BR', { minimumFractionDigits: 3 })}
+
+ABASTECIMENTOS RECENTES ${period ? 'DO PERÍODO' : ''}:
+${filteredFuels.length > 0 
+  ? filteredFuels
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10)
+      .map(f => {
+        const vehicle = vehicles.find(v => v.id === f.vehicle_id)
+        const vehicleInfo = vehicle ? `${vehicle.plate} - ${vehicle.model}` : 'Veículo não encontrado'
+        const date = new Date(f.created_at).toLocaleDateString('pt-BR')
+        const consumption = f.consumption ? `${f.consumption.toFixed(2)} km/L` : 'Consumo não calculado'
+        return `• ${f.liters}L - ${vehicleInfo} - ${date} - ${consumption}`
+      }).join('\n')
+  : '• Nenhum abastecimento no período selecionado'
+}
+
+ANÁLISE DE EFICIÊNCIA:
+• Taxa de Utilização: ${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%
+• Taxa de Disponibilidade: ${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%
+• Taxa de Manutenção: ${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%
+• Custo Médio por Km: R$ ${totalCurrentKm > 0 ? (totalMaintenanceCost / totalCurrentKm).toLocaleString('pt-BR', { minimumFractionDigits: 4 }) : '0,0000'}
+
+OBSERVAÇÕES:
+Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o período especificado' : 'com base nos dados atuais'} e reflete a situação da frota, manutenções e abastecimentos.
   `
 }
 
@@ -461,69 +605,6 @@ Este relatório foi gerado automaticamente pelo sistema e reflete os dados dos c
   `
 }
 
-function generateVehicleReportData(vehicles: any[]): string {
-  const total = vehicles.length
-  const active = vehicles.filter(v => v.status === 'Ativo').length
-  const inactive = vehicles.filter(v => v.status === 'Inativo').length
-  const maintenance = vehicles.filter(v => v.status === 'Manutenção').length
-
-  // Agrupar por tipo
-  const types = vehicles.reduce((acc, item) => {
-    const type = item.type || 'Não informado'
-    acc[type] = (acc[type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const typeText = Object.entries(types)
-    .map(([type, count]) => `• ${type}: ${count} veículos`)
-    .join('\n')
-
-  // Calcular quilometragem média
-  const vehiclesWithKm = vehicles.filter(v => v.currentKm && v.currentKm > 0)
-  const avgKm = vehiclesWithKm.length > 0 
-    ? vehiclesWithKm.reduce((sum, v) => sum + v.currentKm, 0) / vehiclesWithKm.length 
-    : 0
-
-  // Calcular valor total da frota
-  const totalValue = vehicles.reduce((sum, v) => sum + (v.purchaseValue || 0), 0)
-
-  return `
-RELATÓRIO DE VEÍCULOS
-
-RESUMO EXECUTIVO:
-Este relatório apresenta a situação atual da frota de veículos, incluindo status, quilometragem e informações gerais.
-
-DADOS GERAIS:
-• Total de Veículos: ${total}
-• Veículos Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
-• Veículos Inativos: ${inactive} (${total > 0 ? ((inactive / total) * 100).toFixed(1) : 0}%)
-• Veículos em Manutenção: ${maintenance} (${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%)
-
-DISTRIBUIÇÃO POR TIPO:
-${typeText || '• Nenhum tipo encontrado'}
-
-ANÁLISE DE QUILOMETRAGEM:
-• Veículos com KM Registrado: ${vehiclesWithKm.length}
-• Quilometragem Média: ${avgKm.toLocaleString('pt-BR')} km
-• Quilometragem Total: ${vehiclesWithKm.reduce((sum, v) => sum + v.currentKm, 0).toLocaleString('pt-BR')} km
-
-ANÁLISE FINANCEIRA:
-• Valor Total da Frota: R$ ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-• Valor Médio por Veículo: R$ ${total > 0 ? (totalValue / total).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
-
-VEÍCULOS RECENTES:
-${vehicles.slice(0, 5).map(v => `• ${v.plate} - ${v.model} - ${v.type} - ${v.status}`).join('\n') || '• Nenhum veículo cadastrado'}
-
-RECOMENDAÇÕES:
-1. Realizar manutenção preventiva nos veículos com alta quilometragem
-2. Avaliar necessidade de renovação da frota
-3. Implementar sistema de controle de combustível
-4. Treinar motoristas em direção econômica
-
-OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema e reflete a situação atual dos veículos cadastrados.
-  `
-}
 
 function generateFuelReportData(fuels: any[]): string {
   const total = fuels.length

@@ -7,7 +7,7 @@ import { Download, Calendar, FileText, Loader2, Check } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { ReportsCharts } from "@/components/reports/reports-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
-import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels, useAlerts, useEquipmentMovementsQuery } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels, useAlerts, useEquipmentMovementsQuery, useVehicleScheduledMaintenances } from "@/hooks"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -20,13 +20,14 @@ export default function RelatoriosPage() {
   const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
   const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
   const { data: movements = [], isLoading: movementsLoading } = useEquipmentMovementsQuery()
+  const { data: scheduledMaintenances = [], loading: scheduledMaintenancesLoading } = useVehicleScheduledMaintenances()
   const { alerts, totalAlerts } = useAlerts()
 
   // Estado para armazenar os períodos definidos por relatório
   const [reportPeriods, setReportPeriods] = useState<Record<string, any>>({})
 
   // Loading geral - qualquer hook carregando
-  const loading = employeesLoading || equipmentLoading || vehiclesLoading || maintenancesLoading || fuelsLoading || movementsLoading
+  const loading = employeesLoading || equipmentLoading || vehiclesLoading || maintenancesLoading || fuelsLoading || movementsLoading || scheduledMaintenancesLoading
 
   // Função para filtrar dados por data
   const filterDataByDate = (data: any[], dateField: string, dateRange?: any) => {
@@ -63,28 +64,30 @@ export default function RelatoriosPage() {
     const period = reportPeriods[category]
     
     // Aplicar filtros de data aos dados
-    const filteredEmployees = filterDataByDate(employees, 'createdAt', period)
-    const filteredEquipment = filterDataByDate(equipment, 'createdAt', period)
-    const filteredVehicles = filterDataByDate(vehicles, 'createdAt', period)
-    const filteredMaintenances = filterDataByDate(maintenances, 'date', period)
-    const filteredFuels = filterDataByDate(fuels, 'date', period)
-    const filteredMovements = filterDataByDate(movements, 'createdAt', period)
-    const filteredAlerts = alerts // Alertas serão filtrados no gerador de PDF
+            const filteredEmployees = filterDataByDate(employees, 'createdAt', period)
+            const filteredEquipment = filterDataByDate(equipment, 'createdAt', period)
+            const filteredVehicles = filterDataByDate(vehicles, 'createdAt', period)
+            const filteredMaintenances = filterDataByDate(maintenances, 'created_at', period)
+            const filteredFuels = filterDataByDate(fuels, 'created_at', period)
+            const filteredMovements = filterDataByDate(movements, 'createdAt', period)
+            const filteredScheduledMaintenances = filterDataByDate(scheduledMaintenances, 'created_at', period)
+            const filteredAlerts = alerts // Alertas serão filtrados no gerador de PDF
 
     const result = await generatePDF({
       filename: `relatorio-${category}`,
       title: title,
       includeCharts: true,
       period: period, // Passar o período para o gerador de PDF
-      data: {
-        employees: filteredEmployees,
-        equipment: filteredEquipment,
-        vehicles: filteredVehicles,
-        maintenances: filteredMaintenances,
-        fuels: filteredFuels,
-        movements: filteredMovements,
-        alerts: filteredAlerts
-      }
+              data: {
+                employees: filteredEmployees,
+                equipment: filteredEquipment,
+                vehicles: filteredVehicles,
+                maintenances: filteredMaintenances,
+                fuels: filteredFuels,
+                movements: filteredMovements,
+                alerts: filteredAlerts,
+                scheduledMaintenances: filteredScheduledMaintenances
+              }
     })
 
     if (result.success) {
