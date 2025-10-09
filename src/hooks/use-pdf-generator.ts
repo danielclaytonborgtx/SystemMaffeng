@@ -87,7 +87,7 @@ export function usePDFGenerator() {
           )
           break
         case "relatorio-manutencoes":
-          reportData = generateMaintenanceReportData(data?.maintenances || [])
+          reportData = generateMaintenanceReportData(data?.maintenances || [], data?.vehicles || [], data?.scheduledMaintenances || [])
           break
         case "relatorio-abastecimentos":
           reportData = generateFuelReportData(data?.fuels || [])
@@ -479,59 +479,260 @@ Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o perí
   `
 }
 
-function generateMaintenanceReportData(maintenances: any[]): string {
+function generateMaintenanceReportData(maintenances: any[], vehicles: any[] = [], scheduledMaintenances: any[] = []): string {
   const total = maintenances.length
-  const preventive = maintenances.filter(m => m.type === 'Preventiva').length
-  const corrective = maintenances.filter(m => m.type === 'Corretiva').length
-  const predictive = maintenances.filter(m => m.type === 'Preditiva').length
+  const preventive = maintenances.filter(m => m.type === 'preventiva').length
+  const corrective = maintenances.filter(m => m.type === 'corretiva').length
+  const predictive = maintenances.filter(m => m.type === 'preditiva').length
 
   const totalCost = maintenances.reduce((sum, m) => sum + (m.cost || 0), 0)
   const avgCost = total > 0 ? totalCost / total : 0
 
-  // Agrupar por tipo de veículo
-  const vehicleTypes = maintenances.reduce((acc, item) => {
-    const vehicleType = item.vehicleType || 'Não informado'
-    acc[vehicleType] = (acc[vehicleType] || 0) + 1
+  // Agrupar por veículo
+  const byVehicle = maintenances.reduce((acc, m) => {
+    const vehicleKey = m.vehicle_plate || 'Não informado'
+    if (!acc[vehicleKey]) {
+      acc[vehicleKey] = {
+        plate: m.vehicle_plate,
+        model: m.vehicle_model,
+        count: 0,
+        totalCost: 0,
+        maintenances: []
+      }
+    }
+    acc[vehicleKey].count++
+    acc[vehicleKey].totalCost += (m.cost || 0)
+    acc[vehicleKey].maintenances.push(m)
+    return acc
+  }, {} as Record<string, any>)
+
+  // Ordenar veículos por quantidade de manutenções
+  const sortedVehicles = Object.values(byVehicle).sort((a: any, b: any) => b.count - a.count)
+
+  // Estatísticas por tipo
+  const costByType = {
+    preventiva: maintenances.filter(m => m.type === 'preventiva').reduce((sum, m) => sum + (m.cost || 0), 0),
+    corretiva: maintenances.filter(m => m.type === 'corretiva').reduce((sum, m) => sum + (m.cost || 0), 0),
+    preditiva: maintenances.filter(m => m.type === 'preditiva').reduce((sum, m) => sum + (m.cost || 0), 0)
+  }
+
+  // Itens mais utilizados
+  const allItems: string[] = []
+  maintenances.forEach(m => {
+    if (m.items && Array.isArray(m.items)) {
+      allItems.push(...m.items)
+    }
+  })
+  
+  const itemFrequency = allItems.reduce((acc, item) => {
+    acc[item] = (acc[item] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 
-  const vehicleTypeText = Object.entries(vehicleTypes)
-    .map(([type, count]) => `• ${type}: ${count} manutenções`)
+  const topItems = Object.entries(itemFrequency)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+    .map(([item, count]) => `• ${item}: ${count} vezes`)
     .join('\n')
 
+  // Manutenções mais caras
+  const topExpensive = [...maintenances]
+    .sort((a, b) => (b.cost || 0) - (a.cost || 0))
+    .slice(0, 10)
+    .map(m => {
+      const date = new Date(m.created_at).toLocaleDateString('pt-BR')
+      const vehicle = `${m.vehicle_plate} - ${m.vehicle_model}`
+      const cost = `R$ ${(m.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+      return `• ${date} - ${vehicle} - ${m.description} - ${cost}`
+    })
+    .join('\n')
+
+  // Histórico completo detalhado (últimas 20)
+  const detailedHistory = [...maintenances]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 20)
+    .map((m, index) => {
+      const date = new Date(m.created_at).toLocaleDateString('pt-BR')
+      const vehicle = `${m.vehicle_plate || 'N/A'} - ${m.vehicle_model || 'N/A'}`
+      const type = m.type ? m.type.charAt(0).toUpperCase() + m.type.slice(1) : 'N/A'
+      const km = m.current_km ? `${m.current_km.toLocaleString('pt-BR')} km` : 'N/A'
+      const cost = m.cost ? `R$ ${m.cost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ 0,00'
+      const nextKm = m.next_maintenance_km ? `${m.next_maintenance_km.toLocaleString('pt-BR')} km` : 'Não programada'
+      
+      let itemsList = ''
+      if (m.items && Array.isArray(m.items) && m.items.length > 0) {
+        itemsList = '\n  Itens: ' + m.items.slice(0, 3).join(', ')
+        if (m.items.length > 3) itemsList += ` (+${m.items.length - 3} mais)`
+      }
+      
+      let obs = ''
+      if (m.observations) {
+        obs = '\n  Obs: ' + m.observations.substring(0, 100)
+        if (m.observations.length > 100) obs += '...'
+      }
+      
+      return `${index + 1}. ${date} - ${vehicle}
+  Tipo: ${type} | KM: ${km} | Custo: ${cost}
+  Descrição: ${m.description || 'Sem descrição'}${itemsList}
+  Próxima Manutenção: ${nextKm}${obs}`
+    })
+    .join('\n\n')
+
+  // Análise por veículo
+  const vehicleAnalysis = sortedVehicles.slice(0, 10).map((v: any) => {
+    const avgCostVehicle = v.totalCost / v.count
+    return `• ${v.plate} - ${v.model}: ${v.count} manutenções - Total: R$ ${v.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - Média: R$ ${avgCostVehicle.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+  }).join('\n')
+
+  // Análise de manutenções programadas
+  const activeScheduled = scheduledMaintenances.filter(sm => sm.is_active)
+  const totalScheduled = activeScheduled.length
+  
+  // Manutenções vencidas e próximas
+  const overdueScheduled = activeScheduled.filter(sm => {
+    const vehicle = vehicles.find(v => v.id === sm.vehicle_id)
+    return vehicle && sm.next_maintenance_km <= (vehicle.current_km || 0)
+  })
+  
+  const upcomingScheduled = activeScheduled.filter(sm => {
+    const vehicle = vehicles.find(v => v.id === sm.vehicle_id)
+    if (!vehicle) return false
+    const kmRemaining = sm.next_maintenance_km - (vehicle.current_km || 0)
+    return kmRemaining > 0 && kmRemaining <= 1000
+  })
+
+  // Listar manutenções programadas por veículo
+  const scheduledByVehicle = activeScheduled.reduce((acc, sm) => {
+    const vehicleId = sm.vehicle_id
+    if (!acc[vehicleId]) {
+      const vehicle = vehicles.find(v => v.id === vehicleId)
+      acc[vehicleId] = {
+        plate: vehicle?.plate || 'N/A',
+        model: vehicle?.model || 'N/A',
+        currentKm: vehicle?.current_km || 0,
+        maintenances: []
+      }
+    }
+    acc[vehicleId].maintenances.push(sm)
+    return acc
+  }, {} as Record<string, any>)
+
+  const scheduledDetails = Object.values(scheduledByVehicle).map((v: any) => {
+    const vehicleInfo = `${v.plate} - ${v.model} (${v.currentKm.toLocaleString('pt-BR')} km)`
+    const maintenancesList = v.maintenances
+      .sort((a: any, b: any) => a.next_maintenance_km - b.next_maintenance_km)
+      .map((m: any) => {
+        const kmRemaining = m.next_maintenance_km - v.currentKm
+        const status = kmRemaining <= 0 ? '[VENCIDA]' : kmRemaining <= 1000 ? '[PROXIMA]' : '[OK]'
+        const kmInfo = kmRemaining <= 0 
+          ? `há ${Math.abs(kmRemaining).toLocaleString('pt-BR')} km` 
+          : `em ${kmRemaining.toLocaleString('pt-BR')} km`
+        return `    - ${m.maintenance_name} (${m.interval_km.toLocaleString('pt-BR')} km): ${m.next_maintenance_km.toLocaleString('pt-BR')} km ${status} ${kmInfo}`
+      })
+      .join('\n')
+    return `  ${vehicleInfo}\n${maintenancesList}`
+  }).join('\n\n')
+
+  // Manutenções vencidas detalhadas
+  const overdueDetails = overdueScheduled.map(sm => {
+    const vehicle = vehicles.find(v => v.id === sm.vehicle_id)
+    const vehicleInfo = vehicle ? `${vehicle.plate} - ${vehicle.model}` : 'Veículo não encontrado'
+    const kmOverdue = (vehicle?.current_km || 0) - sm.next_maintenance_km
+    return `• ${vehicleInfo}: ${sm.maintenance_name} - Vencida há ${kmOverdue.toLocaleString('pt-BR')} km`
+  }).join('\n')
+
+  // Próximas manutenções (urgentes)
+  const upcomingDetails = upcomingScheduled.map(sm => {
+    const vehicle = vehicles.find(v => v.id === sm.vehicle_id)
+    const vehicleInfo = vehicle ? `${vehicle.plate} - ${vehicle.model}` : 'Veículo não encontrado'
+    const kmRemaining = sm.next_maintenance_km - (vehicle?.current_km || 0)
+    return `• ${vehicleInfo}: ${sm.maintenance_name} - Faltam ${kmRemaining.toLocaleString('pt-BR')} km`
+  }).join('\n')
+
   return `
-RELATÓRIO DE MANUTENÇÕES
+RELATÓRIO DETALHADO DE MANUTENÇÕES
 
 RESUMO EXECUTIVO:
-Este relatório apresenta o histórico de manutenções realizadas, custos envolvidos e programação de manutenções futuras.
+Este relatório apresenta análise completa do histórico de manutenções realizadas, incluindo custos detalhados, estatísticas por veículo, itens utilizados e programação de manutenções preventivas.
 
-DADOS GERAIS:
-• Total de Manutenções no Período: ${total}
-• Manutenções Preventivas: ${preventive} (${total > 0 ? ((preventive / total) * 100).toFixed(1) : 0}%)
-• Manutenções Corretivas: ${corrective} (${total > 0 ? ((corrective / total) * 100).toFixed(1) : 0}%)
-• Manutenções Preditivas: ${predictive} (${total > 0 ? ((predictive / total) * 100).toFixed(1) : 0}%)
-• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-• Custo Médio por Manutenção: R$ ${avgCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+1. DADOS GERAIS DO PERÍODO
 
-MANUTENÇÕES POR TIPO DE VEÍCULO:
-${vehicleTypeText || '• Nenhuma manutenção encontrada'}
+Total de Manutenções Realizadas: ${total}
+- Manutenções Preventivas: ${preventive} (${total > 0 ? ((preventive / total) * 100).toFixed(1) : 0}%)
+- Manutenções Corretivas: ${corrective} (${total > 0 ? ((corrective / total) * 100).toFixed(1) : 0}%)
+- Manutenções Preditivas: ${predictive} (${total > 0 ? ((predictive / total) * 100).toFixed(1) : 0}%)
 
-MANUTENÇÕES RECENTES:
-${maintenances.slice(0, 5).map(m => `• ${m.description || 'Sem descrição'} - ${m.type} - R$ ${(m.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`).join('\n') || '• Nenhuma manutenção cadastrada'}
+Investimento Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+Custo Médio por Manutenção: R$ ${avgCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+Manutenções com Custo Registrado: ${maintenances.filter(m => m.cost && m.cost > 0).length}
 
-ANÁLISE DE CUSTOS:
-• Custo Total: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-• Custo Médio por Manutenção: R$ ${avgCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-• Manutenções com Custo: ${maintenances.filter(m => m.cost && m.cost > 0).length}
+2. ANÁLISE DE CUSTOS POR TIPO
 
-RECOMENDAÇÕES:
-1. Aumentar frequência de manutenção preventiva
-2. Implementar sistema de alertas automáticos
-3. Negociar contratos de manutenção com fornecedores
-4. Treinar equipe em manutenção básica
+Manutenções Preventivas:
+  Total: R$ ${costByType.preventiva.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+  Média: R$ ${preventive > 0 ? (costByType.preventiva / preventive).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+  Percentual do Total: ${totalCost > 0 ? ((costByType.preventiva / totalCost) * 100).toFixed(1) : 0}%
 
-OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema e reflete o histórico de manutenções cadastradas.
+Manutenções Corretivas:
+  Total: R$ ${costByType.corretiva.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+  Média: R$ ${corrective > 0 ? (costByType.corretiva / corrective).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+  Percentual do Total: ${totalCost > 0 ? ((costByType.corretiva / totalCost) * 100).toFixed(1) : 0}%
+
+Manutenções Preditivas:
+  Total: R$ ${costByType.preditiva.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+  Média: R$ ${predictive > 0 ? (costByType.preditiva / predictive).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+  Percentual do Total: ${totalCost > 0 ? ((costByType.preditiva / totalCost) * 100).toFixed(1) : 0}%
+
+3. ANÁLISE POR VEÍCULO (Top 10)
+
+Veículos com Mais Manutenções:
+${vehicleAnalysis || '• Nenhuma manutenção encontrada'}
+
+4. MANUTENÇÕES MAIS CARAS (Top 10)
+
+${topExpensive || '• Nenhuma manutenção registrada'}
+
+5. ITENS E PEÇAS MAIS UTILIZADOS (Top 10)
+
+${topItems || '• Nenhum item registrado'}
+
+6. HISTÓRICO DETALHADO DAS MANUTENÇÕES (Últimas 20)
+
+${detailedHistory || '• Nenhuma manutenção cadastrada'}
+
+7. MANUTENÇÕES PROGRAMADAS (PREVENTIVAS)
+
+Total de Manutenções Programadas Ativas: ${totalScheduled}
+Manutenções Vencidas: ${overdueScheduled.length}
+Manutenções Próximas do Vencimento (ate 1.000 km): ${upcomingScheduled.length}
+
+${overdueScheduled.length > 0 ? `ATENÇÃO - MANUTENÇÕES VENCIDAS (${overdueScheduled.length}):\n${overdueDetails}\n` : '[OK] Nenhuma manutenção vencida\n'}
+${upcomingScheduled.length > 0 ? `ALERTAS - MANUTENÇÕES PRÓXIMAS (${upcomingScheduled.length}):\n${upcomingDetails}\n` : '[OK] Nenhuma manutenção próxima do vencimento\n'}
+${totalScheduled > 0 ? `PROGRAMAÇÃO COMPLETA POR VEÍCULO:\n${scheduledDetails}` : 'Nenhuma manutenção programada cadastrada'}
+
+8. INDICADORES DE PERFORMANCE
+
+Taxa de Manutenção Preventiva: ${total > 0 ? ((preventive / total) * 100).toFixed(1) : 0}%
+  ${preventive / total >= 0.7 ? '[EXCELENTE] (≥70%)' : preventive / total >= 0.5 ? '[ADEQUADO] (50-69%)' : '[CRÍTICO] (<50%)'}
+
+Relação Preventiva/Corretiva: ${corrective > 0 ? (preventive / corrective).toFixed(2) : 'N/A'}
+  ${preventive / corrective >= 3 ? '[EXCELENTE] (≥3:1)' : preventive / corrective >= 1.5 ? '[ADEQUADO] (1.5-3:1)' : '[ATENÇÃO] (<1.5:1)'}
+
+Custo Médio Preventiva vs Corretiva:
+  Preventiva: R$ ${preventive > 0 ? (costByType.preventiva / preventive).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+  Corretiva: R$ ${corrective > 0 ? (costByType.corretiva / corrective).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+  ${corrective > 0 && preventive > 0 ? (costByType.corretiva / corrective > costByType.preventiva / preventive ? '[ALERTA] Corretivas são mais caras - Aumentar preventivas' : '[OK] Preventivas custam menos') : ''}
+
+9. GLOSSÁRIO DE TIPOS DE MANUTENÇÃO
+
+• PREVENTIVA: Manutenção programada para prevenir falhas e prolongar vida útil
+• CORRETIVA: Manutenção para correção de falhas ou defeitos já ocorridos
+• PREDITIVA: Manutenção baseada em análise de condição e previsão de falhas
+
+OBSERVAÇÕES FINAIS:
+Este relatório foi gerado automaticamente pelo Sistema de Gestão MAFFENG e reflete o histórico completo de manutenções cadastradas no período selecionado. Recomenda-se revisão periódica mensal deste relatório para acompanhamento de custos e planejamento estratégico.
+
+Data de Geração: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
   `
 }
 
