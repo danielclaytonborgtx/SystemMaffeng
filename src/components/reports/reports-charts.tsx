@@ -105,14 +105,18 @@ export function ReportsCharts() {
                   backgroundColor: "#1f2937",
                   border: "1px solid #374151",
                   borderRadius: "8px",
-                  color: "#b4b4b4",
+                  color: "#ffffff",
                   boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+                  fontSize: "14px",
+                  fontWeight: "500"
                 } : {
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "8px",
-                  color: "hsl(var(--popover-foreground))",
+                  color: "#1f2937",
                   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                  fontSize: "14px",
+                  fontWeight: "500"
                 }}
               />
               <Bar dataKey="value" fill="#3b82f6" name="Quantidade" />
@@ -189,14 +193,18 @@ export function ReportsCharts() {
                   backgroundColor: "#1f2937",
                   border: "1px solid #374151",
                   borderRadius: "8px",
-                  color: "#b4b4b4",
+                  color: "#ffffff",
                   boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+                  fontSize: "14px",
+                  fontWeight: "500"
                 } : {
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "8px",
-                  color: "hsl(var(--popover-foreground))",
+                  color: "#1f2937",
                   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                  fontSize: "14px",
+                  fontWeight: "500"
                 }}
               />
               <Bar dataKey="value" fill="#8b5cf6" name="Quantidade" />
