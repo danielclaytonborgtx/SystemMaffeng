@@ -166,7 +166,7 @@ export default function ColaboradoresPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-none">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
@@ -299,21 +299,21 @@ export default function ColaboradoresPage() {
             )}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {/* Desktop Table View */}
           <div className="hidden lg:block overflow-x-auto">
-            <Table>
+            <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[280px]">Colaborador</TableHead>
-                  <TableHead className="w-[180px]">Cargo</TableHead>
-                  <TableHead className="w-[160px]">Contratos Ativos</TableHead>
-                  <TableHead className="w-[140px]">Departamento</TableHead>
-                  <TableHead className="w-[120px]">Status</TableHead>
-                  <TableHead className="w-[140px]">
+                  <TableHead className="w-[260px]">Colaborador</TableHead>
+                  <TableHead className="w-[160px]">Cargo</TableHead>
+                  <TableHead className="w-[150px]">Contratos Ativos</TableHead>
+                  <TableHead className="w-[130px]">Departamento</TableHead>
+                  <TableHead className="w-[100px]">Status</TableHead>
+                  <TableHead className="w-[130px]">
                     Data de Contratação
                   </TableHead>
-                  <TableHead className="w-[120px]">Ações</TableHead>
+                  <TableHead className="w-[160px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -406,8 +406,8 @@ export default function ColaboradoresPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-1">
+                      <TableCell className="py-4 w-[160px]">
+                        <div className="flex items-center gap-1 justify-start w-full">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -415,7 +415,7 @@ export default function ColaboradoresPage() {
                               setSelectedEmployee(employee);
                               setIsEmployeeDialogOpen(true);
                             }}
-                            className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0"
                             title="Editar colaborador"
                           >
                             <Edit className="h-4 w-4 text-blue-600" />
@@ -427,7 +427,7 @@ export default function ColaboradoresPage() {
                               setSelectedEmployee(employee);
                               setIsViewDialogOpen(true);
                             }}
-                            className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0"
                             title="Visualizar colaborador"
                           >
                             <Eye className="h-4 w-4 text-purple-600" />
@@ -439,7 +439,7 @@ export default function ColaboradoresPage() {
                               setSelectedEmployee(employee);
                               setIsHistoryDialogOpen(true);
                             }}
-                            className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0"
                             title="Histórico do colaborador"
                           >
                             <History className="h-4 w-4 text-green-600" />
@@ -496,7 +496,7 @@ export default function ColaboradoresPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0 min-w-[160px]">
                     {getStatusBadge(employee.status)}
                     <div className="flex items-center gap-1">
                       <Button
@@ -506,7 +506,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee);
                           setIsEmployeeDialogOpen(true);
                         }}
-                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0"
                         title="Editar colaborador"
                       >
                         <Edit className="h-4 w-4 text-blue-600" />
@@ -518,7 +518,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee);
                           setIsViewDialogOpen(true);
                         }}
-                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0"
                         title="Visualizar colaborador"
                       >
                         <Eye className="h-4 w-4 text-purple-600" />
@@ -530,7 +530,7 @@ export default function ColaboradoresPage() {
                           setSelectedEmployee(employee);
                           setIsHistoryDialogOpen(true);
                         }}
-                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        className="cursor-pointer h-8 w-8 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0"
                         title="Histórico do colaborador"
                       >
                         <History className="h-4 w-4 text-green-600" />
