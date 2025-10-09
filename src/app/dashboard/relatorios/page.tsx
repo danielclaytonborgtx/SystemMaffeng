@@ -6,8 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Download, Calendar, FileText, Loader2 } from "lucide-react"
 import { ReportFiltersDialog } from "@/components/reports/report-filters-dialog"
 import { ReportsCharts } from "@/components/reports/reports-charts"
+import { AlertsCharts } from "@/components/reports/alerts-charts"
 import { usePDFGenerator } from "@/hooks/use-pdf-generator"
-import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels } from "@/hooks"
+import { useEmployees, useEquipment, useVehicles, useVehicleMaintenances, useVehicleFuels, useAlerts } from "@/hooks"
 import { toast } from "sonner"
 
 export default function RelatoriosPage() {
@@ -17,6 +18,7 @@ export default function RelatoriosPage() {
   const { data: vehicles, loading: vehiclesLoading } = useVehicles()
   const { data: maintenances, loading: maintenancesLoading } = useVehicleMaintenances()
   const { data: fuels, loading: fuelsLoading } = useVehicleFuels()
+  const { alerts, totalAlerts } = useAlerts()
 
   // Loading geral - qualquer hook carregando
   const loading = employeesLoading || equipmentLoading || vehiclesLoading || maintenancesLoading || fuelsLoading
@@ -31,7 +33,8 @@ export default function RelatoriosPage() {
         equipment,
         vehicles,
         maintenances,
-        fuels
+        fuels,
+        alerts
       }
     })
 
@@ -43,6 +46,13 @@ export default function RelatoriosPage() {
   }
 
   const reportTypes = [
+    {
+      title: "Relatório de Alertas",
+      description: `Resumo completo dos ${totalAlerts} alertas ativos do sistema`,
+      icon: FileText,
+      category: "alertas",
+      loading: false,
+    },
     {
       title: "Relatório de Equipamentos",
       description: `Movimentação, status e utilização dos ${equipment.length} equipamentos`,
@@ -106,7 +116,10 @@ export default function RelatoriosPage() {
           </CardContent>
         </Card>
       ) : (
-        <ReportsCharts />
+        <>
+          <AlertsCharts />
+          <ReportsCharts />
+        </>
       )}
 
       <div>

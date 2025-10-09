@@ -14,6 +14,7 @@ interface PDFGeneratorOptions {
     vehicles?: any[]
     maintenances?: any[]
     fuels?: any[]
+    alerts?: any[]
   }
 }
 
@@ -51,6 +52,9 @@ export function usePDFGenerator() {
       let yPosition = 60
       
       switch (filename.toLowerCase()) {
+        case "relatorio-alertas":
+          reportData = generateAlertsReportData(data?.alerts || [])
+          break
         case "relatorio-equipamentos":
           reportData = generateEquipmentReportData(data?.equipment || [])
           break
@@ -109,6 +113,72 @@ export function usePDFGenerator() {
 }
 
 // Funções auxiliares para gerar dados dos relatórios
+function generateAlertsReportData(alerts: any[]): string {
+  const total = alerts.length
+  const critical = alerts.filter(a => a.type === 'critical').length
+  const warning = alerts.filter(a => a.type === 'warning').length
+  const info = alerts.filter(a => a.type === 'info').length
+
+  // Agrupar por categoria
+  const categories = alerts.reduce((acc, item) => {
+    acc[item.category] = (acc[item.category] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const categoryText = Object.entries(categories)
+    .map(([category, count]) => `• ${category}: ${count} alerta(s) (${total > 0 ? ((count / total) * 100).toFixed(1) : 0}%)`)
+    .join('\n')
+
+  // Listar alertas críticos
+  const criticalAlerts = alerts.filter(a => a.type === 'critical')
+  const criticalText = criticalAlerts.length > 0
+    ? criticalAlerts.map(a => `• ${a.title} - ${a.description}`).join('\n')
+    : '• Nenhum alerta crítico no momento'
+
+  // Listar alertas de atenção
+  const warningAlerts = alerts.filter(a => a.type === 'warning')
+  const warningText = warningAlerts.length > 0
+    ? warningAlerts.slice(0, 5).map(a => `• ${a.title} - ${a.description}`).join('\n')
+    : '• Nenhum alerta de atenção no momento'
+
+  return `
+RELATÓRIO DE ALERTAS DO SISTEMA
+
+RESUMO EXECUTIVO:
+Este relatório apresenta um panorama completo dos alertas ativos no sistema, incluindo alertas críticos, avisos e informações importantes que requerem atenção.
+
+DADOS GERAIS:
+• Total de Alertas: ${total}
+• Alertas Críticos: ${critical} (${total > 0 ? ((critical / total) * 100).toFixed(1) : 0}%)
+• Alertas de Atenção: ${warning} (${total > 0 ? ((warning / total) * 100).toFixed(1) : 0}%)
+• Alertas Informativos: ${info} (${total > 0 ? ((info / total) * 100).toFixed(1) : 0}%)
+
+DISTRIBUIÇÃO POR CATEGORIA:
+${categoryText || '• Nenhuma categoria encontrada'}
+
+ALERTAS CRÍTICOS (Ação Urgente Necessária):
+${criticalText}
+
+ALERTAS DE ATENÇÃO (Próximos ${Math.min(5, warningAlerts.length)}):
+${warningText}
+
+ANÁLISE DE PRIORIDADE:
+• Nível Crítico: ${critical} alerta(s) - Requer ação imediata
+• Nível Atenção: ${warning} alerta(s) - Requer planejamento
+• Nível Info: ${info} alerta(s) - Para conhecimento
+
+RECOMENDAÇÕES:
+1. Priorizar resolução de alertas críticos relacionados a documentação vencida
+2. Agendar manutenções preventivas para evitar alertas críticos futuros
+3. Implementar rotina de verificação semanal de alertas
+4. Criar protocolo de resposta rápida para alertas críticos
+5. Manter atualizado o cadastro de vencimentos e prazos
+
+OBSERVAÇÕES:
+Este relatório foi gerado automaticamente pelo sistema e reflete o estado atual dos alertas. É recomendado revisar este relatório periodicamente para garantir que todas as ações necessárias sejam tomadas em tempo hábil.
+  `
+}
+
 function generateEquipmentReportData(equipment: any[]): string {
   const total = equipment.length
   const available = equipment.filter(e => e.status === 'Disponível').length

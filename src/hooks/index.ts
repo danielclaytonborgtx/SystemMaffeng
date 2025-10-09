@@ -26,6 +26,7 @@ export { useVirtualPagination } from "./use-virtual-pagination";
 export { useServerPagination } from "./use-server-pagination";
 export { useEmployeesPaginated } from "./use-employees-paginated";
 export { useAuthPersistence } from "./use-auth-persistence";
+export { useAlerts } from "./use-alerts";
 
 // React Query hooks (otimizados com cache)
 export {
