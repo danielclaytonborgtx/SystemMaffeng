@@ -744,65 +744,205 @@ function generateEmployeeReportData(employees: any[]): string {
   const onVacation = employees.filter(e => e.status === 'vacation').length
   const away = employees.filter(e => e.status === 'away').length
 
-  // Agrupar por departamento
-  const departments = employees.reduce((acc, item) => {
-    const dept = item.department || 'Não informado'
-    acc[dept] = (acc[dept] || 0) + 1
+  // Análise por departamento
+  const departmentAnalysis = employees.reduce((acc, emp) => {
+    const dept = emp.department || 'Não informado'
+    if (!acc[dept]) {
+      acc[dept] = {
+        total: 0,
+        active: 0,
+        vacation: 0,
+        away: 0,
+        inactive: 0,
+        contracts: 0
+      }
+    }
+    acc[dept].total += 1
+    acc[dept][emp.status] += 1
+    if (emp.contracts && emp.contracts.length > 0) {
+      acc[dept].contracts += emp.contracts.length
+    }
     return acc
-  }, {} as Record<string, number>)
+  }, {} as Record<string, any>)
 
-  const departmentText = Object.entries(departments)
-    .map(([dept, count]) => `• ${dept}: ${count} colaboradores (${total > 0 ? (((count as number) / total) * 100).toFixed(1) : 0}%)`)
-    .join('\n')
+  // Top 10 departamentos por quantidade
+  const topDepartments = Object.entries(departmentAnalysis)
+    .map(([dept, data]: [string, any]) => ({
+      department: dept,
+      total: data.total,
+      active: data.active,
+      percentage: total > 0 ? ((data.total / total) * 100).toFixed(1) : 0,
+      contracts: data.contracts
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10)
 
-  // Agrupar por cargo
-  const positions = employees.reduce((acc, item) => {
-    const position = item.position || 'Não informado'
-    acc[position] = (acc[position] || 0) + 1
+  // Análise por cargo
+  const positionAnalysis = employees.reduce((acc, emp) => {
+    const pos = emp.position || 'Não informado'
+    if (!acc[pos]) {
+      acc[pos] = {
+        total: 0,
+        departments: new Set(),
+        avgContracts: 0,
+        totalContracts: 0
+      }
+    }
+    acc[pos].total += 1
+    if (emp.department) acc[pos].departments.add(emp.department)
+    if (emp.contracts && emp.contracts.length > 0) {
+      acc[pos].totalContracts += emp.contracts.length
+    }
     return acc
-  }, {} as Record<string, number>)
+  }, {} as Record<string, any>)
 
-  const positionText = Object.entries(positions)
-    .map(([position, count]) => `• ${position}: ${count} colaboradores`)
-    .join('\n')
+  // Top 10 cargos mais comuns
+  const topPositions = Object.entries(positionAnalysis)
+    .map(([pos, data]: [string, any]) => ({
+      position: pos,
+      total: data.total,
+      departments: Array.from(data.departments).join(', '),
+      avgContracts: data.total > 0 ? (data.totalContracts / data.total).toFixed(1) : 0
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10)
+
+  // Análise temporal (últimos 12 meses)
+  const twelveMonthsAgo = new Date()
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
+  
+  const recentHires = employees.filter(emp => {
+    const hireDate = emp.hire_date ? new Date(emp.hire_date) : new Date(emp.created_at)
+    return hireDate >= twelveMonthsAgo
+  })
+
+  // Top 10 colaboradores mais antigos
+  const oldestEmployees = employees
+    .filter(emp => emp.hire_date || emp.created_at)
+    .sort((a, b) => {
+      const dateA = new Date(a.hire_date || a.created_at)
+      const dateB = new Date(b.hire_date || b.created_at)
+      return dateA.getTime() - dateB.getTime()
+    })
+    .slice(0, 10)
+
+  // Top 10 colaboradores mais recentes
+  const newestEmployees = employees
+    .filter(emp => emp.created_at)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 10)
+
+  // Análise de contratos
+  const employeesWithContracts = employees.filter(emp => emp.contracts && emp.contracts.length > 0)
+  const totalContracts = employees.reduce((sum, emp) => sum + (emp.contracts?.length || 0), 0)
+
+  // Lista detalhada dos últimos 20 colaboradores
+  const detailedEmployees = employees
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 20)
+    .map(emp => {
+      const hireDate = emp.hire_date ? new Date(emp.hire_date).toLocaleDateString('pt-BR') : 'Não informado'
+      const contracts = emp.contracts && emp.contracts.length > 0 ? emp.contracts.length : 0
+      const statusText = emp.status === 'active' ? 'Ativo' : 
+                        emp.status === 'vacation' ? 'Férias' : 
+                        emp.status === 'away' ? 'Afastado' : 'Inativo'
+      return `• ${emp.name} - ${emp.code} - ${emp.position || 'Sem cargo'} - ${emp.department || 'Sem departamento'} - ${statusText} - ${hireDate} - ${contracts} contrato(s)`
+    }).join('\n')
 
   return `
-RELATÓRIO DE COLABORADORES
+RELATÓRIO DETALHADO DE COLABORADORES
 
 RESUMO EXECUTIVO:
-Este relatório apresenta a análise de produtividade e utilização de equipamentos por colaborador.
+Este relatório apresenta análise completa dos colaboradores, distribuição por departamentos, cargos, análise temporal e indicadores de performance organizacional.
 
-DADOS GERAIS:
-• Total de Colaboradores: ${total}
-• Colaboradores Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
-• Colaboradores Inativos: ${inactive} (${total > 0 ? ((inactive / total) * 100).toFixed(1) : 0}%)
-• Colaboradores em Férias: ${onVacation} (${total > 0 ? ((onVacation / total) * 100).toFixed(1) : 0}%)
-• Colaboradores Afastados: ${away} (${total > 0 ? ((away / total) * 100).toFixed(1) : 0}%)
+DADOS GERAIS DO PERÍODO
 
-DISTRIBUIÇÃO POR DEPARTAMENTO:
-${departmentText || '• Nenhum departamento encontrado'}
+Total de Colaboradores: ${total}
+Colaboradores Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
+Colaboradores Inativos: ${inactive} (${total > 0 ? ((inactive / total) * 100).toFixed(1) : 0}%)
+Colaboradores em Férias: ${onVacation} (${total > 0 ? ((onVacation / total) * 100).toFixed(1) : 0}%)
+Colaboradores Afastados: ${away} (${total > 0 ? ((away / total) * 100).toFixed(1) : 0}%)
+Colaboradores com Contratos: ${employeesWithContracts.length} (${total > 0 ? ((employeesWithContracts.length / total) * 100).toFixed(1) : 0}%)
 
-DISTRIBUIÇÃO POR CARGO:
-${positionText || '• Nenhum cargo encontrado'}
+ANÁLISE POR DEPARTAMENTO (Top 10)
 
-COLABORADORES RECENTES:
-${employees.slice(0, 5).map(e => `• ${e.name} - ${e.position || 'Sem cargo'} - ${e.department || 'Sem departamento'}`).join('\n') || '• Nenhum colaborador cadastrado'}
+${topDepartments.length > 0 
+  ? topDepartments.map((dept, index) => 
+      `${index + 1}. ${dept.department}: ${dept.total} colaboradores (${dept.percentage}%) - Ativos: ${dept.active} - Contratos: ${dept.contracts}`
+    ).join('\n')
+  : '• Nenhum departamento encontrado'}
 
-ANÁLISE DE STATUS:
-• Colaboradores Ativos: ${active}
-• Colaboradores Inativos: ${inactive}
-• Colaboradores em Férias: ${onVacation}
-• Colaboradores Afastados: ${away}
-• Taxa de Atividade: ${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%
+ANÁLISE DE CARGOS (Top 10)
 
-RECOMENDAÇÕES:
-1. Realizar treinamentos para colaboradores pendentes
-2. Implementar programa de capacitação contínua
-3. Avaliar redistribuição de equipamentos
-4. Criar sistema de reconhecimento por produtividade
+${topPositions.length > 0 
+  ? topPositions.map((pos, index) => 
+      `${index + 1}. ${pos.position}: ${pos.total} colaboradores - Departamentos: ${pos.departments} - Média de Contratos: ${pos.avgContracts}`
+    ).join('\n')
+  : '• Nenhum cargo encontrado'}
 
-OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema e reflete os dados dos colaboradores cadastrados.
+COLABORADORES DESTAQUE (Top 10)
+
+Colaboradores Mais Antigos:
+${oldestEmployees.length > 0 
+  ? oldestEmployees.map((emp, index) => {
+      const hireDate = new Date(emp.hire_date || emp.created_at).toLocaleDateString('pt-BR')
+      return `${index + 1}. ${emp.name} - ${emp.position || 'Sem cargo'} - Desde: ${hireDate}`
+    }).join('\n')
+  : '• Nenhum colaborador com data de admissão'}
+
+Colaboradores Mais Recentes:
+${newestEmployees.length > 0 
+  ? newestEmployees.map((emp, index) => {
+      const hireDate = new Date(emp.created_at).toLocaleDateString('pt-BR')
+      return `${index + 1}. ${emp.name} - ${emp.position || 'Sem cargo'} - Cadastrado: ${hireDate}`
+    }).join('\n')
+  : '• Nenhum colaborador encontrado'}
+
+LISTA DETALHADA DE COLABORADORES (Últimos 20)
+
+${detailedEmployees || '• Nenhum colaborador cadastrado'}
+
+INDICADORES DE PERFORMANCE
+
+Taxa de Atividade: ${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%
+Taxa de Retenção: ${total > 0 ? (((total - inactive) / total) * 100).toFixed(1) : 0}%
+Distribuição por Status:
+• Ativos: ${active} (${total > 0 ? ((active / total) * 100).toFixed(1) : 0}%)
+• Inativos: ${inactive} (${total > 0 ? ((inactive / total) * 100).toFixed(1) : 0}%)
+• Férias: ${onVacation} (${total > 0 ? ((onVacation / total) * 100).toFixed(1) : 0}%)
+• Afastados: ${away} (${total > 0 ? ((away / total) * 100).toFixed(1) : 0}%)
+
+Análise de Contratos:
+• Total de Contratos: ${totalContracts}
+• Média de Contratos por Colaborador: ${total > 0 ? (totalContracts / total).toFixed(1) : 0}
+• Colaboradores com Contratos: ${employeesWithContracts.length}
+
+ANÁLISE TEMPORAL
+
+Contratações Recentes (12 meses): ${recentHires.length}
+Contratações por Período:
+• Últimos 3 meses: ${employees.filter(emp => {
+  const date = emp.hire_date ? new Date(emp.hire_date) : new Date(emp.created_at)
+  const threeMonthsAgo = new Date()
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+  return date >= threeMonthsAgo
+}).length}
+• Últimos 6 meses: ${employees.filter(emp => {
+  const date = emp.hire_date ? new Date(emp.hire_date) : new Date(emp.created_at)
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  return date >= sixMonthsAgo
+}).length}
+• Últimos 12 meses: ${recentHires.length}
+
+ALERTAS E RECOMENDAÇÕES
+
+${active / total < 0.8 ? '[ATENÇÃO] Taxa de atividade abaixo de 80% - Revisar status dos colaboradores\n' : ''}${away > total * 0.1 ? '[ALERTA] Mais de 10% dos colaboradores estão afastados - Investigar causas\n' : ''}${onVacation > total * 0.15 ? '[ATENÇÃO] Mais de 15% dos colaboradores em férias - Planejar cobertura\n' : ''}${employeesWithContracts.length / total < 0.5 ? '[OPORTUNIDADE] Menos de 50% dos colaboradores têm contratos - Expandir atribuições\n' : ''}${recentHires.length < total * 0.1 ? '[CRESCIMENTO] Poucas contratações recentes - Considerar expansão da equipe\n' : ''}
+
+OBSERVAÇÕES FINAIS:
+Este relatório foi gerado automaticamente pelo Sistema de Gestão MAFFENG e reflete o histórico completo de colaboradores cadastrados. Recomenda-se revisão periódica mensal deste relatório para acompanhamento de indicadores de RH e planejamento estratégico.
+
+Data de Geração: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
   `
 }
 
