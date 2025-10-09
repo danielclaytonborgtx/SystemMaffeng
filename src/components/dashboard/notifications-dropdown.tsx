@@ -381,7 +381,7 @@ export function NotificationsDropdown() {
               )}
             </ScrollArea>
             {allNotifications.length > 0 && (
-              <div className="px-2 sm:px-3 pt-2 border-t bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="px-2 sm:px-3 pt-2 border-t bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
                 <Button
                   variant="default"
                   size="sm"
@@ -389,7 +389,7 @@ export function NotificationsDropdown() {
                     router.push("/dashboard/alertas");
                     setIsOpen(false);
                   }}
-                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 mb-0 text-xs sm:text-sm"
+                  className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 mb-0 text-xs sm:text-sm"
                 >
                   <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Ver Todos os Alertas</span>

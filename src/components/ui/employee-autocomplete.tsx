@@ -150,7 +150,7 @@ function EmployeeAutocomplete({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={handleClear}
               >
                 ×
@@ -173,23 +173,23 @@ function EmployeeAutocomplete({
         {isOpen && filteredEmployees.length > 0 && (
           <div
             ref={dropdownRef}
-            className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+            className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto"
           >
             {filteredEmployees.map((employee) => (
               <div
                 key={employee.id}
                 className={cn(
-                  "flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50",
-                  selectedEmployee?.id === employee.id && "bg-blue-50"
+                  "flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700",
+                  selectedEmployee?.id === employee.id && "bg-blue-50 dark:bg-blue-900/30"
                 )}
                 onClick={() => handleEmployeeSelect(employee)}
               >
                 <div className="flex flex-col">
-                  <span className="font-medium text-gray-900">{employee.name}</span>
-                  <span className="text-sm text-gray-500">Código: {employee.code}</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{employee.name}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Código: {employee.code}</span>
                 </div>
                 {selectedEmployee?.id === employee.id && (
-                  <Check className="h-4 w-4 text-blue-600" />
+                  <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 )}
               </div>
             ))}
@@ -198,8 +198,8 @@ function EmployeeAutocomplete({
 
         {/* Mensagem quando não há resultados */}
         {isOpen && inputValue.trim() && filteredEmployees.length === 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3">
-            <p className="text-sm text-gray-500 text-center">
+          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3">
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
               Nenhum colaborador encontrado
             </p>
           </div>
@@ -208,14 +208,14 @@ function EmployeeAutocomplete({
 
       {/* Mensagem de erro */}
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
 
       {/* Informações do colaborador selecionado */}
       {selectedEmployee && (
-        <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-md">
-          <Check className="h-4 w-4 text-green-600" />
-          <span className="text-sm text-green-700">
+        <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <span className="text-sm text-green-700 dark:text-green-300">
             Colaborador selecionado: <strong>{selectedEmployee.name}</strong> ({selectedEmployee.code})
           </span>
         </div>

@@ -125,16 +125,16 @@ export function DashboardSidebar() {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg group",
                   isActive
-                    ? "bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 shadow-lg scale-105"
-                    : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:text-gray-700 hover:shadow-md"
+                    ? "bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-100 shadow-lg scale-105"
+                    : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:text-gray-700 dark:hover:text-gray-100 hover:shadow-md"
                 )}
               >
                 <item.icon
                   className={cn(
                     "h-5 w-5 flex-shrink-0 transition-colors duration-300",
                     isActive
-                      ? "text-gray-800"
-                      : "text-sidebar-foreground group-hover:text-gray-800"
+                      ? "text-gray-800 dark:text-gray-100"
+                      : "text-sidebar-foreground group-hover:text-gray-800 dark:group-hover:text-gray-100"
                   )}
                 />
                 {!isCollapsed && (

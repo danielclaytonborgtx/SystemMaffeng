@@ -46,8 +46,6 @@ import {
   Edit,
   Save,
   X,
-  Pause,
-  Play,
   Settings,
 } from "lucide-react";
 import {
@@ -336,16 +334,6 @@ export function MaintenanceDialog({
     setCustomIntervals({});
   };
 
-  const handlePauseMaintenance = (typeId: string) => {
-    setScheduledMaintenances((prev) =>
-      prev.map((item) => {
-        if (item.id === typeId) {
-          return { ...item, enabled: false, nextKm: 0 };
-        }
-        return item;
-      })
-    );
-  };
 
   const handleSaveScheduledMaintenances = async () => {
     if (!vehicle?.id) {
@@ -1073,8 +1061,8 @@ export function MaintenanceDialog({
                           <div
                             className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3 transition-all duration-200 ${
                               maintenance.enabled
-                                ? "border-blue-200 bg-blue-50 shadow-sm"
-                                : "border-gray-200 hover:border-gray-300"
+                                ? "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                             }`}
                           >
                             <div className="flex items-center space-x-3">
@@ -1083,10 +1071,10 @@ export function MaintenanceDialog({
                                 onCheckedChange={(checked) =>
                                   handleScheduleToggle(maintenance.id, !!checked)
                                 }
-                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 dark:border-gray-400 dark:data-[state=checked]:bg-blue-500 dark:data-[state=checked]:border-blue-500"
                               />
                               <div className="flex-1">
-                                <div className="font-medium text-sm text-gray-900">
+                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
                                   {maintenance.name}
                                 </div>
                                 {editingMaintenance === maintenance.id ? (
@@ -1101,10 +1089,10 @@ export function MaintenanceDialog({
                                       className="w-24 h-8 text-xs"
                                       placeholder="Intervalo"
                                     />
-                                    <span className="text-xs text-gray-500">km</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">km</span>
                                   </div>
                                 ) : (
-                                  <div className="text-xs text-gray-500 mt-1">
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     Intervalo:{" "}
                                     {maintenance.intervalKm.toLocaleString("pt-BR")}{" "}
                                     km
@@ -1116,13 +1104,13 @@ export function MaintenanceDialog({
                             <div className="flex items-center space-x-2">
                               {maintenance.enabled && (
                                 <div className="text-left sm:text-right">
-                                  <div className="text-xs font-medium text-gray-600">
+                                  <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
                                     Próxima manutenção:
                                   </div>
-                                  <div className="text-sm font-bold text-blue-600">
+                                  <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
                                     {maintenance.nextKm.toLocaleString("pt-BR")} km
                                   </div>
-                                  <div className="text-xs text-gray-500 mt-1">
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {vehicle && vehicle.current_km
                                       ? (() => {
                                           const kmDiff = maintenance.nextKm - vehicle.current_km;
@@ -1144,7 +1132,7 @@ export function MaintenanceDialog({
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleSaveMaintenance(maintenance.id)}
-                                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                      className="h-8 w-8 p-0 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
                                       title="Salvar"
                                     >
                                       <Save className="h-4 w-4" />
@@ -1153,7 +1141,7 @@ export function MaintenanceDialog({
                                       variant="ghost"
                                       size="sm"
                                       onClick={handleCancelEdit}
-                                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      className="h-8 w-8 p-0 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                                       title="Cancelar"
                                     >
                                       <X className="h-4 w-4" />
@@ -1170,27 +1158,6 @@ export function MaintenanceDialog({
                                     >
                                       <Edit className="h-4 w-4" />
                                     </Button>
-                                    {maintenance.enabled ? (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handlePauseMaintenance(maintenance.id)}
-                                        className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                                        title="Pausar manutenção"
-                                      >
-                                        <Pause className="h-4 w-4" />
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleScheduleToggle(maintenance.id, true)}
-                                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                        title="Reativar manutenção"
-                                      >
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    )}
                                   </>
                                 )}
                               </div>

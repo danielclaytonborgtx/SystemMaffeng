@@ -113,21 +113,21 @@ export default function RelatoriosPage() {
         <h2 className="text-2xl font-bold text-foreground mb-6">Relatórios Disponíveis</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reportTypes.map((report, index) => (
-            <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-gray-50/50">
+            <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
-                      <report.icon className="h-5 w-5 text-blue-600" />
+                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                      <report.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
                         {report.title}
                       </CardTitle>
                     </div>
                   </div>
                 </div>
-                <CardDescription className="text-sm text-gray-600 mt-2 leading-relaxed">
+                <CardDescription className="text-sm text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
                   {loading ? (
                     <div className="space-y-1">
                       <Skeleton className="h-4 w-full" />
@@ -144,7 +144,7 @@ export default function RelatoriosPage() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full justify-center border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 cursor-pointer"
+                      className="w-full justify-center border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200 cursor-pointer"
                     >
                       <Calendar className="mr-2 h-4 w-4" />
                       Configurar Filtros
@@ -152,7 +152,7 @@ export default function RelatoriosPage() {
                   </ReportFiltersDialog>
                   <Button 
                     size="sm" 
-                    className="w-full justify-center bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+                    className="w-full justify-center bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
                     onClick={() => handleGeneratePDF(report.category, report.title)}
                     disabled={isGenerating || report.loading}
                   >

@@ -534,8 +534,8 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
               {/* Seção de Adicionar Contrato */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
-                <Label htmlFor="contracts" className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
+                <Label htmlFor="contracts" className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                   Adicionar Novo Contrato
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -571,8 +571,8 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
               {formData.contracts.length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-600" />
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                       Contratos Ativos ({formData.contracts.length})
                     </h4>
                   </div>
@@ -580,11 +580,11 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                     {formData.contracts.map((contract, index) => (
                       <div
                         key={contract}
-                        className="group relative bg-white border border-gray-200 rounded-lg p-2 sm:p-3 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                        className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 sm:p-3 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all duration-200"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <h5 className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                            <h5 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                               {contract}
                             </h5>
                           </div>
@@ -592,7 +592,7 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-5 w-5 sm:h-6 sm:w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600 cursor-pointer flex-shrink-0 ml-2"
+                            className="h-5 w-5 sm:h-6 sm:w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 cursor-pointer flex-shrink-0 ml-2"
                             onClick={() => removeContract(contract)}
                           >
                             <Trash2 className="h-3 w-3" />
@@ -603,10 +603,10 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-sm text-gray-500 mb-1">Nenhum contrato adicionado</p>
-                  <p className="text-xs text-gray-400">Adicione contratos usando o campo acima</p>
+                <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                  <FileText className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Nenhum contrato adicionado</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Adicione contratos usando o campo acima</p>
                 </div>
               )}
             </CardContent>
