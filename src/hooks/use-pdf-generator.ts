@@ -234,7 +234,7 @@ ANÁLISE DE PRIORIDADE:
 • Nível Info: ${info} alerta(s) - Para conhecimento
 
 OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o período especificado' : 'com base nos alertas ativos'}. É recomendado revisar este relatório periodicamente para garantir que todas as ações necessárias sejam tomadas em tempo hábil.
+Este relatório foi gerado automaticamente pelo sistema de Gestão MAFFENG ${period ? 'para o período especificado' : 'com base nos alertas ativos'}. É recomendado revisar este relatório periodicamente para garantir que todas as ações necessárias sejam tomadas em tempo hábil.
   `
 }
 
@@ -338,7 +338,7 @@ ANÁLISE DE UTILIZAÇÃO:
 • Taxa de Manutenção: ${total > 0 ? ((maintenance / total) * 100).toFixed(1) : 0}%
 
 OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o período especificado' : 'com base nos dados atuais'} e reflete a situação dos equipamentos e suas movimentações.
+Este relatório foi gerado automaticamente pelo sistema de Gestão MAFFENG ${period ? 'para o período especificado' : 'com base nos dados atuais'} e reflete a situação dos equipamentos e suas movimentações.
   `
 }
 
@@ -475,7 +475,7 @@ ANÁLISE DE EFICIÊNCIA:
 • Custo Médio por Km: R$ ${totalCurrentKm > 0 ? (totalMaintenanceCost / totalCurrentKm).toLocaleString('pt-BR', { minimumFractionDigits: 4 }) : '0,0000'}
 
 OBSERVAÇÕES:
-Este relatório foi gerado automaticamente pelo sistema ${period ? 'para o período especificado' : 'com base nos dados atuais'} e reflete a situação da frota, manutenções e abastecimentos.
+Este relatório foi gerado automaticamente pelo sistema de Gestão MAFFENG ${period ? 'para o período especificado' : 'com base nos dados atuais'} e reflete a situação da frota, manutenções e abastecimentos.
   `
 }
 
