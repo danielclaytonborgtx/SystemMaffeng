@@ -223,13 +223,6 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
     })
   }
 
-  const handleContractKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addContract()
-    }
-  }
-
   // Função para obter ícone de status
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -539,14 +532,32 @@ export function EmployeeDialog({ open, onOpenChange, employee, onClose, onSucces
                   Adicionar Novo Contrato
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    id="contracts"
+                  <Select
                     value={newContract}
-                    onChange={(e) => setNewContract(e.target.value)}
-                    onKeyPress={handleContractKeyPress}
-                    placeholder="Digite o nome do contrato..."
-                    className="flex-1"
-                  />
+                    onValueChange={(value) => setNewContract(value)}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecione o contrato..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BB MATO GROSSO">BB MATO GROSSO</SelectItem>
+                      <SelectItem value="BB MATO GROSSO LOTE 2">BB MATO GROSSO LOTE 2</SelectItem>
+                      <SelectItem value="BB MATO GROSSO DO SUL">BB MATO GROSSO DO SUL</SelectItem>
+                      <SelectItem value="BB VARGINHA">BB VARGINHA</SelectItem>
+                      <SelectItem value="BB VALADARES">BB VALADARES</SelectItem>
+                      <SelectItem value="BB DIVINOPOLIS">BB DIVINOPOLIS</SelectItem>
+                      <SelectItem value="BB SÃO PAULO">BB SÃO PAULO</SelectItem>
+                      <SelectItem value="BB SALINAS">BB SALINAS</SelectItem>
+                      <SelectItem value="SECRETARIA DA SAUDE">SECRETARIA DA SAUDE</SelectItem>
+                      <SelectItem value="SECRETARIA DA ECONOMIA">SECRETARIA DA ECONOMIA</SelectItem>
+                      <SelectItem value="SECRETARIA DE ADMINISTRAÇÃO">SECRETARIA DE ADMINISTRAÇÃO</SelectItem>
+                      <SelectItem value="CORREIOS - GO">CORREIOS - GO</SelectItem>
+                      <SelectItem value="IMPOSTOS">IMPOSTOS</SelectItem>
+                      <SelectItem value="ESCRITÓRIO">ESCRITÓRIO</SelectItem>
+                      <SelectItem value="GALPÃO 2">GALPÃO 2</SelectItem>
+                      <SelectItem value="GALPÃO MARCENARIA">GALPÃO MARCENARIA</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Button
                     type="button"
                     variant="default"
