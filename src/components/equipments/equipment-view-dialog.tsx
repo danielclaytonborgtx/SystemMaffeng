@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Package, Hash, DollarSign, Calendar, MapPin, FileText, Truck, Wrench, User, Building, CheckCircle, XCircle } from "lucide-react"
 import { useEquipmentMovements } from "@/hooks/use-supabase"
 import { supabase } from "@/lib/supabase"
+import { useEmployeesQuery } from "@/hooks"
 
 interface EquipmentViewDialogProps {
   open: boolean
@@ -78,6 +79,13 @@ const formatChecklist = (checklist: any) => {
 
 export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: EquipmentViewDialogProps) {
   const { data: movements, loading: movementsLoading } = useEquipmentMovements(equipment?.id)
+  const { data: employees = [] } = useEmployeesQuery()
+  
+  const getEmployeeNameById = (employeeId: string | null) => {
+    if (!employeeId) return null
+    const employee = employees.find((emp: any) => emp.id === employeeId)
+    return employee?.name || null
+  }
   
   // Função para baixar arquivo do Supabase Storage
   const handleDownloadFile = async (filePath: string) => {
@@ -182,7 +190,7 @@ export function EquipmentViewDialog({ open, onOpenChange, equipment, onClose }: 
                     {equipment.assigned_to && (
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-orange-600" />
-                        <span>Responsável: {equipment.assigned_to}</span>
+                        <span>Responsável: {getEmployeeNameById(equipment.assigned_to) || "-"}</span>
                       </div>
                     )}
                   </div>
